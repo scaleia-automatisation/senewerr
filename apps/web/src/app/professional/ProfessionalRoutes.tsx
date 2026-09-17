@@ -4,9 +4,10 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { PROFESSIONAL_NAV } from '@/config/navigation'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 
-const AgendaPage         = lazy(() => import('@/features/professional/AgendaPage'))
-const ConsultationPage   = lazy(() => import('@/features/professional/ConsultationPage'))
+const AgendaPage          = lazy(() => import('@/features/professional/AgendaPage'))
+const ConsultationPage    = lazy(() => import('@/features/professional/ConsultationPage'))
 const NewPrescriptionPage = lazy(() => import('@/features/professional/NewPrescriptionPage'))
+const SubscriptionPage    = lazy(() => import('@/features/billing/SubscriptionPage'))
 
 export default function ProfessionalRoutes() {
   return (
@@ -22,6 +23,7 @@ export default function ProfessionalRoutes() {
         <Route path="teleconsultation/*"       element={<ComingSoon title="Téléconsultation" />} />
         <Route path="revenus/*"                element={<ComingSoon title="Revenus" />} />
         <Route path="notifications"            element={<ComingSoon title="Notifications" />} />
+        <Route path="abonnement"               element={<SubscriptionPage />} />
         <Route path="parametres/*"             element={<ComingSoon title="Paramètres" />} />
         <Route path="*"                        element={<ComingSoon title="Page introuvable" />} />
       </Route>

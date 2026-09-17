@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { requireAuth } from '../_shared/auth.ts'
 import { errorResponse, successResponse } from '../_shared/error.ts'
+import { chargeCredits, completeGeneration, refundCredits } from '../_shared/credits.ts'
 
 type ReportType = 'compte_rendu_consultation' | 'lettre_medecin' | 'certificat_medical'
 
@@ -24,7 +25,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
-    const profile = await requireAuth(req, supabase)
+    const profile = await requireAuth(req)
 
     const { consultationId, reportType, recipientName, purpose } = await req.json()
     if (!consultationId || !reportType) {
@@ -58,7 +59,7 @@ serve(async (req) => {
 
     const appt = consultation.appointment as any
     const pro = appt?.professional
-    if (pro?.profile_id !== profile.id) return errorResponse('FORBIDDEN', 'Access denied', 403)
+    if (pro?.profile_id !== profile.profileId) return errorResponse('FORBIDDEN', 'Access denied', 403)
 
     const pp = appt?.patient?.profile
     const proProfile = pro?.profile
@@ -82,22 +83,45 @@ serve(async (req) => {
       purpose ? `Objet / Finalité: ${purpose}` : null,
     ].filter(Boolean).join('\n')
 
-    const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-mini',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPTS[reportType as ReportType] },
-          { role: 'user', content: contextLines },
-        ],
-      }),
-    })
+    // Charge 3 credits before calling AI
+    let generationId: string
+    try {
+      generationId = await chargeCredits(supabase, profile.profileId, 'generate_report', 3, 'gpt-4.1-mini')
+    } catch (err: any) {
+      if (err?.code === 'INSUFFICIENT_CREDITS') {
+        return errorResponse('INSUFFICIENT_CREDITS', err.message, 402)
+      }
+      throw err
+    }
 
-    const aiData = await aiRes.json()
+    let aiData: any
+    try {
+      const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-mini',
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPTS[reportType as ReportType] },
+            { role: 'user', content: contextLines },
+          ],
+        }),
+      })
+
+      aiData = await aiRes.json()
+
+      if (!aiRes.ok) {
+        await refundCredits(supabase, profile.profileId, generationId, 3, 'AI_PROVIDER_ERROR')
+        return errorResponse('AI_PROVIDER_ERROR', aiData?.error?.message ?? 'Erreur du fournisseur IA', 502)
+      }
+    } catch (fetchErr) {
+      await refundCredits(supabase, profile.profileId, generationId, 3, 'AI_PROVIDER_ERROR')
+      return errorResponse('AI_PROVIDER_TIMEOUT', 'Le fournisseur IA ne répond pas', 504)
+    }
+
     const generatedText = aiData.choices?.[0]?.message?.content ?? ''
     const tokensIn = aiData.usage?.prompt_tokens ?? 0
     const tokensOut = aiData.usage?.completion_tokens ?? 0
@@ -109,19 +133,12 @@ serve(async (req) => {
         document_type: reportType,
         title: `Compte rendu du ${consultDate}`,
         content_text: generatedText,
-        created_by: profile.id,
+        created_by: profile.profileId,
       })
       .select('id')
       .single()
 
-    await supabase.from('ai_usage').insert({
-      profile_id: profile.id,
-      feature: 'generate_report',
-      credits_used: 3,
-      model: 'gpt-4.1-mini',
-      tokens_in: tokensIn,
-      tokens_out: tokensOut,
-    })
+    await completeGeneration(supabase, generationId, tokensIn, tokensOut)
 
     return successResponse({ documentId: doc?.id, content: generatedText })
   } catch (err) {

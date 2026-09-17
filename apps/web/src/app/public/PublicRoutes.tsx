@@ -14,6 +14,7 @@ const EmailVerificationPage = lazy(() => import('@/features/auth/EmailVerificati
 const TwoFactorPage         = lazy(() => import('@/features/auth/TwoFactorPage'))
 const InvitationPage           = lazy(() => import('@/features/auth/InvitationPage'))
 const VerifyPrescriptionPage   = lazy(() => import('@/features/public/VerifyPrescriptionPage'))
+const PricingPage              = lazy(() => import('@/features/landing/PricingPage'))
 
 function AuthCallbackPage() {
   return (
@@ -41,6 +42,7 @@ export default function PublicRoutes() {
         {/* Landing + blog + legal — avec Header/Footer */}
         <Route element={<PublicLayout />}>
           <Route index element={<LandingPage />} />
+          <Route path="tarifs" element={<PricingPage />} />
           <Route path="blog" element={<BlogIndexPage />} />
           <Route path="blog/:slug" element={<BlogArticlePage />} />
           <Route path="*" element={<NotFoundPage />} />
