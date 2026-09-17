@@ -5,13 +5,19 @@ import { cn } from '@/lib/utils'
 export interface KpiTileProps {
   label: string
   /** Valeur déjà formatée (ex. « 1,2 M FCFA ») */
-  value: string
+  value: string | number
   /** Valeur numérique pour le count-up (optionnel) */
   countTo?: number
   /** Variation en %, ex. +12 ou -4 */
   variation?: number
   /** Points pour un mini sparkline (valeurs brutes) */
   sparkline?: number[]
+  /** Texte secondaire sous la valeur */
+  subtext?: string
+  /** Colorisation sémantique */
+  variant?: 'default' | 'success' | 'warning' | 'danger'
+  /** Rend le tile cliquable */
+  onClick?: () => void
   className?: string
 }
 
@@ -55,19 +61,39 @@ function Sparkline({ points }: { points: number[] }) {
   )
 }
 
-export function KpiTile({ label, value, countTo, variation, sparkline, className }: KpiTileProps) {
+const VARIANT_CLASSES: Record<string, string> = {
+  default: 'border-line bg-surface',
+  success: 'border-status-success/30 bg-status-success/5',
+  warning: 'border-status-warning/30 bg-status-warning/5',
+  danger:  'border-status-danger/30  bg-status-danger/5',
+}
+
+const VARIANT_VALUE_CLASSES: Record<string, string> = {
+  default: 'text-ink',
+  success: 'text-status-success',
+  warning: 'text-status-warning',
+  danger:  'text-status-danger',
+}
+
+export function KpiTile({ label, value, countTo, variation, sparkline, subtext, variant = 'default', onClick, className }: KpiTileProps) {
   const counted = useCountUp(countTo)
   const up = (variation ?? 0) >= 0
+  const variantClass = VARIANT_CLASSES[variant] ?? VARIANT_CLASSES.default
+  const valueClass = VARIANT_VALUE_CLASSES[variant] ?? VARIANT_VALUE_CLASSES.default
 
   return (
-    <div className={cn('flex flex-col gap-s-2 rounded-lg border border-line bg-surface p-s-4 shadow-1', className)}>
+    <div
+      className={cn('flex flex-col gap-s-2 rounded-lg border p-s-4 shadow-1', variantClass, onClick && 'cursor-pointer hover:shadow-md transition-shadow', className)}
+      onClick={onClick}
+    >
       <span className="text-small text-ink-3">{label}</span>
       <div className="flex items-end justify-between gap-s-3">
-        <span className="text-h1 font-semibold text-ink tabular-nums">
+        <span className={cn('text-h1 font-semibold tabular-nums', valueClass)}>
           {countTo != null ? counted.toLocaleString('fr-FR') : value}
         </span>
         {sparkline && <Sparkline points={sparkline} />}
       </div>
+      {subtext && <p className="text-small text-ink-3">{subtext}</p>}
       {variation != null && (
         <span
           className={cn(

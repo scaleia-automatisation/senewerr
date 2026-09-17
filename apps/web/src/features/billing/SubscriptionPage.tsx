@@ -21,9 +21,9 @@ interface Subscription {
   plan: {
     code: string
     name: string
-    price_monthly_xof: number
-    price_annual_xof: number
-    ai_credits_monthly: number
+    monthly_price: number
+    yearly_price: number
+    included_ai_credits: number
     plan_features: { feature_key: string; value: string }[]
   }
 }
@@ -45,10 +45,10 @@ interface CreditPack {
 
 interface Payment {
   id: string
-  amount_xof: number
+  amount: number
   status: string
-  paid_at: string
-  provider_invoice_id: string
+  paid_at: string | null
+  payment_number: string | null
 }
 
 export default function SubscriptionPage() {
@@ -73,12 +73,12 @@ export default function SubscriptionPage() {
       supabase
         .from('subscriptions')
         .select('*, plan:subscription_plans(*, plan_features(*))')
-        .eq('subscriber_id', profile.id)
+        .eq('profile_id', profile.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase.from('credit_wallets').select('*').eq('subscriber_id', profile.id).maybeSingle(),
-      supabase.from('credit_packs').select('*').eq('is_active', true).order('credits'),
+      (supabase as any).from('credit_wallets').select('*').eq('profile_id', profile.id).maybeSingle(),
+      (supabase as any).from('credit_packs').select('*').eq('is_active', true).order('credits'),
       supabase
         .from('payments')
         .select('*')
@@ -235,8 +235,8 @@ export default function SubscriptionPage() {
               subscription?.status === 'active'
                 ? 'success'
                 : subscription?.status === 'trialing'
-                ? 'info'
-                : 'warning'
+                ? 'primary'
+                : 'pending'
             }
           >
             {subscription?.status === 'active'
@@ -352,13 +352,13 @@ export default function SubscriptionPage() {
               >
                 <div>
                   <p className="font-medium text-ink">
-                    {p.amount_xof.toLocaleString('fr-FR')} FCFA
+                    {(p.amount ?? 0).toLocaleString('fr-FR')} FCFA
                   </p>
                   <p className="text-ink-3">
                     {p.paid_at ? new Date(p.paid_at).toLocaleDateString('fr-FR') : '—'}
                   </p>
                 </div>
-                <Badge variant={p.status === 'paid' ? 'success' : 'warning'}>
+                <Badge variant={p.status === 'paid' ? 'success' : 'pending'}>
                   {p.status === 'paid' ? 'Payée' : p.status}
                 </Badge>
               </div>
