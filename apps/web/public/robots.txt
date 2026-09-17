@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /pro-dashboard/
+Disallow: /etab/
+Disallow: /pharma/
+Disallow: /mutuelle/
+Disallow: /admin/
+Disallow: /super-admin/
+Disallow: /dev/
+Disallow: /invitation/
+Disallow: /verifier/
+Disallow: /auth/connexion
+Disallow: /auth/inscription
+Disallow: /auth/2fa
+
+Sitemap: https://medikool.sn/sitemap.xml

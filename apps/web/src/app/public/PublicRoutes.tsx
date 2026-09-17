@@ -13,8 +13,21 @@ const ResetPasswordPage     = lazy(() => import('@/features/auth/ResetPasswordPa
 const EmailVerificationPage = lazy(() => import('@/features/auth/EmailVerificationPage'))
 const TwoFactorPage         = lazy(() => import('@/features/auth/TwoFactorPage'))
 const InvitationPage           = lazy(() => import('@/features/auth/InvitationPage'))
-const VerifyPrescriptionPage   = lazy(() => import('@/features/public/VerifyPrescriptionPage'))
-const PricingPage              = lazy(() => import('@/features/landing/PricingPage'))
+const VerifyPrescriptionPage      = lazy(() => import('@/features/public/VerifyPrescriptionPage'))
+const PricingPage                 = lazy(() => import('@/features/landing/PricingPage'))
+const ProfessionalPublicPage      = lazy(() => import('@/features/public/ProfessionalPublicPage'))
+const PharmacyPublicPage          = lazy(() => import('@/features/public/PharmacyPublicPage'))
+const PublicSearchPage            = lazy(() => import('@/features/public/PublicSearchPage'))
+
+// Legal pages (BLOC 8)
+const MentionsLegales          = lazy(() => import('@/features/legal/MentionsLegales'))
+const PolitiqueConfidentialite = lazy(() => import('@/features/legal/PolitiqueConfidentialite'))
+const CGU                      = lazy(() => import('@/features/legal/CGU'))
+const CGV                      = lazy(() => import('@/features/legal/CGV'))
+const Cookies                  = lazy(() => import('@/features/legal/Cookies'))
+const Remboursements           = lazy(() => import('@/features/legal/Remboursements'))
+const ContactPage              = lazy(() => import('@/features/legal/Contact'))
+const Securite                 = lazy(() => import('@/features/legal/Securite'))
 
 function AuthCallbackPage() {
   return (
@@ -45,6 +58,19 @@ export default function PublicRoutes() {
           <Route path="tarifs" element={<PricingPage />} />
           <Route path="blog" element={<BlogIndexPage />} />
           <Route path="blog/:slug" element={<BlogArticlePage />} />
+          {/* Public profiles */}
+          <Route path="pro/:slug" element={<ProfessionalPublicPage />} />
+          <Route path="pharmacie/:slug" element={<PharmacyPublicPage />} />
+          <Route path="recherche-publique" element={<PublicSearchPage />} />
+          {/* Legal pages (BLOC 8) */}
+          <Route path="mentions-legales" element={<MentionsLegales />} />
+          <Route path="confidentialite"  element={<PolitiqueConfidentialite />} />
+          <Route path="cgu"              element={<CGU />} />
+          <Route path="cgv"              element={<CGV />} />
+          <Route path="cookies"          element={<Cookies />} />
+          <Route path="remboursements"   element={<Remboursements />} />
+          <Route path="contact"          element={<ContactPage />} />
+          <Route path="securite"         element={<Securite />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 

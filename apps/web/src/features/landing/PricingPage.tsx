@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
+import { Seo } from '@/hooks/useSeo'
 
 interface PlanFeature { feature_key: string; value: string }
 interface Plan {
@@ -168,6 +169,11 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-surface">
+      <Seo
+        title="Tarifs Medikool — Abonnements pour professionnels, établissements et pharmacies"
+        description="Découvrez les plans Medikool : gratuit pour les patients, abonnements pour les professionnels de santé, établissements, pharmacies et mutuelles au Sénégal."
+        canonical="/tarifs"
+      />
       {/* Hero */}
       <section className="py-s-6 px-s-4 text-center flex flex-col items-center gap-s-4">
         <span className="inline-flex items-center gap-s-2 rounded-pill bg-accent/10 px-s-3 py-s-1 text-small font-semibold text-accent">
