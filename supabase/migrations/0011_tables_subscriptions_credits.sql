@@ -410,3 +410,53 @@ CREATE TRIGGER set_ai_generations_updated_at
 ALTER TABLE public.credit_transactions
   ADD CONSTRAINT fk_credit_tx_ai_generation
   FOREIGN KEY (ai_generation_id) REFERENCES public.ai_generations(id) ON DELETE SET NULL;
+
+-- ────────────────────────────────────────────────────────────
+-- APPLY_COMMISSION (déplacée ici car référence subscriptions)
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION private.apply_commission(p_reservation_id uuid)
+RETURNS void LANGUAGE plpgsql AS $$
+DECLARE
+  r   public.pharmacy_reservations%ROWTYPE;
+  s   public.subscriptions%ROWTYPE;
+  pl  public.subscription_plans%ROWTYPE;
+  v_rate numeric(5,2);
+  v_cap  integer;
+  v_comm integer;
+  v_net  integer;
+BEGIN
+  SELECT * INTO r FROM public.pharmacy_reservations WHERE id = p_reservation_id;
+
+  SELECT s.* INTO s FROM public.subscriptions s
+  WHERE s.organization_id = r.organization_id
+    AND s.status IN ('active','trialing');
+
+  IF FOUND THEN
+    SELECT * INTO pl FROM public.subscription_plans WHERE id = s.plan_id;
+    v_rate := pl.transaction_fee_percent;
+    v_cap  := pl.transaction_fee_cap;
+  ELSE
+    v_rate := 5;
+    v_cap  := 5000;
+  END IF;
+
+  v_comm := least(
+    (r.total_amount * v_rate / 100)::int,
+    COALESCE(v_cap, 2147483647)
+  );
+  v_net := r.total_amount - v_comm;
+
+  INSERT INTO public.commission_entries (
+    reservation_id, organization_id, plan_code,
+    gross_amount, rate, cap, commission_amount, net_amount
+  ) VALUES (
+    p_reservation_id, r.organization_id,
+    COALESCE(pl.code, 'pharmacy_free'),
+    r.total_amount, v_rate, v_cap, v_comm, v_net
+  );
+
+  UPDATE public.pharmacy_reservations
+  SET commission_amount = v_comm, commission_rate = v_rate
+  WHERE id = p_reservation_id;
+END;
+$$;

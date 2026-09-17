@@ -1,9 +1,18 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
-export default defineConfig({
+const ROOT_ENV_DIR = path.resolve(__dirname, '../../')
+
+export default defineConfig(({ mode }) => {
+  // Le .env vit à la racine du monorepo (jamais commité — voir .gitignore).
+  // On le charge explicitement et on l'expose à Vite via process.env
+  // (plus fiable que `envDir` avec un chemin absolu sous Windows).
+  Object.assign(process.env, loadEnv(mode, ROOT_ENV_DIR, ''))
+
+  return {
+  envDir: ROOT_ENV_DIR,
   plugins: [
     react(),
     VitePWA({
@@ -12,9 +21,9 @@ export default defineConfig({
       manifest: {
         name: 'Medikool',
         short_name: 'Medikool',
-        description: 'Parcours de santé interconnecté au Sénégal',
-        theme_color: '#0A6E5A',
-        background_color: '#ffffff',
+        description: 'Votre carnet de santé connecté au Sénégal',
+        theme_color: '#159B55',
+        background_color: '#F5F9FA',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -58,5 +67,6 @@ export default defineConfig({
         }
       }
     }
+  }
   }
 })

@@ -4,13 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0A6E5A" />
-    <meta name="description" content="Medikool — Parcours de santé interconnecté au Sénégal" />
+    <meta name="theme-color" content="#F5F9FA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0C1B24" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Medikool — Votre carnet de santé connecté au Sénégal" />
     <title>Medikool</title>
-    <!-- Preconnect pour les polices -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <script>
+      // Applique le thème avant le premier rendu (anti-flash)
+      (function () {
+        try {
+          var saved = localStorage.getItem('medikool-theme');
+          if (saved === 'dark' || saved === 'light') {
+            document.documentElement.classList.add(saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

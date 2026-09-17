@@ -44,6 +44,18 @@ CREATE TABLE public.roles_permissions (
 
 ALTER TABLE public.roles_permissions ENABLE ROW LEVEL SECURITY;
 
+-- ────────────────────────────────────────────────────────────
+-- Fonctions utilitaires privées (avant has_permission)
+-- ────────────────────────────────────────────────────────────
+
+-- Rôle du JWT courant
+CREATE OR REPLACE FUNCTION private.current_role()
+RETURNS public.user_role LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT role FROM public.profiles
+  WHERE user_id = auth.uid()
+  LIMIT 1;
+$$;
+
 -- Fonction has_permission
 CREATE OR REPLACE FUNCTION private.has_permission(p_permission text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$
@@ -53,18 +65,6 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$
        AND permission = p_permission),
     false
   );
-$$;
-
--- ────────────────────────────────────────────────────────────
--- Fonctions utilitaires privées
--- ────────────────────────────────────────────────────────────
-
--- Rôle du JWT courant
-CREATE OR REPLACE FUNCTION private.current_role()
-RETURNS public.user_role LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT role FROM public.profiles
-  WHERE user_id = auth.uid()
-  LIMIT 1;
 $$;
 
 -- IDs des organisations actives de l'utilisateur

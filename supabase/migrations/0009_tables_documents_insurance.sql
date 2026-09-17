@@ -162,9 +162,7 @@ CREATE TABLE public.coverage_requests (
   decided_at            timestamptz,
   payment_id            uuid, -- FK payments migration 0010
   sla_due_at            timestamptz,
-  overdue               boolean GENERATED ALWAYS AS (
-    sla_due_at IS NOT NULL AND sla_due_at < now()
-  ) STORED,
+  overdue               boolean DEFAULT false,
   created_at            timestamptz DEFAULT now() NOT NULL,
   updated_at            timestamptz DEFAULT now() NOT NULL
 );

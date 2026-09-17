@@ -24,13 +24,7 @@ CREATE TABLE public.professionals (
   rejection_reason    text,
   rating_avg          numeric(2,1),
   rating_count        int DEFAULT 0,
-  search_vector       tsvector GENERATED ALWAYS AS (
-    to_tsvector('french',
-      coalesce(specialty,'') || ' ' ||
-      coalesce(array_to_string(sub_specialties,' '),'') || ' ' ||
-      coalesce(bio,'')
-    )
-  ) STORED,
+  search_vector       tsvector,
   deleted_at          timestamptz,
   created_at          timestamptz DEFAULT now() NOT NULL,
   updated_at          timestamptz DEFAULT now() NOT NULL
@@ -45,6 +39,23 @@ ALTER TABLE public.professionals ENABLE ROW LEVEL SECURITY;
 CREATE TRIGGER set_professionals_updated_at
   BEFORE UPDATE ON public.professionals
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Trigger : maintient search_vector à jour
+CREATE OR REPLACE FUNCTION public.update_professional_search_vector()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.search_vector := to_tsvector('french'::regconfig,
+    coalesce(NEW.specialty,'') || ' ' ||
+    coalesce(array_to_string(NEW.sub_specialties,' '),'') || ' ' ||
+    coalesce(NEW.bio,'')
+  );
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_professional_search
+  BEFORE INSERT OR UPDATE ON public.professionals
+  FOR EACH ROW EXECUTE FUNCTION public.update_professional_search_vector();
 
 -- Trigger : génère PRO-######
 CREATE OR REPLACE FUNCTION public.generate_professional_number()

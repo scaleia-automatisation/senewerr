@@ -1,15 +1,22 @@
 import { Routes, Route } from 'react-router-dom'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { PHARMACY_NAV } from '@/config/navigation'
+import { ComingSoon } from '@/components/layout/ComingSoon'
 
-// SCAFFOLD — Espace Pharmacie
-// Implémenté au Bloc 2 + blocs métier correspondants
 export default function PharmacyRoutes() {
   return (
     <Routes>
-      <Route index element={
-        <div className="flex items-center justify-center min-h-screen text-gray-500">
-          <p>Espace Pharmacie — En construction (Bloc 2)</p>
-        </div>
-      } />
+      <Route element={<AppLayout nav={PHARMACY_NAV} />}>
+        <Route index                  element={<ComingSoon title="À faire" />} />
+        <Route path="reservations/*"  element={<ComingSoon title="Commandes" />} />
+        <Route path="ordonnances/*"   element={<ComingSoon title="Ordonnances" />} />
+        <Route path="stock/*"         element={<ComingSoon title="Catalogue" />} />
+        <Route path="finances/*"      element={<ComingSoon title="Finances" />} />
+        <Route path="statistiques"    element={<ComingSoon title="Statistiques" />} />
+        <Route path="notifications"   element={<ComingSoon title="Notifications" />} />
+        <Route path="parametres/*"    element={<ComingSoon title="Paramètres" />} />
+        <Route path="*"               element={<ComingSoon title="Page introuvable" />} />
+      </Route>
     </Routes>
   )
 }

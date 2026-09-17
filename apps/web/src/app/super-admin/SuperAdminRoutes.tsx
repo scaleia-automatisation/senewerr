@@ -1,15 +1,20 @@
 import { Routes, Route } from 'react-router-dom'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { SUPER_ADMIN_NAV } from '@/config/navigation'
+import { ComingSoon } from '@/components/layout/ComingSoon'
 
-// SCAFFOLD — Super Admin
-// Implémenté au Bloc 2 + blocs métier correspondants
-export default function SuperadminRoutes() {
+export default function SuperAdminRoutes() {
   return (
     <Routes>
-      <Route index element={
-        <div className="flex items-center justify-center min-h-screen text-gray-500">
-          <p>Super Admin — En construction (Bloc 2)</p>
-        </div>
-      } />
+      <Route element={<AppLayout nav={SUPER_ADMIN_NAV} />}>
+        <Route index                element={<ComingSoon title="Console" />} />
+        <Route path="migrations/*"  element={<ComingSoon title="Migrations" />} />
+        <Route path="permissions/*" element={<ComingSoon title="Permissions" />} />
+        <Route path="analytics"     element={<ComingSoon title="Analytics" />} />
+        <Route path="platform/*"    element={<ComingSoon title="Paramètres plateforme" />} />
+        <Route path="aide"          element={<ComingSoon title="Aide" />} />
+        <Route path="*"             element={<ComingSoon title="Page introuvable" />} />
+      </Route>
     </Routes>
   )
 }

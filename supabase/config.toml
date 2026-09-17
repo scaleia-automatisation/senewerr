@@ -34,11 +34,10 @@ port = 54323
 api_url = "http://127.0.0.1"
 openai_api_key = "env(OPENAI_API_KEY)"
 
-[inbucket]
-enabled = true
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
+[local_smtp]
+enabled = false
+host = "127.0.0.1"
+port = 54325
 
 [storage]
 enabled = true

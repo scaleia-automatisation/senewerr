@@ -1,68 +1,64 @@
+/* Polices auto-hébergées (font-display: swap) */
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource-variable/inter/wght.css';
+
+/* Tokens de design — source unique des couleurs */
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   DESIGN TOKENS — Medikool
-   Couleur primaire : vert médical #0A6E5A
-   Statuts : vert/orange/bleu/rouge/gris (spec §0.4)
-   ============================================================ */
-:root {
-  /* Brand — vert médical */
-  --brand-50:  160 80% 97%;
-  --brand-100: 162 72% 90%;
-  --brand-200: 163 68% 79%;
-  --brand-300: 163 62% 65%;
-  --brand-400: 163 56% 50%;
-  --brand-500: 163 84% 24%;  /* #0A6E5A primaire */
-  --brand-600: 163 87% 20%;
-  --brand-700: 163 90% 16%;
-  --brand-800: 163 92% 13%;
-  --brand-900: 163 95% 9%;
-
-  /* Statuts sémantiques */
-  --status-success: 142 71% 45%;  /* vert  */
-  --status-warning: 38 92% 50%;   /* orange */
-  --status-info:    214 89% 52%;  /* bleu  */
-  --status-danger:  0 84% 60%;    /* rouge */
-  --status-neutral: 0 0% 55%;     /* gris  */
-
-  /* UI tokens */
-  --background:    0 0% 100%;
-  --foreground:    222 47% 11%;
-  --muted:         210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --border:        214 32% 91%;
-  --input:         214 32% 91%;
-  --ring:          163 84% 24%;
-  --radius:        0.625rem;
-
-  /* Sidebar */
-  --sidebar-bg: 163 84% 24%;
-  --sidebar-fg: 0 0% 100%;
-}
-
-.dark {
-  --background:    222 47% 7%;
-  --foreground:    210 40% 98%;
-  --muted:         217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --border:        217 33% 17%;
-  --input:         217 33% 17%;
-}
-
-/* Scrollbar discrète */
-* { scrollbar-width: thin; scrollbar-color: hsl(var(--border)) transparent; }
-
-/* Mobile-first base */
+/* ---- Base globale ---- */
 html { font-size: 16px; }
+
 body {
-  @apply bg-background text-foreground font-sans antialiased;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: "Inter Variable", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   min-height: 100dvh;
 }
 
-/* Accès au focus visible (WCAG 2.1 AA) */
+/* Titres en Poppins (géométrique, arrondi) */
+h1, h2, h3, h4, .font-display {
+  font-family: "Poppins", system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Chiffres alignés pour les montants FCFA */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar discrète */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* Focus clavier visible (WCAG 2.1 AA) */
 :focus-visible {
-  outline: 2px solid hsl(var(--brand-500));
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* prefers-reduced-motion : neutralise toutes les animations sauf spinners */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .allow-motion,
+  .allow-motion * {
+    animation-duration: revert !important;
+    animation-iteration-count: revert !important;
+  }
 }

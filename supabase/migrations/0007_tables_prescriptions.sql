@@ -18,14 +18,7 @@ CREATE TABLE public.medicines (
   online_purchase_allowed    boolean DEFAULT false,
   description                text,
   status                     text DEFAULT 'active',
-  search_vector              tsvector GENERATED ALWAYS AS (
-    to_tsvector('french',
-      coalesce(name,'') || ' ' ||
-      coalesce(generic_name,'') || ' ' ||
-      coalesce(brand,'') || ' ' ||
-      coalesce(medicine_class,'')
-    )
-  ) STORED,
+  search_vector              tsvector,
   created_at                 timestamptz DEFAULT now() NOT NULL,
   updated_at                 timestamptz DEFAULT now() NOT NULL,
   UNIQUE (name, dosage, form)
@@ -39,6 +32,24 @@ ALTER TABLE public.medicines ENABLE ROW LEVEL SECURITY;
 CREATE TRIGGER set_medicines_updated_at
   BEFORE UPDATE ON public.medicines
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Trigger : maintient search_vector médicaments
+CREATE OR REPLACE FUNCTION public.update_medicine_search_vector()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.search_vector := to_tsvector('french'::regconfig,
+    coalesce(NEW.name,'') || ' ' ||
+    coalesce(NEW.generic_name,'') || ' ' ||
+    coalesce(NEW.brand,'') || ' ' ||
+    coalesce(NEW.medicine_class,'')
+  );
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_medicine_search
+  BEFORE INSERT OR UPDATE ON public.medicines
+  FOR EACH ROW EXECUTE FUNCTION public.update_medicine_search_vector();
 
 -- ────────────────────────────────────────────────────────────
 -- PRESCRIPTIONS
