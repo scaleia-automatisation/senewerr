@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { PROFESSIONAL_NAV } from '@/config/navigation'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 
+const ProfessionalDashboard = lazy(() => import('@/features/professional/ProfessionalDashboard'))
 const AgendaPage          = lazy(() => import('@/features/professional/AgendaPage'))
 const ConsultationPage    = lazy(() => import('@/features/professional/ConsultationPage'))
 const NewPrescriptionPage = lazy(() => import('@/features/professional/NewPrescriptionPage'))
@@ -13,7 +14,7 @@ export default function ProfessionalRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout nav={PROFESSIONAL_NAV} />}>
-        <Route index                           element={<AgendaPage />} />
+        <Route index                           element={<ProfessionalDashboard />} />
         <Route path="agenda"                   element={<AgendaPage />} />
         <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
         <Route path="ordonnances/nouvelle"     element={<NewPrescriptionPage />} />

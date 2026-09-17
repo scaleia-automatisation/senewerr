@@ -15,6 +15,7 @@ const MedicinesPage          = lazy(() => import('@/features/patient/MedicinesPa
 const FamilyPage             = lazy(() => import('@/features/patient/FamilyPage'))
 const DocumentsPage          = lazy(() => import('@/features/patient/DocumentsPage'))
 const HistoryPage            = lazy(() => import('@/features/patient/HistoryPage'))
+const NotificationsPage      = lazy(() => import('@/features/notifications/NotificationsPage'))
 
 export default function PatientRoutes() {
   return (
@@ -35,7 +36,7 @@ export default function PatientRoutes() {
         <Route path="documents"             element={<DocumentsPage />} />
         <Route path="famille"               element={<FamilyPage />} />
         <Route path="historique"            element={<HistoryPage />} />
-        <Route path="notifications"         element={<ComingSoon title="Notifications" />} />
+        <Route path="notifications"         element={<NotificationsPage />} />
         <Route path="profil/*"              element={<ComingSoon title="Mon profil" />} />
         <Route path="*"                     element={<ComingSoon title="Page introuvable" />} />
       </Route>

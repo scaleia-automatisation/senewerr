@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { MUTUAL_NAV } from '@/config/navigation'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 
+const InsuranceDashboard    = lazy(() => import('@/features/insurance/InsuranceDashboard'))
 const InsuranceRequestsPage = lazy(() => import('@/features/insurance/InsuranceRequestsPage'))
 const InsuranceMembersPage  = lazy(() => import('@/features/insurance/InsuranceMembersPage'))
 
@@ -11,7 +12,7 @@ export default function MutualRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout nav={MUTUAL_NAV} />}>
-        <Route index                      element={<InsuranceRequestsPage />} />
+        <Route index                      element={<InsuranceDashboard />} />
         <Route path="prises-en-charge"    element={<InsuranceRequestsPage />} />
         <Route path="membres"             element={<InsuranceMembersPage />} />
         <Route path="paiements/*"         element={<ComingSoon title="Paiements" />} />

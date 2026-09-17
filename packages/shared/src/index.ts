@@ -3,3 +3,4 @@
 export type { Database } from './database.types'
 export * from './enums'
 export * from './schemas'
+export * from './errors'
