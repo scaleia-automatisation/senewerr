@@ -1,49 +1,44 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { errorResponse } from './error.ts'
 
-export type AuthContext = {
+export interface AuthContext {
   userId: string
   profileId: string
   role: string
   orgIds: string[]
 }
 
-export async function requireAuth(req: Request): Promise<AuthContext | Response> {
-  const supabaseAdmin = createClient(
+export async function requireAuth(req: Request): Promise<AuthContext> {
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) throw new Error('UNAUTHORIZED')
+
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    { global: { headers: { Authorization: authHeader } } }
+  )
+
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) throw new Error('UNAUTHORIZED')
+
+  const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
-  const jwt = req.headers.get('Authorization')?.replace('Bearer ', '')
-  if (!jwt) return errorResponse('UNAUTHORIZED', 'Token manquant', 401)
-
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(jwt)
-  if (error || !user) return errorResponse('UNAUTHORIZED', 'Token invalide ou expiré', 401)
-
-  const { data: profile, error: profileError } = await supabaseAdmin
+  const { data: profile, error: profileErr } = await admin
     .from('profiles')
-    .select('id, role, status')
+    .select('id, role')
     .eq('user_id', user.id)
     .single()
+  if (profileErr || !profile) throw new Error('PROFILE_NOT_FOUND')
 
-  if (profileError || !profile) return errorResponse('UNAUTHORIZED', 'Profil introuvable', 401)
-  if (profile.status === 'suspended') return errorResponse('FORBIDDEN', 'Compte suspendu', 403)
-  if (profile.status === 'deleted') return errorResponse('UNAUTHORIZED', 'Compte supprimé', 401)
-
-  const { data: memberships } = await supabaseAdmin
+  const { data: memberships } = await admin
     .from('organization_members')
     .select('organization_id')
     .eq('profile_id', profile.id)
     .eq('status', 'active')
 
-  return {
-    userId: user.id,
-    profileId: profile.id,
-    role: profile.role,
-    orgIds: memberships?.map((m: { organization_id: string }) => m.organization_id) ?? []
-  }
-}
+  const orgIds = (memberships ?? []).map((m: any) => m.organization_id)
 
-export function isAdmin(role: string): boolean {
-  return role === 'platform_admin' || role === 'super_admin'
+  return { userId: user.id, profileId: profile.id, role: profile.role, orgIds }
 }

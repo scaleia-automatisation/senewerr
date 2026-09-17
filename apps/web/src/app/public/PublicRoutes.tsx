@@ -12,7 +12,8 @@ const ForgotPasswordPage    = lazy(() => import('@/features/auth/ForgotPasswordP
 const ResetPasswordPage     = lazy(() => import('@/features/auth/ResetPasswordPage'))
 const EmailVerificationPage = lazy(() => import('@/features/auth/EmailVerificationPage'))
 const TwoFactorPage         = lazy(() => import('@/features/auth/TwoFactorPage'))
-const InvitationPage        = lazy(() => import('@/features/auth/InvitationPage'))
+const InvitationPage           = lazy(() => import('@/features/auth/InvitationPage'))
+const VerifyPrescriptionPage   = lazy(() => import('@/features/public/VerifyPrescriptionPage'))
 
 function AuthCallbackPage() {
   return (
@@ -56,6 +57,9 @@ export default function PublicRoutes() {
 
         {/* Invitations (accessible sans être connecté pour permettre l'inscription) */}
         <Route path="invitation/:token" element={<InvitationPage />} />
+
+        {/* Vérification publique d'ordonnance */}
+        <Route path="verifier/:qrToken" element={<VerifyPrescriptionPage />} />
       </Routes>
     </Suspense>
   )
