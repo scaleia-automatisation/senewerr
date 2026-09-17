@@ -1,0 +1,38 @@
+{
+  "_note": "Wolof — 40 libellés patient prioritaires (Hypothèse à valider après tests terrain)",
+  "common": {
+    "loading": "Dafa jëm...",
+    "save": "Defar",
+    "cancel": "Taxaw",
+    "confirm": "Seet bu baax",
+    "search": "Seet",
+    "close": "Tëj",
+    "yes": "Waaw",
+    "no": "Deedéet",
+    "error": "Am na jumtukaay",
+    "success": "Mën na ak"
+  },
+  "auth": {
+    "signin": "Dugg",
+    "signup": "Def kont bu yaw",
+    "signout": "Jëm",
+    "email": "Email",
+    "phone": "Télefon",
+    "password": "Netti xët bi"
+  },
+  "status": {
+    "reservation": {
+      "submitted": "Dëkk na",
+      "ready": "Jot na, dem nanu",
+      "completed": "Jeex na",
+      "cancelled": "Taxaw na"
+    },
+    "appointment": {
+      "confirmed": "Dafa seetlu",
+      "completed": "Jeex na"
+    }
+  },
+  "prescription": {
+    "valid_until": "Yef ci..."
+  }
+}

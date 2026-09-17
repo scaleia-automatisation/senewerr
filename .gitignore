@@ -1,0 +1,46 @@
+# Environnement (JAMAIS committer)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Supabase local
+supabase/.temp/
+supabase/functions/.deno/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Système
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDE
+.idea/
+.vscode/settings.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+
+# Cache
+.cache/
+.turbo/

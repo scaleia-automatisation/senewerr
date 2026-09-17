@@ -1,0 +1,110 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "close": "Fermer",
+    "yes": "Oui",
+    "no": "Non",
+    "or": "ou",
+    "and": "et",
+    "error": "Une erreur est survenue",
+    "success": "Succès",
+    "offline": "Connexion au serveur perdue — mode lecture seule"
+  },
+  "auth": {
+    "signin": "Se connecter",
+    "signup": "Créer un compte",
+    "signout": "Se déconnecter",
+    "email": "Email",
+    "phone": "Téléphone",
+    "password": "Mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "already_account": "Déjà un compte ?",
+    "no_account": "Pas encore de compte ?"
+  },
+  "roles": {
+    "patient": "Patient",
+    "professional": "Professionnel de santé",
+    "establishment_admin": "Administrateur d'établissement",
+    "establishment_staff": "Secrétaire",
+    "pharmacy_admin": "Pharmacien administrateur",
+    "pharmacy_staff": "Préparateur",
+    "mutual_admin": "Administrateur mutuelle",
+    "mutual_staff": "Agent mutuelle",
+    "platform_admin": "Administrateur plateforme",
+    "super_admin": "Super Administrateur"
+  },
+  "status": {
+    "reservation": {
+      "submitted": "À traiter",
+      "pharmacy_review": "En cours",
+      "pharmacy_confirmed": "Confirmée",
+      "prescription_review": "Vérification ordonnance",
+      "insurance_pending": "En attente mutuelle",
+      "insurance_validated": "Mutuelle validée",
+      "insurance_refused": "Mutuelle refusée",
+      "patient_payment_pending": "Paiement en attente",
+      "patient_payment_received": "Paiement reçu",
+      "mutual_payment_pending": "Paiement mutuelle en cours",
+      "mutual_payment_received": "Paiement mutuelle reçu",
+      "fully_financed": "Financée",
+      "preparation": "En préparation",
+      "ready": "Prête à retirer",
+      "completed": "Terminée",
+      "cancelled": "Annulée",
+      "expired": "Expirée",
+      "dispute": "Litige"
+    },
+    "appointment": {
+      "requested": "Demandé",
+      "confirmed": "Confirmé",
+      "payment_pending": "Paiement en attente",
+      "paid": "Payé",
+      "patient_arrived": "Patient arrivé",
+      "in_consultation": "En consultation",
+      "completed": "Terminé",
+      "rescheduled": "Reporté",
+      "cancelled_patient": "Annulé (patient)",
+      "cancelled_professional": "Annulé (médecin)",
+      "cancelled_establishment": "Annulé (établissement)",
+      "no_show": "Absent"
+    }
+  },
+  "prescription": {
+    "number_prefix": "ORD-",
+    "valid_until": "Valable jusqu'au",
+    "items": "Médicaments prescrits",
+    "share_with_pharmacy": "Partager avec la pharmacie",
+    "qr_code": "Code QR de l'ordonnance",
+    "signed_by": "Signée par"
+  },
+  "payment": {
+    "total": "Total",
+    "insurance_share": "Part mutuelle",
+    "patient_share": "Votre part",
+    "method": {
+      "card": "Carte bancaire",
+      "wave": "Wave",
+      "orange_money": "Orange Money"
+    }
+  },
+  "errors": {
+    "UNAUTHORIZED": "Non autorisé",
+    "FORBIDDEN": "Accès interdit",
+    "NOT_FOUND": "Ressource introuvable",
+    "SLOT_NOT_AVAILABLE": "Ce créneau n'est plus disponible",
+    "PLAN_LIMIT_REACHED": "Limite de votre plan atteinte",
+    "INSUFFICIENT_CREDITS": "Crédits IA insuffisants",
+    "AI_PROVIDER_TIMEOUT": "Le service IA n'a pas répondu. Vos crédits n'ont pas été débités.",
+    "PAYMENT_PROVIDER_UNAVAILABLE": "Service de paiement momentanément indisponible"
+  }
+}

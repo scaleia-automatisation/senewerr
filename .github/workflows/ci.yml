@@ -1,0 +1,106 @@
+name: CI — Medikool
+
+on:
+  push:
+    branches: [main, feat/*, fix/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 1. Lint & TypeCheck
+  # ──────────────────────────────────────────────
+  lint-typecheck:
+    name: Lint & TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: TypeCheck
+        run: npm run typecheck
+
+  # ──────────────────────────────────────────────
+  # 2. Tests unitaires Vitest
+  # ──────────────────────────────────────────────
+  vitest:
+    name: Unit Tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run tests
+        run: npm run test
+
+  # ──────────────────────────────────────────────
+  # 3. Build
+  # ──────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint-typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder' }}
+          VITE_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+
+  # ──────────────────────────────────────────────
+  # 4. Supabase DB Lint
+  # ──────────────────────────────────────────────
+  db-lint:
+    name: Supabase DB Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start Supabase
+        run: supabase start --ignore-health-check
+      - name: DB Lint
+        run: supabase db lint
+      - name: DB Reset
+        run: supabase db reset
+      - name: Stop
+        run: supabase stop
+
+  # ──────────────────────────────────────────────
+  # 5. Playwright E2E (smoke)
+  # ──────────────────────────────────────────────
+  e2e-smoke:
+    name: E2E Smoke (Playwright)
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+      - name: Run smoke tests
+        run: npm run test:e2e
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
