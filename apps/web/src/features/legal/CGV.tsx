@@ -1,9 +1,9 @@
-import { LegalLayout } from './LegalLayout'
+﻿import { LegalLayout } from './LegalLayout'
 
 export const META = {
-  title: 'Conditions Générales de Vente | Medikool',
+  title: 'Conditions Générales de Vente | Séne Wérr',
   description:
-    "Les CGV de Medikool détaillent les plans tarifaires, essai gratuit, abonnements, facturation et politique de remboursement.",
+    "Les CGV de Séne Wérr détaillent les plans tarifaires, essai gratuit, abonnements, facturation et politique de remboursement.",
 }
 
 export default function CGV() {
@@ -19,10 +19,10 @@ export default function CGV() {
             Article 1 — Plans et tarifs
           </h2>
           <p>
-            Les plans tarifaires de Medikool sont disponibles en détail sur la page{' '}
+            Les plans tarifaires de Séne Wérr sont disponibles en détail sur la page{' '}
             <a href="/tarifs" className="text-primary hover:underline">/tarifs</a>.
             Tous les prix sont exprimés en <strong>francs CFA (FCFA) toutes taxes comprises
-            (TTC)</strong>, sauf mention contraire. Medikool propose des offres distinctes
+            (TTC)</strong>, sauf mention contraire. Séne Wérr propose des offres distinctes
             pour les professionnels de santé indépendants, les établissements de soins,
             les pharmacies et les organismes de mutuelle-santé.
           </p>
@@ -57,7 +57,7 @@ export default function CGV() {
             Article 3 — Abonnement
           </h2>
           <p>
-            L'abonnement Medikool est disponible en formule <strong>mensuelle</strong> ou
+            L'abonnement Séne Wérr est disponible en formule <strong>mensuelle</strong> ou
             <strong> annuelle</strong>. La formule annuelle offre l'équivalent de deux mois
             d'abonnement offerts par rapport au tarif mensuel (soit une économie d'environ
             16 %). Le choix de la période de facturation est effectué lors de la souscription
@@ -110,8 +110,8 @@ export default function CGV() {
             Au-delà de ce délai de 14 jours ou en cas d'utilisation avérée,
             <strong> aucun remboursement au prorata</strong> ne sera accordé.
             Pour toute demande de remboursement dans le délai, contactez{' '}
-            <a href="mailto:contact@medikool.sn" className="text-primary hover:underline">
-              contact@medikool.sn
+            <a href="mailto:contact@senewerr.com" className="text-primary hover:underline">
+              contact@senewerr.com
             </a>{' '}
             en précisant votre identifiant de compte et le motif de la demande.
           </p>
@@ -149,7 +149,7 @@ export default function CGV() {
             Article 8 — Défaut de paiement
           </h2>
           <p>
-            En cas d'échec du prélèvement automatique, Medikool envoie une notification
+            En cas d'échec du prélèvement automatique, Séne Wérr envoie une notification
             par email et tente un nouveau prélèvement après 3 jours. Si le paiement
             n'est pas régularisé dans un délai de <strong>7 jours</strong> suivant la
             première tentative infructueuse, l'accès aux fonctionnalités payantes est
@@ -165,7 +165,7 @@ export default function CGV() {
             Article 9 — Modification des tarifs
           </h2>
           <p>
-            Medikool se réserve le droit de modifier ses tarifs avec un préavis de
+            Séne Wérr se réserve le droit de modifier ses tarifs avec un préavis de
             <strong> 30 jours</strong>, communiqué par email à l'adresse enregistrée
             sur le compte. En cas de désaccord avec les nouveaux tarifs, l'utilisateur
             peut résilier son abonnement avant l'entrée en vigueur des nouvelles conditions.

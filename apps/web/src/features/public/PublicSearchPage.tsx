@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import { Search, UserCheck, Building2 } from 'lucide-react'
 import { Seo } from '@/hooks/useSeo'
 
@@ -6,7 +6,7 @@ export default function PublicSearchPage() {
   return (
     <>
       <Seo
-        title="Rechercher un professionnel de santé au Sénégal — Medikool"
+        title="Rechercher un professionnel de santé au Sénégal — Séne Wérr"
         description="Trouvez un médecin, une pharmacie ou un établissement de santé au Sénégal. Créez un compte gratuit pour accéder à la recherche complète et prendre rendez-vous."
         canonical="/recherche-publique"
       />

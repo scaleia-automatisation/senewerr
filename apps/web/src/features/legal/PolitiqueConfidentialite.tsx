@@ -1,9 +1,9 @@
-import { LegalLayout } from './LegalLayout'
+﻿import { LegalLayout } from './LegalLayout'
 
 export const META = {
-  title: 'Politique de confidentialité | Medikool',
+  title: 'Politique de confidentialité | Séne Wérr',
   description:
-    "Comment Medikool collecte, utilise et protège vos données personnelles, dont les données de santé.",
+    "Comment Séne Wérr collecte, utilise et protège vos données personnelles, dont les données de santé.",
 }
 
 export default function PolitiqueConfidentialite() {
@@ -17,15 +17,15 @@ export default function PolitiqueConfidentialite() {
           </h2>
           <p>
             Le responsable du traitement de vos données personnelles est{' '}
-            <strong>Medikool SAS</strong>, dont le siège social est à Dakar, Sénégal.
+            <strong>Séne Wérr SAS</strong>, dont le siège social est à Dakar, Sénégal.
             Pour toute question relative à la protection de vos données, vous pouvez contacter
             notre Délégué à la Protection des Données (DPO) à l'adresse suivante :{' '}
-            <a href="mailto:dpo@medikool.sn" className="text-primary hover:underline">
-              dpo@medikool.sn
+            <a href="mailto:dpo@senewerr.com" className="text-primary hover:underline">
+              dpo@senewerr.com
             </a>.
           </p>
           <p className="mt-s-3">
-            Medikool traite vos données dans le respect de la loi sénégalaise n° 2008-12 du
+            Séne Wérr traite vos données dans le respect de la loi sénégalaise n° 2008-12 du
             25 janvier 2008 sur la Protection des Données à Caractère Personnel (loi CDP),
             administrée par la Commission des Données Personnelles (CDP), et du Règlement
             Général sur la Protection des Données (RGPD) de l'Union Européenne pour les
@@ -218,8 +218,8 @@ export default function PolitiqueConfidentialite() {
           </ul>
           <p className="mt-s-3">
             Pour exercer ces droits, adressez votre demande à{' '}
-            <a href="mailto:dpo@medikool.sn" className="text-primary hover:underline">
-              dpo@medikool.sn
+            <a href="mailto:dpo@senewerr.com" className="text-primary hover:underline">
+              dpo@senewerr.com
             </a>{' '}
             ou par courrier à notre siège social. Nous nous engageons à répondre dans un
             délai de <strong>30 jours</strong>.
@@ -294,7 +294,7 @@ export default function PolitiqueConfidentialite() {
             9. Cookies et traceurs
           </h2>
           <p>
-            Medikool utilise uniquement des cookies techniques strictement nécessaires
+            Séne Wérr utilise uniquement des cookies techniques strictement nécessaires
             au fonctionnement du service (session, protection CSRF). L'outil d'analytique
             PostHog est configuré en mode <em>sans cookie</em> : aucun identifiant
             persistant n'est déposé sur votre terminal. Pour plus d'informations,
@@ -312,8 +312,8 @@ export default function PolitiqueConfidentialite() {
           <p>
             Pour toute question relative à la protection de vos données personnelles,
             contactez notre Délégué à la Protection des Données :{' '}
-            <a href="mailto:dpo@medikool.sn" className="text-primary hover:underline">
-              dpo@medikool.sn
+            <a href="mailto:dpo@senewerr.com" className="text-primary hover:underline">
+              dpo@senewerr.com
             </a>
             . Nous nous engageons à accuser réception sous 72 heures et à répondre
             dans les 30 jours.

@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders }  from '../_shared/cors.ts'
 import { requireAuth }  from '../_shared/auth.ts'
@@ -179,7 +179,7 @@ async function sendInvitationEmail(opts: {
     return
   }
 
-  const appUrl   = Deno.env.get('APP_URL') ?? 'https://medikool.sn'
+  const appUrl   = Deno.env.get('APP_URL') ?? 'https://senewerr.com'
   const invitUrl = `${appUrl}/invitation/${opts.token}`
   const expires  = new Date(opts.expiresAt).toLocaleString('fr-FR', {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -190,10 +190,10 @@ async function sendInvitationEmail(opts: {
 
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
-      <img src="${appUrl}/favicon.svg" alt="Medikool" style="width:40px;margin-bottom:16px"/>
+      <img src="${appUrl}/favicon.svg" alt="Séne Wérr" style="width:40px;margin-bottom:16px"/>
       <h1 style="color:#163F56;font-size:22px">Invitation à rejoindre ${opts.orgName}</h1>
       <p style="color:#4B5A6B"><strong>${opts.inviterName}</strong> vous invite à rejoindre
-      <strong>${opts.orgName}</strong> en tant que <strong>${roleLabel}</strong> sur Medikool.</p>
+      <strong>${opts.orgName}</strong> en tant que <strong>${roleLabel}</strong> sur Séne Wérr.</p>
       <a href="${invitUrl}"
          style="display:inline-block;margin:24px 0;padding:12px 24px;background:#1C8628;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
         Accepter l'invitation
@@ -210,9 +210,9 @@ async function sendInvitationEmail(opts: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from:    'Medikool <noreply@medikool.sn>',
+      from:    'Séne Wérr <noreply@senewerr.com>',
       to:      [opts.to],
-      subject: `Invitation à rejoindre ${opts.orgName} sur Medikool`,
+      subject: `Invitation à rejoindre ${opts.orgName} sur Séne Wérr`,
       html,
     }),
   })

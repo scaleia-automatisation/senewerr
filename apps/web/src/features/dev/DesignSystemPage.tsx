@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Plus, Search, Moon, Sun, Calendar, Pill } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { formatFCFA, formatFCFACompact, formatRelativeDateTime } from '@/lib/utils'
@@ -40,7 +40,7 @@ export default function DesignSystemPage() {
       <header className="mb-s-6 flex items-center justify-between">
         <div>
           <h1 className="font-display text-display font-semibold text-ink">Design System</h1>
-          <p className="text-body text-ink-2">Medikool — « Kool Clinic » · usage interne</p>
+          <p className="text-body text-ink-2">Séne Wérr — « Kool Clinic » · usage interne</p>
         </div>
         <IconButton aria-label="Basculer le thème" variant="secondary" onClick={toggle}>
           <Sun className="h-5 w-5 dark:hidden" />

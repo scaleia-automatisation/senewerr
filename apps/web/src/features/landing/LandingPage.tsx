@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LandingPage — BLOC 8
  * Réécriture complète : toutes les sections dans un seul fichier.
  * Pas de framer-motion. Animations via IntersectionObserver + CSS.
@@ -129,7 +129,7 @@ const FALLBACK_PLANS: Plan[] = [
     code: 'patient-gratuit',
     name: 'Patient · Gratuit',
     price_fcfa: 0,
-    description: 'Pour tous les patients Medikool',
+    description: 'Pour tous les patients Séne Wérr',
     features: ['Rendez-vous illimités', 'Ordonnances numériques', 'Suivi de commande', 'Paiement Wave / Orange Money'],
     is_featured: true,
     audience: 'patient',
@@ -236,8 +236,8 @@ function NavBar() {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-s-4 px-s-4 py-s-3 sm:px-s-6">
         {/* Logo */}
-        <Link to="/" className="font-display text-h3 font-bold text-primary" aria-label="Medikool — accueil">
-          Medikool
+        <Link to="/" className="font-display text-h3 font-bold text-primary" aria-label="Séne Wérr — accueil">
+          Séne Wérr
         </Link>
 
         {/* Desktop nav */}
@@ -321,7 +321,7 @@ function HeroSection() {
             <span className="text-primary">au même endroit</span>
           </h1>
           <p className="max-w-prose text-body leading-relaxed text-ink-2">
-            Rendez-vous, professionnels, ordonnances, pharmacies, mutuelle et paiements&nbsp;: Medikool relie tout ce dont vous avez besoin, depuis un seul compte.
+            Rendez-vous, professionnels, ordonnances, pharmacies, mutuelle et paiements&nbsp;: Séne Wérr relie tout ce dont vous avez besoin, depuis un seul compte.
           </p>
           <div className="flex flex-wrap gap-s-3">
             <Button variant="primary" size="lg" asChild>
@@ -347,13 +347,13 @@ function HeroSection() {
             viewBox="0 0 340 540"
             className="w-full max-w-[300px] drop-shadow-xl md:max-w-[340px]"
             role="img"
-            aria-label="Aperçu de l'application Medikool"
+            aria-label="Aperçu de l'application Séne Wérr"
           >
             {/* Phone shell */}
             <rect x="10" y="10" width="320" height="520" rx="32" fill="var(--surface)" stroke="var(--line)" strokeWidth="1.5" />
             {/* Status bar */}
             <rect x="10" y="10" width="320" height="48" rx="32" fill="var(--primary)" />
-            <text x="30" y="33" fill="white" fontSize="11" fontWeight="600" fontFamily="system-ui">Medikool</text>
+            <text x="30" y="33" fill="white" fontSize="11" fontWeight="600" fontFamily="system-ui">Séne Wérr</text>
             <text x="260" y="33" fill="white" fontSize="10" fontFamily="system-ui">09:41</text>
             {/* Notch */}
             <rect x="120" y="10" width="100" height="18" rx="0 0 12 12" fill="var(--primary)" />
@@ -487,7 +487,7 @@ function ParcoursDiagram({ visible }: { visible: boolean }) {
       viewBox={`0 0 ${W} ${H}`}
       className="w-full max-w-[420px]"
       role="img"
-      aria-label="Parcours Medikool : Patient → Médecin → Ordonnance → Pharmacie → Mutuelle"
+      aria-label="Parcours Séne Wérr : Patient → Médecin → Ordonnance → Pharmacie → Mutuelle"
     >
       {/* Arrows */}
       {PARCOURS_NODES.slice(0, -1).map((_, i) => {
@@ -612,7 +612,7 @@ const STEPS = [
     n: '02',
     icon: FileText,
     title: 'Consulter',
-    desc: 'Le médecin signe votre ordonnance directement depuis Medikool. Elle est prête instantanément.',
+    desc: 'Le médecin signe votre ordonnance directement depuis Séne Wérr. Elle est prête instantanément.',
   },
   {
     n: '03',
@@ -791,7 +791,7 @@ function ProofsSection() {
     >
       <div className="mx-auto max-w-7xl px-s-4 sm:px-s-6">
         <h2 id="proof-heading" className="mb-s-8 text-center font-display text-h1 font-semibold text-ink">
-          Ils font confiance à Medikool
+          Ils font confiance à Séne Wérr
         </h2>
 
         {/* Live stats */}
@@ -968,16 +968,16 @@ function PricingPreviewSection() {
 
 const FAQ_ITEMS = [
   {
-    q: 'Medikool est-il gratuit ?',
+    q: 'Séne Wérr est-il gratuit ?',
     a: 'Oui, le compte patient est entièrement gratuit et le restera. Les professionnels de santé, établissements, pharmacies et mutuelles disposent de plans adaptés avec un essai de 14 jours sans engagement.',
   },
   {
     q: 'Comment mon ordonnance arrive-t-elle à la pharmacie ?',
-    a: "Lorsque votre médecin signe l'ordonnance sur Medikool, elle est immédiatement disponible dans votre espace patient. Vous la sélectionnez au moment de votre réservation en pharmacie, sans papier.",
+    a: "Lorsque votre médecin signe l'ordonnance sur Séne Wérr, elle est immédiatement disponible dans votre espace patient. Vous la sélectionnez au moment de votre réservation en pharmacie, sans papier.",
   },
   {
     q: 'Qui peut voir mon dossier ?',
-    a: 'Seuls vous, vos bénéficiaires autorisés, le médecin prescripteur et la pharmacie que vous avez choisie peuvent accéder à votre ordonnance — et seulement le temps de la réservation. Medikool applique le principe du minimum nécessaire.',
+    a: 'Seuls vous, vos bénéficiaires autorisés, le médecin prescripteur et la pharmacie que vous avez choisie peuvent accéder à votre ordonnance — et seulement le temps de la réservation. Séne Wérr applique le principe du minimum nécessaire.',
   },
   {
     q: 'Comment payer ma part ?',
@@ -985,7 +985,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Ma mutuelle est-elle compatible ?',
-    a: 'Si votre mutuelle utilise Medikool, les prises en charge sont automatiques. Sinon, votre réservation reste possible et vous serez remboursé selon votre contrat mutuelle habituel.',
+    a: 'Si votre mutuelle utilise Séne Wérr, les prises en charge sont automatiques. Sinon, votre réservation reste possible et vous serez remboursé selon votre contrat mutuelle habituel.',
   },
   {
     q: 'Comment être vérifié en tant que professionnel ?',
@@ -993,7 +993,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Livrez-vous les médicaments ?',
-    a: "Non — Medikool ne livre pas à domicile. Vous retirez votre commande en pharmacie avec un code à 4 chiffres, une fois qu'elle est préparée.",
+    a: "Non — Séne Wérr ne livre pas à domicile. Vous retirez votre commande en pharmacie avec un code à 4 chiffres, une fois qu'elle est préparée.",
   },
   {
     q: 'Mes données sont-elles protégées ?',
@@ -1106,7 +1106,7 @@ function CTAFinalSection() {
           Commencez par&nbsp;: je cherche un médecin.
         </h2>
         <p className="mt-s-4 text-body text-white/80">
-          Rejoignez des milliers de patients qui gèrent leur santé simplement avec Medikool.
+          Rejoignez des milliers de patients qui gèrent leur santé simplement avec Séne Wérr.
         </p>
         <div className="mt-s-8">
           <Button
@@ -1133,16 +1133,17 @@ function CTAFinalSection() {
 
 function Footer() {
   return (
-    <footer className="border-t border-line bg-surface" aria-label="Pied de page Medikool">
+    <footer className="border-t border-line bg-surface" aria-label="Pied de page Séne Wérr">
       <div className="mx-auto max-w-7xl px-s-4 py-s-10 sm:px-s-6">
         <div className="grid gap-s-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Col 1: Logo + tagline */}
           <div className="flex flex-col gap-s-3">
-            <Link to="/" className="font-display text-h3 font-bold text-primary" aria-label="Medikool — accueil">
-              Medikool
+            <Link to="/" className="font-display text-h3 font-bold text-primary" aria-label="Séne Wérr — accueil">
+              Séne Wérr
             </Link>
+            <p className="text-small font-medium text-primary">Votre santé connectée et centralisée</p>
             <p className="text-small leading-relaxed text-ink-2">
-              Votre parcours de santé, au même endroit.
+              Plateforme de santé numérique au Sénégal — patients, professionnels, établissements, pharmacies et mutuelles réunis.
             </p>
             <div className="flex gap-s-3" aria-label="Réseaux sociaux">
               {['Twitter', 'LinkedIn', 'Facebook'].map(sn => (
@@ -1203,13 +1204,13 @@ function Footer() {
             <h3 className="mb-s-3 text-small font-semibold text-ink">Support</h3>
             <ul className="flex flex-col gap-s-2">
               <li>
-                <a href="mailto:contact@medikool.sn" className="text-small text-ink-2 hover:text-primary">
-                  contact@medikool.sn
+                <a href="mailto:contact@senewerr.com" className="text-small text-ink-2 hover:text-primary">
+                  contact@senewerr.com
                 </a>
               </li>
               <li>
-                <a href="mailto:support@medikool.sn" className="text-small text-ink-2 hover:text-primary">
-                  support@medikool.sn
+                <a href="mailto:support@senewerr.com" className="text-small text-ink-2 hover:text-primary">
+                  support@senewerr.com
                 </a>
               </li>
               <li>
@@ -1224,7 +1225,7 @@ function Footer() {
         {/* Bottom row */}
         <div className="mt-s-8 flex flex-col items-center justify-between gap-s-4 border-t border-line pt-s-6 sm:flex-row">
           <p className="text-micro text-ink-3">
-            © 2026 Medikool SAS · Tous droits réservés · 🇸🇳 Sénégal
+            © 2026 Séne Wérr SAS · Tous droits réservés · 🇸🇳 Sénégal
           </p>
           {/* Language selector */}
           <div className="flex items-center gap-s-2 text-micro text-ink-3" aria-label="Sélecteur de langue">

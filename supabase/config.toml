@@ -1,4 +1,4 @@
-# Supabase local configuration
+﻿# Supabase local configuration
 # https://supabase.com/docs/guides/local-development
 
 [api]
@@ -41,7 +41,7 @@ enabled = true
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:5173"
-additional_redirect_urls = ["https://127.0.0.1:5173"]
+additional_redirect_urls = ["https://127.0.0.1:5173", "https://senewerr.com", "https://www.senewerr.com"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -62,7 +62,7 @@ otp_expiry = 3600
 [auth.sms]
 enable_signup = true
 enable_confirmations = false
-template = "Votre code Medikool est {{ .Code }}"
+template = "Votre code Séne Wérr est {{ .Code }}"
 
 [auth.external.github]
 enabled = false

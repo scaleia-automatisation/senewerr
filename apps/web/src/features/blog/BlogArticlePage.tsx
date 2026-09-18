@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { Calendar, Clock, ArrowLeft, User, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -231,14 +231,14 @@ export default function BlogArticlePage() {
   if (notFound) return <Navigate to="/blog" replace />
   if (!post) return null
 
-  const baseUrl = 'https://medikool.sn'
+  const baseUrl = 'https://senewerr.com'
   const readTime = estimateReadTime(post.content_md)
   const renderedContent = post.content_md ? renderMarkdown(post.content_md) : ''
 
   return (
     <article className="min-h-screen bg-bg">
       <Seo
-        title={`${post.meta_title ?? post.title} — Blog Medikool`}
+        title={`${post.meta_title ?? post.title} — Blog Séne Wérr`}
         description={post.meta_description ?? post.excerpt ?? post.title}
         canonical={`/blog/${post.slug}`}
         ogType="article"
@@ -246,13 +246,13 @@ export default function BlogArticlePage() {
         article={{
           publishedTime: post.published_at ?? post.created_at,
           modifiedTime: post.updated_at,
-          author: post.author_name ?? 'Équipe médicale Medikool',
+          author: post.author_name ?? 'Équipe médicale Séne Wérr',
         }}
       />
       <SchemaArticle
         title={post.title}
         description={post.meta_description ?? post.excerpt ?? post.title}
-        author={post.author_name ?? 'Équipe médicale Medikool'}
+        author={post.author_name ?? 'Équipe médicale Séne Wérr'}
         publishedAt={post.published_at ?? post.created_at}
         modifiedAt={post.updated_at}
         url={`${baseUrl}/blog/${post.slug}`}

@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite'
+﻿import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
@@ -19,9 +19,9 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
-        name: 'Medikool',
-        short_name: 'Medikool',
-        description: 'Votre carnet de santé connecté au Sénégal',
+        name: 'Séne Wérr',
+        short_name: 'Séne Wérr',
+        description: 'Votre santé connectée et centralisée au Sénégal',
         theme_color: '#159B55',
         background_color: '#F5F9FA',
         display: 'standalone',

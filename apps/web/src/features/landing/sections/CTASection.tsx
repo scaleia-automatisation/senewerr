@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Building2, ShieldCheck } from 'lucide-react'
 
@@ -23,13 +23,13 @@ export function CTASection() {
           </span>
           <h3 className="mt-s-4 font-display text-h2 font-bold text-white">Vous êtes pharmacien ?</h3>
           <p className="mt-s-2 max-w-md text-body text-white/85">
-            Publiez votre stock, recevez commandes et réservations, encaissez, et laissez Medikool gérer les factures mutuelles.
+            Publiez votre stock, recevez commandes et réservations, encaissez, et laissez Séne Wérr gérer les factures mutuelles.
           </p>
           <button
             onClick={() => navigate('/auth/inscription')}
             className="mt-s-5 rounded-md bg-primary px-s-5 py-s-3 text-body font-semibold text-primary-fg transition-colors duration-fast hover:bg-primary-hover active:scale-[.97]"
           >
-            Rejoindre Medikool
+            Rejoindre Séne Wérr
           </button>
         </motion.div>
 

@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 async function verifyStripeSignature(payload: string, sigHeader: string): Promise<boolean> {
@@ -125,7 +125,7 @@ serve(async (req) => {
       const { data: canceled_sub } = await db.from('subscriptions').select('subscriber_id').eq('stripe_subscription_id', sub.id).maybeSingle()
       await db.from('subscriptions').update({ status: 'canceled', canceled_at: new Date().toISOString() }).eq('stripe_subscription_id', sub.id)
       if (canceled_sub) {
-        await db.from('notifications').insert({ recipient_id: canceled_sub.subscriber_id, type: 'SUBSCRIPTION_CANCELED', title: 'Abonnement résilié', body: 'Votre abonnement MEDIKOOL a été résilié.' })
+        await db.from('notifications').insert({ recipient_id: canceled_sub.subscriber_id, type: 'SUBSCRIPTION_CANCELED', title: 'Abonnement résilié', body: 'Votre abonnement SÉNE WÉRR a été résilié.' })
       }
       await db.from('domain_events').insert({ event_type: 'SUBSCRIPTION_CANCELED', payload: { stripeSubId: sub.id } })
     } else if (event.type === 'invoice.paid') {

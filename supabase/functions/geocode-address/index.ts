@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { requireAuth } from '../_shared/auth.ts'
 import { errorResponse, successResponse } from '../_shared/error.ts'
@@ -30,7 +30,7 @@ serve(async (req) => {
     const url = `${nominatimBase}/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=sn`
     const res = await fetch(url, {
       headers: {
-        'User-Agent': 'Medikool/1.0 (contacts.scale.ia@gmail.com)',
+        'User-Agent': 'Séne Wérr/1.0 (contacts.scale.ia@gmail.com)',
         'Accept-Language': 'fr,en',
       },
       signal: AbortSignal.timeout(5000),

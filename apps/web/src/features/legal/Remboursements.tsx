@@ -1,10 +1,10 @@
-import { LegalLayout } from './LegalLayout'
+﻿import { LegalLayout } from './LegalLayout'
 import { Banner } from '@/components/ui/Banner'
 
 export const META = {
-  title: 'Politique de remboursement | Medikool',
+  title: 'Politique de remboursement | Séne Wérr',
   description:
-    "Conditions et délais de remboursement des commandes pharmaceutiques sur Medikool.",
+    "Conditions et délais de remboursement des commandes pharmaceutiques sur Séne Wérr.",
 }
 
 export default function Remboursements() {
@@ -22,7 +22,7 @@ export default function Remboursements() {
             1. Remboursements automatiques
           </h2>
           <p>
-            Medikool procède automatiquement au remboursement intégral du montant payé
+            Séne Wérr procède automatiquement au remboursement intégral du montant payé
             par le patient dans les cas suivants, sans qu'aucune démarche de votre part
             ne soit nécessaire :
           </p>
@@ -123,8 +123,8 @@ export default function Remboursements() {
             </li>
             <li>
               Par email à{' '}
-              <a href="mailto:contact@medikool.sn" className="text-primary hover:underline">
-                contact@medikool.sn
+              <a href="mailto:contact@senewerr.com" className="text-primary hover:underline">
+                contact@senewerr.com
               </a>{' '}
               en précisant votre numéro de commande et le motif de la demande.
             </li>

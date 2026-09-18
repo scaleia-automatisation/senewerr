@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
@@ -9,7 +9,7 @@ const PLANS = [
     code: 'gratuit',
     name: 'Gratuit',
     price: 0,
-    description: 'Pour découvrir Medikool',
+    description: 'Pour découvrir Séne Wérr',
     cta: 'Commencer',
     featured: false,
     features: ['20 rendez-vous / mois', 'Ordonnances numériques', 'Profil patient complet', 'Rappels par email'],

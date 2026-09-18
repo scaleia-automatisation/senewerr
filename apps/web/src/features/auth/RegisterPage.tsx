@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -207,7 +207,7 @@ export default function RegisterPage() {
   return (
     <AuthLayout
       title={step === 1 ? 'Créer un compte' : step === 2 ? 'Vos informations' : 'Votre activité'}
-      subtitle={step === 1 ? 'Rejoignez Medikool gratuitement' : undefined}
+      subtitle={step === 1 ? 'Rejoignez Séne Wérr gratuitement' : undefined}
       footer={
         step === 1 ? (
           <>
@@ -338,7 +338,7 @@ export default function RegisterPage() {
                 aria-describedby="health-desc"
                 {...r2('consent_health')} />
               <span id="health-desc" className="text-small text-ink-2">
-                J'autorise Medikool à traiter mes données de santé pour la gestion de mon dossier médical{' '}
+                J'autorise Séne Wérr à traiter mes données de santé pour la gestion de mon dossier médical{' '}
                 <span className="text-status-danger">*</span>
               </span>
             </label>

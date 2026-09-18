@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -15,7 +15,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'MediKool <notifications@medikool.sn>',
+      from: 'Séne Wérr <notifications@senewerr.com>',
       to,
       subject,
       html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto">${html}</div>`,
@@ -127,7 +127,7 @@ serve(async (req) => {
       if (delivery.channel === 'email' && recipientEmail) {
         const data = notif.data ?? {}
         const subject = interpolate(notif.title ?? '', data)
-        const html = `<p>${interpolate(notif.message ?? '', data)}</p><hr><p style="color:#888;font-size:12px">MediKool · <a href="{{unsubscribe_url}}">Se désabonner des emails non critiques</a></p>`
+        const html = `<p>${interpolate(notif.message ?? '', data)}</p><hr><p style="color:#888;font-size:12px">Séne Wérr · <a href="{{unsubscribe_url}}">Se désabonner des emails non critiques</a></p>`
         await sendEmail(recipientEmail, subject, html)
       } else if (delivery.channel === 'push' && delivery.recipient_push_subscription) {
         // Web Push — use VAPID if available, else skip

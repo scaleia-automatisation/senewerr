@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, ChevronDown, ChevronUp, Zap, Building2, Pill, Shield } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -37,7 +37,7 @@ const TABS = [
 ]
 
 const FAQ = [
-  { q: 'Le patient paie-t-il des frais à MediKool ?', a: "Non, jamais. MediKool est 100% gratuit pour les patients. Seuls les frais du prestataire de paiement peuvent s'appliquer selon votre moyen de paiement, et ils sont absorbés par MediKool." },
+  { q: 'Le patient paie-t-il des frais à Séne Wérr ?', a: "Non, jamais. Séne Wérr est 100% gratuit pour les patients. Seuls les frais du prestataire de paiement peuvent s'appliquer selon votre moyen de paiement, et ils sont absorbés par Séne Wérr." },
   { q: 'Puis-je changer de plan à tout moment ?', a: "Oui. Un upgrade est effectif immédiatement avec proratisation. Un downgrade s'applique en fin de période en cours, avec un message si vos quotas actuels dépassent le nouveau plan." },
   { q: "Que se passe-t-il à la fin de l'essai gratuit ?", a: "Pour les établissements et mutuelles (14 jours d'essai), sans souscription votre compte passe en lecture seule avec un bandeau explicatif. Vos données sont conservées." },
   { q: 'Les crédits IA non utilisés sont-ils reportés ?', a: "Les crédits de plan se réinitialisent chaque mois. Les crédits achetés séparément (packs) n'expirent jamais et sont consommés après les crédits de plan." },
@@ -96,26 +96,45 @@ function getFeatures(plan: Plan): string[] {
   return lines
 }
 
-function PlanCard({ plan, billingInterval }: { plan: Plan; billingInterval: 'monthly' | 'annual' }) {
+function PlanCard({ plan }: { plan: Plan }) {
+  const [annual, setAnnual] = useState(false)
   const recommended = RECOMMENDED[plan.actor_type] === plan.code
-  const monthlyPrice = billingInterval === 'annual' ? Math.round(plan.yearly_price / 12) : plan.monthly_price
+  const isPaid = plan.monthly_price > 0
+  const displayPrice = annual ? Math.round(plan.yearly_price / 12) : plan.monthly_price
 
   return (
     <div className={`relative p-s-5 flex flex-col gap-s-4 border-2 rounded-md bg-surface ${recommended ? 'border-primary' : 'border-line'}`}>
       {recommended && <Badge variant="primary" className="self-start">Recommandé</Badge>}
+
       <div>
         <p className="text-h3 font-display font-semibold text-ink">{plan.name}</p>
+
+        {isPaid && (
+          <div className="mt-s-3 flex items-center justify-between">
+            <span className={`text-small font-medium transition-colors ${!annual ? 'text-ink' : 'text-ink-3'}`}>Mensuel</span>
+            <button
+              onClick={() => setAnnual(p => !p)}
+              className={`relative w-10 h-5 rounded-pill transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${annual ? 'bg-primary' : 'bg-line'}`}
+              aria-label="Basculer facturation annuelle"
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-pill bg-white shadow transition-transform ${annual ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+            <span className={`text-small font-medium transition-colors ${annual ? 'text-ink' : 'text-ink-3'}`}>Annuel</span>
+          </div>
+        )}
+
         <div className="mt-s-2 flex items-end gap-s-1">
-          {plan.monthly_price === 0
+          {!isPaid
             ? <p className="text-h1 font-display font-bold text-ink">Gratuit</p>
             : <>
-                <p className="text-h1 font-display font-bold text-ink">{monthlyPrice.toLocaleString('fr-FR')}</p>
+                <p className="text-h1 font-display font-bold text-ink">{displayPrice.toLocaleString('fr-FR')}</p>
                 <p className="text-body text-ink-3 mb-s-1">FCFA/mois</p>
               </>
           }
         </div>
-        {billingInterval === 'annual' && plan.yearly_price > 0 && (
-          <p className="text-small text-status-success">2 mois offerts ({plan.yearly_price.toLocaleString('fr-FR')} FCFA/an)</p>
+
+        {annual && isPaid && (
+          <p className="text-small text-status-success">2 mois offerts · {plan.yearly_price.toLocaleString('fr-FR')} FCFA/an</p>
         )}
         {plan.trial_days > 0 && (
           <p className="text-small text-accent">{plan.trial_days} jours d'essai gratuit</p>
@@ -132,10 +151,10 @@ function PlanCard({ plan, billingInterval }: { plan: Plan; billingInterval: 'mon
       </ul>
 
       <div className="mt-auto">
-        {plan.monthly_price === 0
+        {!isPaid
           ? <Button variant="secondary" className="w-full" asChild><Link to="/auth/inscription">Commencer gratuitement</Link></Button>
           : <Button variant={recommended ? 'primary' : 'secondary'} className="w-full" asChild>
-              <Link to={`/auth/inscription?plan=${plan.code}&interval=${billingInterval}`}>
+              <Link to={`/auth/inscription?plan=${plan.code}&interval=${annual ? 'annual' : 'monthly'}`}>
                 {plan.trial_days > 0 ? "Commencer l'essai" : 'Choisir ce plan'}
               </Link>
             </Button>
@@ -146,7 +165,6 @@ function PlanCard({ plan, billingInterval }: { plan: Plan; billingInterval: 'mon
 }
 
 export default function PricingPage() {
-  const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly')
   const [activeTab, setActiveTab] = useState('professional')
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
@@ -170,8 +188,8 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-surface">
       <Seo
-        title="Tarifs Medikool — Abonnements pour professionnels, établissements et pharmacies"
-        description="Découvrez les plans Medikool : gratuit pour les patients, abonnements pour les professionnels de santé, établissements, pharmacies et mutuelles au Sénégal."
+        title="Tarifs Séne Wérr — Abonnements pour professionnels, établissements et pharmacies"
+        description="Découvrez les plans Séne Wérr : gratuit pour les patients, abonnements pour les professionnels de santé, établissements, pharmacies et mutuelles au Sénégal."
         canonical="/tarifs"
       />
       {/* Hero */}
@@ -186,22 +204,7 @@ export default function PricingPage() {
           Un plan pour chaque acteur de santé. Pas de frais cachés, pas d'engagement minimum.
         </p>
 
-        {/* Billing toggle */}
-        <div className="flex items-center gap-s-3 justify-center mt-s-2">
-          <button onClick={() => setBillingInterval('monthly')} className={`text-small font-medium transition-colors ${billingInterval === 'monthly' ? 'text-ink' : 'text-ink-3'}`}>
-            Mensuel
-          </button>
-          <button
-            onClick={() => setBillingInterval(p => p === 'monthly' ? 'annual' : 'monthly')}
-            className="relative w-12 h-6 rounded-pill bg-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            aria-label="Basculer facturation annuelle"
-          >
-            <span className={`absolute top-1 w-4 h-4 rounded-pill bg-white transition-transform ${billingInterval === 'annual' ? 'translate-x-7' : 'translate-x-1'}`} />
-          </button>
-          <button onClick={() => setBillingInterval('annual')} className={`flex items-center gap-s-1 text-small font-medium transition-colors ${billingInterval === 'annual' ? 'text-ink' : 'text-ink-3'}`}>
-            Annuel <Badge variant="success" className="ml-s-1">2 mois offerts</Badge>
-          </button>
-        </div>
+        <p className="text-small text-ink-3 mt-s-1">Activez l'annuel sur chaque plan pour voir les économies.</p>
       </section>
 
       {/* Tabs */}
@@ -226,7 +229,7 @@ export default function PricingPage() {
           ? <div className="flex justify-center py-s-6"><Spinner /></div>
           : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-s-4">
               {tabPlans.map(plan => (
-                <PlanCard key={plan.id} plan={plan} billingInterval={billingInterval} />
+                <PlanCard key={plan.id} plan={plan} />
               ))}
             </div>
         }

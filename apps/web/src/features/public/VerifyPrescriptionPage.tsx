@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { CheckCircle, XCircle, Shield } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
@@ -73,7 +73,7 @@ export default function VerifyPrescriptionPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-s-4 p-s-4">
         <XCircle className="h-16 w-16 text-status-danger" />
         <h1 className="text-h2 font-display text-ink">Ordonnance invalide</h1>
-        <Banner kind="warning">Ce QR code ne correspond à aucune ordonnance valide sur MediKool.</Banner>
+        <Banner kind="warning">Ce QR code ne correspond à aucune ordonnance valide sur Séne Wérr.</Banner>
       </div>
     )
   }
@@ -98,7 +98,7 @@ export default function VerifyPrescriptionPage() {
           <h1 className="text-h2 font-display text-ink">Ordonnance authentique</h1>
           <div className="flex items-center gap-s-1 text-small text-ink-3">
             <Shield className="w-3 h-3" />
-            <span>Vérifiée par MediKool</span>
+            <span>Vérifiée par Séne Wérr</span>
           </div>
         </div>
 
@@ -138,7 +138,7 @@ export default function VerifyPrescriptionPage() {
         </div>
 
         <p className="mt-s-4 text-center text-small text-ink-3">
-          Ordonnance électronique sécurisée • MediKool
+          Ordonnance électronique sécurisée • Séne Wérr
         </p>
       </div>
     </div>

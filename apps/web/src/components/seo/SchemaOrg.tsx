@@ -1,13 +1,13 @@
-export function SchemaOrganization() {
+﻿export function SchemaOrganization() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Medikool',
-    url: 'https://medikool.sn',
-    logo: 'https://medikool.sn/logo.png',
+    name: 'Séne Wérr',
+    url: 'https://senewerr.com',
+    logo: 'https://senewerr.com/logo.png',
     contactPoint: {
       '@type': 'ContactPoint',
-      email: 'contact@medikool.sn',
+      email: 'contact@senewerr.com',
       contactType: 'customer support',
       availableLanguage: ['French', 'Wolof'],
     },
@@ -25,10 +25,10 @@ export function SchemaSoftwareApplication() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'Medikool',
+    name: 'Séne Wérr',
     applicationCategory: 'MedicalApplication',
     operatingSystem: 'Web, iOS, Android',
-    url: 'https://medikool.sn',
+    url: 'https://senewerr.com',
     description:
       'Plateforme de coordination de parcours de santé au Sénégal : rendez-vous, ordonnances, pharmacies, mutuelle.',
     offers: {
@@ -93,10 +93,10 @@ export function SchemaArticle({
     author: { '@type': 'Organization', name: author },
     publisher: {
       '@type': 'Organization',
-      name: 'Medikool',
+      name: 'Séne Wérr',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://medikool.sn/logo.png',
+        url: 'https://senewerr.com/logo.png',
       },
     },
     datePublished: publishedAt,
@@ -124,7 +124,7 @@ export function SchemaBreadcrumb({
       '@type': 'ListItem',
       position: i + 1,
       name: item.name,
-      item: `https://medikool.sn${item.url}`,
+      item: `https://senewerr.com${item.url}`,
     })),
   }
   return (

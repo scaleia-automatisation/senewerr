@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { LegalLayout } from './LegalLayout'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
@@ -10,9 +10,9 @@ import { supabase } from '@/lib/supabase'
 import { Mail, MessageSquare, Shield } from 'lucide-react'
 
 export const META = {
-  title: 'Nous contacter | Medikool',
+  title: 'Nous contacter | Séne Wérr',
   description:
-    "Contactez l'équipe Medikool pour toute question, problème technique, demande de facturation ou signalement. Réponse sous 48 heures ouvrées.",
+    "Contactez l'équipe Séne Wérr pour toute question, problème technique, demande de facturation ou signalement. Réponse sous 48 heures ouvrées.",
 }
 
 const SUBJECT_OPTIONS = [
@@ -88,7 +88,7 @@ export default function Contact() {
     } catch (err) {
       console.error('Contact form error:', err)
       setSubmitError(
-        "Une erreur est survenue lors de l'envoi de votre message. Merci de réessayer ou de nous écrire directement à contact@medikool.sn.",
+        "Une erreur est survenue lors de l'envoi de votre message. Merci de réessayer ou de nous écrire directement à contact@senewerr.com.",
       )
     } finally {
       setSubmitting(false)
@@ -105,8 +105,8 @@ export default function Contact() {
             Nous nous engageons à répondre à votre message dans un délai de{' '}
             <strong>48 heures ouvrées</strong>. Pour les urgences techniques en production,
             utilisez l'adresse{' '}
-            <a href="mailto:support@medikool.sn" className="text-primary hover:underline">
-              support@medikool.sn
+            <a href="mailto:support@senewerr.com" className="text-primary hover:underline">
+              support@senewerr.com
             </a>.
           </p>
         </section>
@@ -118,8 +118,8 @@ export default function Contact() {
               <Mail className="h-5 w-5 shrink-0 text-primary mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-small font-semibold text-ink mb-s-1">Contact général</p>
-                <a href="mailto:contact@medikool.sn" className="text-small text-primary hover:underline break-all">
-                  contact@medikool.sn
+                <a href="mailto:contact@senewerr.com" className="text-small text-primary hover:underline break-all">
+                  contact@senewerr.com
                 </a>
               </div>
             </div>
@@ -129,8 +129,8 @@ export default function Contact() {
               <MessageSquare className="h-5 w-5 shrink-0 text-primary mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-small font-semibold text-ink mb-s-1">Support technique</p>
-                <a href="mailto:support@medikool.sn" className="text-small text-primary hover:underline break-all">
-                  support@medikool.sn
+                <a href="mailto:support@senewerr.com" className="text-small text-primary hover:underline break-all">
+                  support@senewerr.com
                 </a>
               </div>
             </div>
@@ -140,8 +140,8 @@ export default function Contact() {
               <Shield className="h-5 w-5 shrink-0 text-primary mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-small font-semibold text-ink mb-s-1">Données personnelles</p>
-                <a href="mailto:dpo@medikool.sn" className="text-small text-primary hover:underline break-all">
-                  dpo@medikool.sn
+                <a href="mailto:dpo@senewerr.com" className="text-small text-primary hover:underline break-all">
+                  dpo@senewerr.com
                 </a>
               </div>
             </div>

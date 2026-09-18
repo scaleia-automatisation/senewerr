@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useCallback,
   useContext,
@@ -191,7 +191,7 @@ export function AdminLayout({
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
               <span className="font-display text-sm font-semibold text-primary-fg">M</span>
             </div>
-            <span className="font-display text-h3 font-semibold text-ink">Medikool</span>
+            <span className="font-display text-h3 font-semibold text-ink">Séne Wérr</span>
             <span className="ml-auto rounded-sm bg-surface-2 px-s-1 py-px text-micro font-medium text-ink-3">
               Admin
             </span>

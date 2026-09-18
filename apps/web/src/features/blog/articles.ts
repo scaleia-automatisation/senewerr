@@ -1,4 +1,4 @@
-export type Article = {
+﻿export type Article = {
   slug: string
   title: string
   meta_title: string
@@ -21,7 +21,7 @@ export const ARTICLES: Article[] = [
     meta_title: 'Dossier patient informatisé au Sénégal — Pourquoi le parcours reste fragmenté',
     meta_desc:
       'Au Sénégal, un même épisode de soin traverse cinq guichets qui ne communiquent pas. Comprendre pourquoi et ce que change un dossier patient numérique centralisé.',
-    author: 'Équipe médicale Medikool',
+    author: 'Équipe médicale Séne Wérr',
     read_time_minutes: 5,
     excerpt:
       'Au Sénégal, un même épisode de soin passe par un médecin, une ordonnance papier, plusieurs pharmacies et une mutuelle qui ne se parlent pas. Voici pourquoi — et ce que ça change.',
@@ -29,7 +29,7 @@ export const ARTICLES: Article[] = [
     status: 'published',
     cta_text: 'Un seul compte pour tout votre parcours',
     cta_url: '/auth/inscription',
-    related_slugs: ['cout-reel-ordonnance-papier', 'comment-medikool-fonctionne'],
+    related_slugs: ['cout-reel-ordonnance-papier', 'comment-sene-werr-fonctionne'],
     content: `Au Sénégal, un même épisode de soin passe par un médecin, une ordonnance papier, plusieurs pharmacies et une mutuelle qui ne se parlent pas. Résultat : vous portez seul la charge de la coordination — avec le risque d'erreur, le délai et le coût que cela implique.
 
 ## Qu'est-ce qu'un parcours de santé fragmenté ?
@@ -82,7 +82,7 @@ La bonne nouvelle, c'est qu'il n'est pas nécessaire d'attendre un grand program
     meta_title: 'Ordonnance papier au Sénégal : coût réel pour la mutuelle et le patient',
     meta_desc:
       "Temps de trajet, avance de frais, risques d'erreur, stress familial : voici ce que coûte vraiment une ordonnance papier au Sénégal.",
-    author: 'Équipe médicale Medikool',
+    author: 'Équipe médicale Séne Wérr',
     read_time_minutes: 5,
     excerpt:
       'Une ordonnance papier oblige à faire le tour des pharmacies, à avancer 100 % du montant et à attendre un remboursement mutuelle. Voici le coût réel — en temps, en argent et en stress.',
@@ -90,7 +90,7 @@ La bonne nouvelle, c'est qu'il n'est pas nécessaire d'attendre un grand program
     status: 'published',
     cta_text: 'Réservez votre médicament avec votre mutuelle déjà validée',
     cta_url: '/auth/inscription',
-    related_slugs: ['trouver-medicament-pharmacie-dakar', 'commencer-avec-medikool'],
+    related_slugs: ['trouver-medicament-pharmacie-dakar', 'commencer-avec-sene-werr'],
     content: `Une ordonnance papier oblige à faire le tour des pharmacies, à avancer 100 % du montant — y compris la part que votre mutuelle devrait couvrir — et à constituer un dossier de remboursement dont le résultat arrivera, si tout va bien, quelques semaines plus tard. Ce scénario, banal au Sénégal, a un coût réel que l'on calcule rarement.
 
 ## Combien de temps pour trouver un médicament disponible ?
@@ -141,7 +141,7 @@ Ce modèle supprime l'avance de frais, élimine le risque de dossier de rembours
     meta_title: 'Trouver un médicament disponible en pharmacie à Dakar — Prix et disponibilité',
     meta_desc:
       'Un patient, un médecin, un pharmacien : trois récits d\'une même journée à Dakar pour comprendre pourquoi trouver un médicament peut prendre des heures.',
-    author: 'Équipe médicale Medikool',
+    author: 'Équipe médicale Séne Wérr',
     read_time_minutes: 6,
     excerpt:
       "Trois scènes d'une journée ordinaire à Dakar : un patient qui cherche un médicament après le travail, un médecin qui jongle avec trois agendas, un pharmacien face à une ordonnance douteuse.",
@@ -204,7 +204,7 @@ La digitalisation de ce lien — ordonnance numérique signée, vérification de
     meta_title: 'Ordonnance en ligne au Sénégal — Comparatif des solutions de santé numérique',
     meta_desc:
       "Plateformes de RDV, applications pharmacie, téléconsultation, WhatsApp : tour d'horizon des solutions disponibles au Sénégal et de leurs limites réelles.",
-    author: 'Équipe médicale Medikool',
+    author: 'Équipe médicale Séne Wérr',
     read_time_minutes: 6,
     excerpt:
       "Doctolib n'opère pas au Sénégal. Les applications de livraison ne gèrent pas l'ordonnance numérique. WhatsApp ne suffit plus. Tour d'horizon des solutions disponibles et de ce qui manque.",
@@ -212,7 +212,7 @@ La digitalisation de ce lien — ordonnance numérique signée, vérification de
     status: 'published',
     cta_text: "L'outil qui relie les cinq étapes",
     cta_url: '/tarifs',
-    related_slugs: ['comment-medikool-fonctionne', 'cout-reel-ordonnance-papier'],
+    related_slugs: ['comment-sene-werr-fonctionne', 'cout-reel-ordonnance-papier'],
     content: `La question revient souvent : "Il y a bien une application pour ça, non ?" En matière de santé numérique au Sénégal, l'offre existe — mais elle est morcelée. Chaque solution résout un fragment du problème et laisse intact le reste. Voici un état des lieux honnête de ce qui existe, de ce qui fonctionne et de ce qui manque.
 
 ## Que proposent les plateformes de rendez-vous et quelles sont leurs limites au Sénégal ?
@@ -257,7 +257,7 @@ Les limites sont connues : la consultation vidéo ne peut pas remplacer l'examen
 
 Pour un patient ou un professionnel de santé sénégalais, les critères pertinents sont : la couverture du parcours complet (pas seulement un fragment), l'intégration avec les mutuelles locales, la conformité légale de l'ordonnance numérique, la disponibilité des informations de stock en pharmacie, et l'accessibilité sur mobile avec une connexion limitée.
 
-| Critère | Plateforme RDV seule | App livraison | Logiciel cabinet | Medikool |
+| Critère | Plateforme RDV seule | App livraison | Logiciel cabinet | Séne Wérr |
 |---|---|---|---|---|
 | Vérification professionnelle | Partielle | Non | Oui | Oui |
 | Ordonnance numérique sécurisée | Non | Non | Non | Oui |
@@ -269,25 +269,25 @@ Pour un patient ou un professionnel de santé sénégalais, les critères pertin
 Aucune solution existante ne couvre l'ensemble du parcours. Les plateformes de rendez-vous couvrent l'entrée. Les applications de livraison couvrent la sortie. Les logiciels de cabinet couvrent la gestion interne. La mutuelle reste dans son propre silo. Le patient assemble les pièces — ou ne le fait pas.
 
 > **À retenir**
-> Le paysage de la santé numérique au Sénégal est actif mais fragmenté. Doctolib n'opère pas au Sénégal. Les applications de livraison ne résolvent pas l'ordonnance légale. Les logiciels de cabinet ne parlent pas aux mutuelles. WhatsApp est pratique mais non conforme. La solution qui résout le parcours complet — rendez-vous, ordonnance numérique, disponibilité en pharmacie, prise en charge mutuelle avant paiement — reste rare. C'est le vide que des plateformes comme Medikool cherchent à combler.`,
+> Le paysage de la santé numérique au Sénégal est actif mais fragmenté. Doctolib n'opère pas au Sénégal. Les applications de livraison ne résolvent pas l'ordonnance légale. Les logiciels de cabinet ne parlent pas aux mutuelles. WhatsApp est pratique mais non conforme. La solution qui résout le parcours complet — rendez-vous, ordonnance numérique, disponibilité en pharmacie, prise en charge mutuelle avant paiement — reste rare. C'est le vide que des plateformes comme Séne Wérr cherchent à combler.`,
   },
 
   {
-    slug: 'comment-medikool-fonctionne',
-    title: 'Comment Medikool relie médecin, ordonnance, pharmacie et mutuelle en un seul parcours',
-    meta_title: 'Logiciel gestion cabinet médical Sénégal — Comment Medikool relie les acteurs',
+    slug: 'comment-sene-werr-fonctionne',
+    title: 'Comment Séne Wérr relie médecin, ordonnance, pharmacie et mutuelle en un seul parcours',
+    meta_title: 'Logiciel gestion cabinet médical Sénégal — Comment Séne Wérr relie les acteurs',
     meta_desc:
-      'Medikool centralise le parcours de soin dans un compte patient unique : ordonnance numérique, validation mutuelle avant paiement, retrait sécurisé en pharmacie.',
-    author: 'Équipe médicale Medikool',
+      'Séne Wérr centralise le parcours de soin dans un compte patient unique : ordonnance numérique, validation mutuelle avant paiement, retrait sécurisé en pharmacie.',
+    author: 'Équipe médicale Séne Wérr',
     read_time_minutes: 7,
     excerpt:
-      'Medikool centralise le parcours dans un compte patient unique : ordonnance signée numériquement, pharmacie notifiée, mutuelle validée avant que vous payiez, retrait sécurisé par code.',
+      'Séne Wérr centralise le parcours dans un compte patient unique : ordonnance signée numériquement, pharmacie notifiée, mutuelle validée avant que vous payiez, retrait sécurisé par code.',
     published_at: '2025-09-20T08:00:00.000Z',
     status: 'published',
     cta_text: 'Créer mon compte gratuit',
     cta_url: '/auth/inscription',
-    related_slugs: ['commencer-avec-medikool', 'parcours-de-sante-eclate-senegal'],
-    content: `Medikool centralise le parcours de soin dans un compte patient unique : rendez-vous, ordonnance numérique signée, notification à la pharmacie, validation de la mutuelle avant paiement, retrait sécurisé par code. Voici comment chaque maillon fonctionne — et pourquoi il est conçu ainsi.
+    related_slugs: ['commencer-avec-sene-werr', 'parcours-de-sante-eclate-senegal'],
+    content: `Séne Wérr centralise le parcours de soin dans un compte patient unique : rendez-vous, ordonnance numérique signée, notification à la pharmacie, validation de la mutuelle avant paiement, retrait sécurisé par code. Voici comment chaque maillon fonctionne — et pourquoi il est conçu ainsi.
 
 ## Comment fonctionne le compte patient unique ?
 
@@ -299,21 +299,21 @@ Le compte patient n'est pas un dossier médical complet au sens clinique — il 
 
 ## Comment l'ordonnance signée arrive-t-elle à la pharmacie ?
 
-Lors d'une consultation, le médecin utilise l'interface Medikool pour rédiger l'ordonnance directement dans le système. Chaque ordonnance reçoit un identifiant unique (code ORD) et un QR code. La signature numérique du médecin — liée à ses identifiants vérifiés sur la plateforme — est apposée de manière cryptographique.
+Lors d'une consultation, le médecin utilise l'interface Séne Wérr pour rédiger l'ordonnance directement dans le système. Chaque ordonnance reçoit un identifiant unique (code ORD) et un QR code. La signature numérique du médecin — liée à ses identifiants vérifiés sur la plateforme — est apposée de manière cryptographique.
 
 Le patient reçoit immédiatement une notification : l'ordonnance est disponible dans son compte. Il peut la consulter, la partager avec une pharmacie de son choix, ou la conserver pour plus tard. La durée de validité est affichée clairement. Le patient peut retirer le consentement de partage avec une pharmacie dans les 48 heures suivant la prescription — par exemple s'il décide de changer d'officine.
 
-La pharmacie, quand elle reçoit la demande du patient, voit l'ordonnance dans son interface Medikool. Elle peut vérifier l'authenticité de la signature, contrôler la validité, voir le profil des allergies du patient (avec son consentement), et confirmer la disponibilité du médicament. Si un médicament n'est pas en stock, elle peut le signaler immédiatement — sans que le patient ait besoin de se déplacer pour l'apprendre.
+La pharmacie, quand elle reçoit la demande du patient, voit l'ordonnance dans son interface Séne Wérr. Elle peut vérifier l'authenticité de la signature, contrôler la validité, voir le profil des allergies du patient (avec son consentement), et confirmer la disponibilité du médicament. Si un médicament n'est pas en stock, elle peut le signaler immédiatement — sans que le patient ait besoin de se déplacer pour l'apprendre.
 
 ## Comment la mutuelle valide-t-elle avant le paiement ?
 
-C'est le point qui change le plus concrètement la vie du patient. En temps normal, vous payez, vous récupérez les justificatifs, vous envoyez le dossier, vous attendez. Avec Medikool, la séquence s'inverse.
+C'est le point qui change le plus concrètement la vie du patient. En temps normal, vous payez, vous récupérez les justificatifs, vous envoyez le dossier, vous attendez. Avec Séne Wérr, la séquence s'inverse.
 
 Quand le patient partage son ordonnance avec la pharmacie, la plateforme interroge automatiquement les droits de la mutuelle associée au compte. La mutuelle reçoit la demande de prise en charge (PEC) avec le détail des médicaments, les codes de classification (CIM-10 si disponible), et l'identifiant de l'assuré. Elle répond avec le taux de prise en charge applicable, les éventuelles exclusions, et le montant restant à charge.
 
 Ce processus prend quelques secondes. Le pharmacien affiche alors au patient le montant exact qu'il doit régler — uniquement sa quote-part. La mutuelle est directement débitée selon les accords établis. Pas d'avance de frais, pas de dossier de remboursement, pas d'attente.
 
-Ce modèle de tiers-payant automatisé nécessite que la mutuelle soit connectée à la plateforme. Medikool travaille à l'intégration des principales mutuelles opérant au Sénégal. Pour les mutuelles non encore intégrées, un mode hybride permet d'émettre le document de prise en charge que le patient présente manuellement — une amélioration par rapport au dossier constitué entièrement à la main.
+Ce modèle de tiers-payant automatisé nécessite que la mutuelle soit connectée à la plateforme. Séne Wérr travaille à l'intégration des principales mutuelles opérant au Sénégal. Pour les mutuelles non encore intégrées, un mode hybride permet d'émettre le document de prise en charge que le patient présente manuellement — une amélioration par rapport au dossier constitué entièrement à la main.
 
 ## Comment le code à 4 chiffres sécurise-t-il le retrait ?
 
@@ -325,48 +325,48 @@ Le patient peut déléguer le retrait à un proche — conjoint, enfant, assista
 
 ## Comment un médecin gère-t-il plusieurs cabinets avec un seul agenda ?
 
-Un médecin qui exerce dans plusieurs structures — cabinet principal, clinique partenaire, structure de quartier — dispose d'un agenda unique dans Medikool. Chaque structure est enregistrée comme un "lieu de consultation" rattaché à son profil. Les créneaux disponibles dans chaque lieu sont visibles en un seul endroit.
+Un médecin qui exerce dans plusieurs structures — cabinet principal, clinique partenaire, structure de quartier — dispose d'un agenda unique dans Séne Wérr. Chaque structure est enregistrée comme un "lieu de consultation" rattaché à son profil. Les créneaux disponibles dans chaque lieu sont visibles en un seul endroit.
 
 Les patients qui prennent rendez-vous voient les disponibilités consolidées, sans savoir nécessairement dans quelle structure précise le médecin sera présent (sauf si c'est une information pertinente). Les secrétaires de chaque structure peuvent gérer les agendas avec des droits délimités, sans accès aux données cliniques.
 
 ## Qui voit quoi ?
 
-Medikool applique le principe du minimum nécessaire. La pharmacie voit l'ordonnance et les allergies pertinentes — pas l'ensemble du dossier médical. La mutuelle voit les identifiants de prise en charge et les codes de classification — pas le contenu clinique de la consultation. Le patient voit tout ce qui le concerne. Le médecin voit son propre historique de consultations avec un patient donné — pas les consultations d'autres médecins sans consentement explicite.
+Séne Wérr applique le principe du minimum nécessaire. La pharmacie voit l'ordonnance et les allergies pertinentes — pas l'ensemble du dossier médical. La mutuelle voit les identifiants de prise en charge et les codes de classification — pas le contenu clinique de la consultation. Le patient voit tout ce qui le concerne. Le médecin voit son propre historique de consultations avec un patient donné — pas les consultations d'autres médecins sans consentement explicite.
 
 Chaque accès est journalisé. Le patient peut consulter dans son compte l'historique des accès à ses données : qui a vu quoi et quand. En cas d'accès non autorisé ou non consenti, une alerte est générée.
 
 ## Quelles garanties pour les données ?
 
-Les données de santé sont des données sensibles au sens du RGPD et des lois sénégalaises sur la protection des données personnelles. Medikool chiffre les données en transit et au repos, héberge les données sur des serveurs conformes aux exigences applicables, et n'utilise pas les données patient à des fins publicitaires ou de revente.
+Les données de santé sont des données sensibles au sens du RGPD et des lois sénégalaises sur la protection des données personnelles. Séne Wérr chiffre les données en transit et au repos, héberge les données sur des serveurs conformes aux exigences applicables, et n'utilise pas les données patient à des fins publicitaires ou de revente.
 
 Les professionnels de santé enregistrés sur la plateforme font l'objet d'une vérification d'identité et de qualifications avant activation. L'accès à un compte professionnel est protégé par une authentification à deux facteurs.
 
 <!-- emplacement témoignages vérifiés -->
 
 > **À retenir**
-> Medikool n'est pas un outil supplémentaire à côté des outils existants : c'est la couche qui relie les outils existants. Le médecin garde ses habitudes de prescription ; il les fait dans une interface numérique plutôt que sur un bloc papier. La pharmacie garde ses processus de dispensation ; elle reçoit l'ordonnance en numérique plutôt qu'en papier. La mutuelle garde ses règles de remboursement ; elle les applique en temps réel plutôt qu'après réception d'un dossier. Ce qui change, c'est la coordination — et c'est ce qui fait toute la différence.`,
+> Séne Wérr n'est pas un outil supplémentaire à côté des outils existants : c'est la couche qui relie les outils existants. Le médecin garde ses habitudes de prescription ; il les fait dans une interface numérique plutôt que sur un bloc papier. La pharmacie garde ses processus de dispensation ; elle reçoit l'ordonnance en numérique plutôt qu'en papier. La mutuelle garde ses règles de remboursement ; elle les applique en temps réel plutôt qu'après réception d'un dossier. Ce qui change, c'est la coordination — et c'est ce qui fait toute la différence.`,
   },
 
   {
-    slug: 'commencer-avec-medikool',
-    title: 'Par où commencer : votre premier rendez-vous et votre première réservation sur Medikool',
-    meta_title: 'Créer mon dossier santé en ligne — Guide Medikool pour les nouveaux patients',
+    slug: 'commencer-avec-sene-werr',
+    title: 'Par où commencer : votre premier rendez-vous et votre première réservation sur Séne Wérr',
+    meta_title: 'Créer mon dossier santé en ligne — Guide Séne Wérr pour les nouveaux patients',
     meta_desc:
-      'Commencer avec Medikool prend deux minutes. Guide complet pour créer votre compte, ajouter votre mutuelle, prendre votre premier rendez-vous et réserver votre premier médicament.',
-    author: 'Équipe médicale Medikool',
+      'Commencer avec Séne Wérr prend deux minutes. Guide complet pour créer votre compte, ajouter votre mutuelle, prendre votre premier rendez-vous et réserver votre premier médicament.',
+    author: 'Équipe médicale Séne Wérr',
     read_time_minutes: 5,
     excerpt:
-      'Commencer avec Medikool prend deux minutes. Voici le guide complet : créer votre compte, ajouter votre mutuelle et vos proches, prendre un rendez-vous, réserver un médicament.',
+      'Commencer avec Séne Wérr prend deux minutes. Voici le guide complet : créer votre compte, ajouter votre mutuelle et vos proches, prendre un rendez-vous, réserver un médicament.',
     published_at: '2025-09-25T08:00:00.000Z',
     status: 'published',
     cta_text: 'Commencer maintenant — gratuit',
     cta_url: '/auth/inscription',
-    related_slugs: ['comment-medikool-fonctionne', 'trouver-medicament-pharmacie-dakar'],
-    content: `Commencer avec Medikool prend deux minutes — le temps de créer votre compte et de renseigner les informations essentielles. Ensuite, chaque étape de votre parcours de soin s'enchaîne depuis un seul endroit. Voici le guide complet, étape par étape.
+    related_slugs: ['comment-sene-werr-fonctionne', 'trouver-medicament-pharmacie-dakar'],
+    content: `Commencer avec Séne Wérr prend deux minutes — le temps de créer votre compte et de renseigner les informations essentielles. Ensuite, chaque étape de votre parcours de soin s'enchaîne depuis un seul endroit. Voici le guide complet, étape par étape.
 
 ## Comment créer son compte en 2 minutes ?
 
-Rendez-vous sur medikool.sn depuis votre téléphone ou votre ordinateur. Cliquez sur "Créer mon compte". Vous aurez besoin d'une adresse email valide — c'est votre identifiant principal.
+Rendez-vous sur senewerr.com depuis votre téléphone ou votre ordinateur. Cliquez sur "Créer mon compte". Vous aurez besoin d'une adresse email valide — c'est votre identifiant principal.
 
 Renseignez votre prénom, votre nom, votre date de naissance et votre numéro de téléphone. Ces informations permettent de vous identifier de manière unique dans le système et d'associer vos interactions (rendez-vous, ordonnances) à votre profil.
 
@@ -392,11 +392,11 @@ Sur la fiche du médecin, vous voyez ses créneaux disponibles pour les prochain
 
 La veille du rendez-vous, vous recevez un rappel automatique. Vous pouvez annuler ou reporter jusqu'à un délai défini par le médecin (généralement 24 heures avant). En cas d'annulation, le créneau se libère automatiquement dans l'agenda du médecin.
 
-Le jour du rendez-vous, présentez-vous en cabinet avec votre identifiant Medikool (accessible depuis l'application) ou donnez simplement votre numéro de téléphone. Le médecin retrouve votre profil instantanément.
+Le jour du rendez-vous, présentez-vous en cabinet avec votre identifiant Séne Wérr (accessible depuis l'application) ou donnez simplement votre numéro de téléphone. Le médecin retrouve votre profil instantanément.
 
 ## Comment réserver et retirer son premier médicament ?
 
-Après la consultation, si le médecin a utilisé Medikool pour rédiger l'ordonnance, vous recevez une notification dans votre compte : "Vous avez une nouvelle ordonnance." Vous voyez le détail des médicaments prescrits, leur dosage et la durée du traitement.
+Après la consultation, si le médecin a utilisé Séne Wérr pour rédiger l'ordonnance, vous recevez une notification dans votre compte : "Vous avez une nouvelle ordonnance." Vous voyez le détail des médicaments prescrits, leur dosage et la durée du traitement.
 
 Depuis cette notification, cliquez sur "Réserver en pharmacie". Une liste de pharmacies partenaires disponibles s'affiche, avec pour chacune la confirmation de disponibilité des médicaments de votre ordonnance. Choisissez la pharmacie qui vous convient — celle la plus proche, ou celle que vous connaissez depuis des années.
 
@@ -414,15 +414,15 @@ En fin de mois, vous voyez un récapitulatif de vos dépenses de santé, des rem
 
 ## Professionnels, pharmacies et mutuelles : quelles offres de lancement ?
 
-**Pour les patients**, l'accès à Medikool est gratuit. La création de compte, la prise de rendez-vous, la consultation des ordonnances et la réservation de médicaments sont incluses sans frais.
+**Pour les patients**, l'accès à Séne Wérr est gratuit. La création de compte, la prise de rendez-vous, la consultation des ordonnances et la réservation de médicaments sont incluses sans frais.
 
 **Pour les professionnels de santé** (médecins, infirmiers, sages-femmes), une offre de lancement à tarif réduit est disponible pour les premiers utilisateurs qui rejoignent la plateforme avant son déploiement complet. Un essai gratuit de 14 jours est proposé sans engagement ni carte bancaire requise. Une garantie de remboursement de 14 jours s'applique si la plateforme ne correspond pas aux attentes après une utilisation réelle.
 
-**Pour les pharmacies partenaires**, l'intégration avec Medikool est proposée avec un accompagnement technique dédié. Les pharmacies qui rejoignent la plateforme en phase de lancement bénéficient d'une visibilité accrue auprès des patients utilisant la plateforme dans leur zone.
+**Pour les pharmacies partenaires**, l'intégration avec Séne Wérr est proposée avec un accompagnement technique dédié. Les pharmacies qui rejoignent la plateforme en phase de lancement bénéficient d'une visibilité accrue auprès des patients utilisant la plateforme dans leur zone.
 
 **Pour les mutuelles**, une API de connexion est disponible. Les mutuelles qui s'intègrent peuvent proposer à leurs adhérents la validation automatique de prise en charge — un service différenciant par rapport aux mutuelles concurrentes encore en mode remboursement différé.
 
 > **À retenir**
-> Commencer avec Medikool demande deux minutes et une adresse email. La création de compte est gratuite pour les patients. L'ajout de la mutuelle déclenche la validation automatique de prise en charge dès le premier médicament. L'ajout des proches centralise le suivi familial dans un seul compte. Après un mois, votre historique de santé est accessible, partageable avec votre prochain médecin en un clic, et vos remboursements sont tracés automatiquement. Le premier rendez-vous est la meilleure façon de comprendre comment ça fonctionne.`,
+> Commencer avec Séne Wérr demande deux minutes et une adresse email. La création de compte est gratuite pour les patients. L'ajout de la mutuelle déclenche la validation automatique de prise en charge dès le premier médicament. L'ajout des proches centralise le suivi familial dans un seul compte. Après un mois, votre historique de santé est accessible, partageable avec votre prochain médecin en un clic, et vos remboursements sont tracés automatiquement. Le premier rendez-vous est la meilleure façon de comprendre comment ça fonctionne.`,
   },
 ]

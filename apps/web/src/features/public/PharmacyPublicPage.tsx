@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { MapPin, Phone, Clock, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -61,11 +61,11 @@ export default function PharmacyPublicPage() {
 
   const name = pharmacy?.name ?? 'Pharmacie'
   const city = pharmacy?.city ?? ''
-  const pageTitle = `${name}${city ? ` — ${city}` : ''} | Pharmacie sur Medikool`
+  const pageTitle = `${name}${city ? ` — ${city}` : ''} | Pharmacie sur Séne Wérr`
   const description =
     pharmacy?.description
       ? `${pharmacy.description.slice(0, 140)}…`
-      : `Commandez vos médicaments à ${name}${city ? ` à ${city}` : ''} via Medikool. Réservez en ligne en quelques clics.`
+      : `Commandez vos médicaments à ${name}${city ? ` à ${city}` : ''} via Séne Wérr. Réservez en ligne en quelques clics.`
 
   return (
     <>
@@ -79,7 +79,7 @@ export default function PharmacyPublicPage() {
         name={name}
         telephone={pharmacy?.phone ?? undefined}
         addressLocality={city || undefined}
-        url={`https://medikool.sn/pharmacie/${slug}`}
+        url={`https://senewerr.com/pharmacie/${slug}`}
       />
       <SchemaBreadcrumb
         items={[
@@ -106,7 +106,7 @@ export default function PharmacyPublicPage() {
           <div>
             <h1 className="font-display text-h1 font-semibold text-ink">{name}</h1>
             <p className="mt-1 text-small font-medium text-success">
-              Pharmacie vérifiée Medikool
+              Pharmacie vérifiée Séne Wérr
             </p>
           </div>
         </div>

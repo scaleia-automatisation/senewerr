@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { requireAuth } from '../_shared/auth.ts'
@@ -82,7 +82,7 @@ serve(async (req) => {
       if (!stripeProductId) {
         const product = await stripe('POST', '/products', {
           name: plan.name,
-          metadata: { medikool_plan_code: plan.code },
+          metadata: { sene_werr_plan_code: plan.code },
         })
         stripeProductId = product.id
         updates.stripe_product_id = stripeProductId
@@ -95,7 +95,7 @@ serve(async (req) => {
           unit_amount: plan.price_monthly_xof,
           currency: 'xof',
           recurring: { interval: 'month' },
-          metadata: { medikool_plan_code: plan.code, interval: 'monthly' },
+          metadata: { sene_werr_plan_code: plan.code, interval: 'monthly' },
         })
         updates.stripe_price_monthly_id = price.id
       }
@@ -107,7 +107,7 @@ serve(async (req) => {
           unit_amount: plan.price_annual_xof,
           currency: 'xof',
           recurring: { interval: 'year' },
-          metadata: { medikool_plan_code: plan.code, interval: 'annual' },
+          metadata: { sene_werr_plan_code: plan.code, interval: 'annual' },
         })
         updates.stripe_price_annual_id = price.id
       }
@@ -144,7 +144,7 @@ serve(async (req) => {
       if (!packProductId) {
         const product = await stripe('POST', '/products', {
           name: pack.name,
-          metadata: { medikool_pack_code: pack.code },
+          metadata: { sene_werr_pack_code: pack.code },
         })
         packProductId = product.id
         packUpdates.stripe_product_id = packProductId
@@ -155,7 +155,7 @@ serve(async (req) => {
         product: packProductId,
         unit_amount: pack.price_xof,
         currency: 'xof',
-        metadata: { medikool_pack_code: pack.code },
+        metadata: { sene_werr_pack_code: pack.code },
       })
       packUpdates.stripe_price_id = price.id
 

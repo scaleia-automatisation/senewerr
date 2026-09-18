@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Calendar, Clock, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -49,7 +49,7 @@ export default function BlogIndexPage() {
   return (
     <div className="min-h-screen bg-bg">
       <Seo
-        title="Blog Medikool — Santé numérique au Sénégal"
+        title="Blog Séne Wérr — Santé numérique au Sénégal"
         description="Conseils santé, guides pratiques et actualités pour les patients et professionnels au Sénégal."
         canonical="/blog"
       />
@@ -61,14 +61,14 @@ export default function BlogIndexPage() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Blog',
-            name: 'Blog Medikool',
+            name: 'Blog Séne Wérr',
             description:
               'Conseils santé, guides pratiques et actualités pour les patients et professionnels au Sénégal.',
-            url: 'https://medikool.sn/blog',
+            url: 'https://senewerr.com/blog',
             publisher: {
               '@type': 'Organization',
-              name: 'Medikool',
-              url: 'https://medikool.sn',
+              name: 'Séne Wérr',
+              url: 'https://senewerr.com',
             },
           }),
         }}
@@ -77,7 +77,7 @@ export default function BlogIndexPage() {
       {/* Hero */}
       <div className="border-b border-line bg-surface px-s-4 py-s-10">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="mb-s-3 font-display text-h1 font-semibold text-ink">Blog Medikool</h1>
+          <h1 className="mb-s-3 font-display text-h1 font-semibold text-ink">Blog Séne Wérr</h1>
           <p className="mx-auto max-w-xl text-body text-ink-2">
             Conseils santé, guides pratiques et actualités pour les patients et professionnels au
             Sénégal.

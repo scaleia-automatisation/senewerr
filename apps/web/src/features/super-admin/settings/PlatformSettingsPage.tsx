@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAdminAudit } from '@/features/admin/AdminLayout'
 import { useSuperAdminContext } from '@/features/super-admin/SuperAdminLayout'
@@ -110,7 +110,7 @@ export default function PlatformSettingsPage() {
     <div className="space-y-s-5 max-w-3xl">
       <div>
         <h1 className="text-h2 font-bold text-ink">Paramètres plateforme</h1>
-        <p className="text-small text-ink-3 mt-s-1">Paramètres système globaux de Medikool.</p>
+        <p className="text-small text-ink-3 mt-s-1">Paramètres système globaux de Séne Wérr.</p>
       </div>
 
       {error && <Banner kind="warning">{error}</Banner>}

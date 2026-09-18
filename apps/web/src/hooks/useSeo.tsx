@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+﻿import { Helmet } from 'react-helmet-async'
 
 interface SeoProps {
   title: string
@@ -24,7 +24,7 @@ export function Seo({
   article,
   noIndex,
 }: SeoProps) {
-  const baseUrl = 'https://medikool.sn'
+  const baseUrl = 'https://senewerr.com'
   const fullCanonical = canonical ? `${baseUrl}${canonical}` : undefined
   const defaultOg = `${baseUrl}/og-default.png`
 
@@ -41,7 +41,7 @@ export function Seo({
       <meta property="og:type" content={ogType} />
       {fullCanonical && <meta property="og:url" content={fullCanonical} />}
       <meta property="og:image" content={ogImage ?? defaultOg} />
-      <meta property="og:site_name" content="Medikool" />
+      <meta property="og:site_name" content="Séne Wérr" />
       <meta property="og:locale" content="fr_SN" />
 
       {/* Twitter */}

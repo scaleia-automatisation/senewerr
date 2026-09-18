@@ -1,12 +1,12 @@
-import { LegalLayout } from './LegalLayout'
+﻿import { LegalLayout } from './LegalLayout'
 import { Card } from '@/components/ui/Card'
 import { Banner } from '@/components/ui/Banner'
 import { Lock, Server, UserCheck, Bug, AlertTriangle } from 'lucide-react'
 
 export const META = {
-  title: 'Sécurité | Medikool',
+  title: 'Sécurité | Séne Wérr',
   description:
-    "Découvrez comment Medikool protège vos données : chiffrement, authentification, hébergement sécurisé et programme de signalement responsable.",
+    "Découvrez comment Séne Wérr protège vos données : chiffrement, authentification, hébergement sécurisé et programme de signalement responsable.",
 }
 
 export default function Securite() {
@@ -16,7 +16,7 @@ export default function Securite() {
 
         <section>
           <p>
-            La sécurité de vos données est au cœur de la conception de Medikool. En tant
+            La sécurité de vos données est au cœur de la conception de Séne Wérr. En tant
             que plateforme manipulant des données de santé, nous appliquons les standards
             de sécurité les plus élevés disponibles, suivons les recommandations de l'ANSSI
             et de l'OWASP, et investissons en permanence dans l'amélioration de notre
@@ -117,7 +117,7 @@ export default function Securite() {
           <div className="flex items-start gap-s-3 mb-s-3">
             <UserCheck className="h-5 w-5 shrink-0 text-primary mt-1" aria-hidden="true" />
             <p>
-              Medikool procède à la vérification de l'identité et des accréditations
+              Séne Wérr procède à la vérification de l'identité et des accréditations
               de chaque acteur professionnel avant l'activation de son compte :
             </p>
           </div>
@@ -139,7 +139,7 @@ export default function Securite() {
             5. Audits de sécurité
           </h2>
           <p>
-            Medikool réalise régulièrement des tests de sécurité internes : revues de code,
+            Séne Wérr réalise régulièrement des tests de sécurité internes : revues de code,
             scans de vulnérabilités automatisés, tests d'intrusion sur les API critiques.
             Un audit de sécurité externe par un prestataire indépendant est prévu
             (Hypothèse à valider : planning et prestataire de l'audit externe). Les
@@ -156,7 +156,7 @@ export default function Securite() {
             <Bug className="h-5 w-5 shrink-0 text-primary mt-1" aria-hidden="true" />
             <div>
               <p>
-                Si vous découvrez une vulnérabilité de sécurité sur la plateforme Medikool,
+                Si vous découvrez une vulnérabilité de sécurité sur la plateforme Séne Wérr,
                 nous vous encourageons à nous la signaler de manière responsable avant
                 toute divulgation publique.
               </p>
@@ -176,8 +176,8 @@ export default function Securite() {
             <ul className="mt-s-2 list-disc list-inside space-y-s-2">
               <li>
                 Envoyez un email à{' '}
-                <a href="mailto:security@medikool.sn" className="text-primary hover:underline">
-                  security@medikool.sn
+                <a href="mailto:security@senewerr.com" className="text-primary hover:underline">
+                  security@senewerr.com
                 </a>{' '}
                 en décrivant la vulnérabilité, les étapes pour la reproduire et l'impact
                 potentiel estimé.
@@ -209,8 +209,8 @@ export default function Securite() {
                 Un programme de Bug Bounty formel est en cours de lancement
                 (Hypothèse à valider : plateforme et barème de récompenses). En attendant
                 son ouverture officielle, tous les signalements responsables reçus à{' '}
-                <a href="mailto:security@medikool.sn" className="text-primary hover:underline">
-                  security@medikool.sn
+                <a href="mailto:security@senewerr.com" className="text-primary hover:underline">
+                  security@senewerr.com
                 </a>{' '}
                 seront examinés et reconnus.
               </p>

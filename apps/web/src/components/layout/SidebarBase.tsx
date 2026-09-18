@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+﻿import { Link, useLocation } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/Avatar'
@@ -29,9 +29,9 @@ export function SidebarBase({ links, userFullName, userRole, userAvatar }: Sideb
       {/* Logo */}
       <div className="flex items-center gap-s-2 border-b border-line px-s-4 py-s-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-          <span className="font-display text-body font-semibold text-primary-fg">M</span>
+          <span className="font-display text-small font-bold text-primary-fg">SW</span>
         </div>
-        <span className="font-display text-h3 font-semibold text-ink">Medikool</span>
+        <span className="font-display text-h3 font-semibold text-ink">Séne Wérr</span>
       </div>
 
       {/* Navigation */}

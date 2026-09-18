@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { MapPin, Stethoscope, CalendarDays, Globe } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -81,11 +81,11 @@ export default function ProfessionalPublicPage() {
   const name = pro?.profile?.full_name ?? 'Professionnel de santé'
   const specialty = pro?.specialty ? (SPECIALTY_LABELS[pro.specialty] ?? pro.specialty) : ''
   const city = pro?.organization?.city ?? ''
-  const pageTitle = `${name}${specialty ? `, ${specialty}` : ''}${city ? ` à ${city}` : ''} — Medikool`
+  const pageTitle = `${name}${specialty ? `, ${specialty}` : ''}${city ? ` à ${city}` : ''} — Séne Wérr`
   const description =
     pro?.bio
       ? `${pro.bio.slice(0, 140)}…`
-      : `Prenez rendez-vous avec ${name}${specialty ? `, ${specialty}` : ''}${city ? ` à ${city}` : ''} sur Medikool.`
+      : `Prenez rendez-vous avec ${name}${specialty ? `, ${specialty}` : ''}${city ? ` à ${city}` : ''} sur Séne Wérr.`
 
   return (
     <>
@@ -100,7 +100,7 @@ export default function ProfessionalPublicPage() {
         specialty={specialty}
         telephone={pro?.profile?.phone ?? pro?.organization?.phone ?? undefined}
         addressLocality={city || undefined}
-        url={`https://medikool.sn/pro/${slug}`}
+        url={`https://senewerr.com/pro/${slug}`}
       />
       <SchemaBreadcrumb
         items={[

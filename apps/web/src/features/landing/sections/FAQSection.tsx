@@ -1,18 +1,18 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus } from 'lucide-react'
 
 const FAQ_ITEMS = [
   {
-    q: 'Medikool est-il sécurisé pour mes données de santé ?',
+    q: 'Séne Wérr est-il sécurisé pour mes données de santé ?',
     a: 'Oui. Vos données de santé sont chiffrées et ne sont jamais partagées sans votre consentement explicite. L\'accès est strictement contrôlé selon votre rôle.',
   },
   {
     q: 'Comment fonctionne la prise en charge par ma mutuelle ?',
-    a: 'Après votre consultation, le médecin génère une ordonnance numérique. Vous la partagez avec la pharmacie et votre mutuelle via Medikool, qui valide la couverture et paie sa part.',
+    a: 'Après votre consultation, le médecin génère une ordonnance numérique. Vous la partagez avec la pharmacie et votre mutuelle via Séne Wérr, qui valide la couverture et paie sa part.',
   },
   {
-    q: 'Puis-je utiliser Medikool sans connexion internet ?',
+    q: 'Puis-je utiliser Séne Wérr sans connexion internet ?',
     a: 'Partiellement. L\'application affiche vos données en cache hors-ligne (rendez-vous, ordonnances). Les actions nécessitant une connexion sont synchronisées automatiquement au retour du réseau.',
   },
   {
@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Comment puis-je payer ? Wave et Orange Money sont-ils acceptés ?',
-    a: 'Oui. Medikool accepte les cartes bancaires, Wave et Orange Money. Le paiement en pharmacie peut aussi se faire sur place selon les options proposées.',
+    a: 'Oui. Séne Wérr accepte les cartes bancaires, Wave et Orange Money. Le paiement en pharmacie peut aussi se faire sur place selon les options proposées.',
   },
   {
     q: 'Mes ordonnances sont-elles reconnues ?',

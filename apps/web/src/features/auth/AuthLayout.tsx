@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
 interface AuthLayoutProps {
   title: string
@@ -13,9 +13,12 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
       <header className="flex h-16 items-center px-s-4 sm:px-s-6">
         <Link to="/" className="flex items-center gap-s-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-            <span className="font-display text-body font-semibold text-primary-fg">M</span>
+            <span className="font-display text-small font-bold text-primary-fg">SW</span>
           </div>
-          <span className="font-display text-h3 font-semibold text-ink">Medikool</span>
+          <div className="flex flex-col leading-none">
+            <span className="font-display text-h3 font-semibold text-ink">Séne Wérr</span>
+            <span className="text-micro text-ink-3">Votre santé connectée et centralisée</span>
+          </div>
         </Link>
       </header>
 

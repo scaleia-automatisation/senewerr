@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 import { requireAuth, AuthContext } from '../_shared/auth.ts'
@@ -362,7 +362,7 @@ async function handleAnonymize(db: SupabaseClient, profile: AuthContext, body: a
   const { entity_id } = body
   if (!entity_id) throw new Error('MISSING_PARAMS')
 
-  const anonEmail = `${crypto.randomUUID()}@deleted.medikool.com`
+  const anonEmail = `${crypto.randomUUID()}@deleted.sene-werr.sn`
 
   // Anonymize profile
   const { error } = await db

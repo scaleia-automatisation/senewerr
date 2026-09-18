@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { Calendar, FileText, ShoppingBag, Shield, Sparkles, Bell } from 'lucide-react'
 
 const FEATURES = [
@@ -18,7 +18,7 @@ export function FeaturesSection() {
           <p className="mb-s-2 text-small font-semibold text-accent">Fonctionnalités</p>
           <h2 className="font-display text-h1 font-semibold text-ink">Tout ce dont vous avez besoin</h2>
           <p className="mx-auto mt-s-3 max-w-xl text-body text-ink-2">
-            De la prise de rendez-vous au remboursement, Medikool couvre tout votre parcours de santé.
+            De la prise de rendez-vous au remboursement, Séne Wérr couvre tout votre parcours de santé.
           </p>
         </div>
 

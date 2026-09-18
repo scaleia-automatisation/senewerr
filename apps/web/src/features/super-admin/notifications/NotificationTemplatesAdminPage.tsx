@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+﻿import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAdminAudit } from '@/features/admin/AdminLayout'
 import { useSuperAdminContext } from '@/features/super-admin/SuperAdminLayout'
@@ -31,7 +31,7 @@ const SAMPLE_VARS: Record<string, string> = {
   '{professional_name}': 'Dr. Fatou Sow',
   '{pharmacy_name}': 'Pharmacie Centrale',
   '{code}': 'CODE-XYZ',
-  '{link}': 'https://medikool.app/rdv/123',
+  '{link}': 'https://sene-werr.sn/rdv/123',
 }
 
 function renderPreview(template: string): string {

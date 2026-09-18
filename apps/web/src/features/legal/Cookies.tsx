@@ -1,10 +1,10 @@
-import { LegalLayout } from './LegalLayout'
+﻿import { LegalLayout } from './LegalLayout'
 import { Card } from '@/components/ui/Card'
 
 export const META = {
-  title: 'Politique des cookies | Medikool',
+  title: 'Politique des cookies | Séne Wérr',
   description:
-    "Medikool utilise uniquement des cookies techniques nécessaires. Aucun cookie publicitaire ni tracker tiers.",
+    "Séne Wérr utilise uniquement des cookies techniques nécessaires. Aucun cookie publicitaire ni tracker tiers.",
 }
 
 export default function Cookies() {
@@ -17,7 +17,7 @@ export default function Cookies() {
             1. Notre engagement : le minimum nécessaire
           </h2>
           <p>
-            Medikool applique une politique stricte en matière de cookies et de traceurs :
+            Séne Wérr applique une politique stricte en matière de cookies et de traceurs :
             nous ne déposons sur votre terminal <strong>que les cookies techniquement
             indispensables</strong> au fonctionnement du service. Aucun cookie à des fins
             publicitaires, aucun tracker de réseau social, aucun outil de profilage commercial
@@ -90,8 +90,8 @@ export default function Cookies() {
             Vous pouvez vous opposer à cette collecte anonymisée via le bouton « Opt-out
             de l'analytique » accessible dans les paramètres de votre compte ou en envoyant
             votre demande à{' '}
-            <a href="mailto:privacy@medikool.sn" className="text-primary hover:underline">
-              privacy@medikool.sn
+            <a href="mailto:privacy@senewerr.com" className="text-primary hover:underline">
+              privacy@senewerr.com
             </a>.
           </p>
         </section>
@@ -127,7 +127,7 @@ export default function Cookies() {
             5. Bandeau de consentement
           </h2>
           <p>
-            Dans la mesure où Medikool n'utilise que des cookies strictement nécessaires
+            Dans la mesure où Séne Wérr n'utilise que des cookies strictement nécessaires
             (exemptés de consentement) et une analytique sans cookie, aucun bandeau de
             consentement complexe n'est imposé à l'utilisateur lors de sa première visite.
             Une information minimale est affichée pour vous informer de l'existence des
@@ -142,8 +142,8 @@ export default function Cookies() {
           <p>
             Pour toute question relative à notre politique des cookies, contactez-nous à
             l'adresse{' '}
-            <a href="mailto:privacy@medikool.sn" className="text-primary hover:underline">
-              privacy@medikool.sn
+            <a href="mailto:privacy@senewerr.com" className="text-primary hover:underline">
+              privacy@senewerr.com
             </a>.
           </p>
         </section>

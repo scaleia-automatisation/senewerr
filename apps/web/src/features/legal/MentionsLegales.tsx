@@ -1,9 +1,9 @@
-import { LegalLayout } from './LegalLayout'
+﻿import { LegalLayout } from './LegalLayout'
 
 export const META = {
-  title: 'Mentions légales | Medikool',
+  title: 'Mentions légales | Séne Wérr',
   description:
-    "Informations légales sur Medikool : éditeur, hébergeur, contacts et responsabilités.",
+    "Informations légales sur Séne Wérr : éditeur, hébergeur, contacts et responsabilités.",
 }
 
 export default function MentionsLegales() {
@@ -16,7 +16,7 @@ export default function MentionsLegales() {
             1. Éditeur du site
           </h2>
           <p>
-            Le site <strong>medikool.sn</strong> est édité par la société <strong>Medikool SAS</strong>,
+            Le site <strong>senewerr.com</strong> est édité par la société <strong>Séne Wérr SAS</strong>,
             (Hypothèse à valider : raison sociale exacte, forme juridique, numéro RCCM et NINEA),
             dont le siège social est situé à Dakar, Sénégal.
           </p>
@@ -28,12 +28,12 @@ export default function MentionsLegales() {
           </p>
           <p className="mt-s-3">
             Adresses électroniques de contact :{' '}
-            <a href="mailto:contact@medikool.sn" className="text-primary hover:underline">
-              contact@medikool.sn
+            <a href="mailto:contact@senewerr.com" className="text-primary hover:underline">
+              contact@senewerr.com
             </a>{' '}
             (informations générales) ·{' '}
-            <a href="mailto:support@medikool.sn" className="text-primary hover:underline">
-              support@medikool.sn
+            <a href="mailto:support@senewerr.com" className="text-primary hover:underline">
+              support@senewerr.com
             </a>{' '}
             (support technique).
           </p>
@@ -44,7 +44,7 @@ export default function MentionsLegales() {
             2. Hébergement
           </h2>
           <p>
-            L'infrastructure technique de Medikool est assurée par{' '}
+            L'infrastructure technique de Séne Wérr est assurée par{' '}
             <strong>Supabase Inc.</strong>, dont le siège social est situé au 970 Trestle Glen Road,
             Oakland, CA 94610, États-Unis. Les bases de données, services d'authentification et
             stockage de fichiers sont hébergés en région Union Européenne (eu-west-1 / eu-central-1)
@@ -63,7 +63,7 @@ export default function MentionsLegales() {
             3. Sous-traitants et partenaires techniques
           </h2>
           <p>
-            Dans le cadre de la fourniture de ses services, Medikool fait appel à plusieurs
+            Dans le cadre de la fourniture de ses services, Séne Wérr fait appel à plusieurs
             prestataires spécialisés, chacun soumis à des obligations contractuelles strictes en
             matière de confidentialité et de sécurité des données :
           </p>
@@ -75,7 +75,7 @@ export default function MentionsLegales() {
             <li>
               <strong>Stripe Inc.</strong> — Traitement des paiements par carte bancaire,
               certifié PCI-DSS niveau 1. Seuls les tokens de paiement sont transmis ; les numéros
-              complets de carte ne transitent jamais par les serveurs Medikool.
+              complets de carte ne transitent jamais par les serveurs Séne Wérr.
             </li>
             <li>
               <strong>Wave Mobile Money</strong> — Paiements mobiles pour les utilisateurs
@@ -104,23 +104,23 @@ export default function MentionsLegales() {
             4. Nature de l'activité
           </h2>
           <p>
-            Medikool est une <strong>plateforme de mise en relation et de coordination</strong>
+            Séne Wérr est une <strong>plateforme de mise en relation et de coordination</strong>
             entre patients, professionnels de santé, établissements de soins, pharmacies et
-            organismes de mutuelle. À ce titre, Medikool n'est pas un établissement de soins,
+            organismes de mutuelle. À ce titre, Séne Wérr n'est pas un établissement de soins,
             ne délivre pas de consultations médicales et n'intervient pas dans la relation
             thérapeutique entre un patient et son praticien.
           </p>
           <p className="mt-s-3">
             Les professionnels de santé inscrits sur la plateforme exercent à titre libéral
-            ou salarié et restent seuls responsables de leurs actes médicaux. Medikool vérifie
+            ou salarié et restent seuls responsables de leurs actes médicaux. Séne Wérr vérifie
             l'inscription des professionnels à leur ordre professionnel compétent lors de
             l'activation de leur compte, mais cette vérification ne constitue pas une garantie
             de qualité des soins.
           </p>
           <p className="mt-s-3">
             Toute suspicion de pratique illégale de la médecine peut être signalée à{' '}
-            <a href="mailto:contact@medikool.sn" className="text-primary hover:underline">
-              contact@medikool.sn
+            <a href="mailto:contact@senewerr.com" className="text-primary hover:underline">
+              contact@senewerr.com
             </a>.
           </p>
         </div>
@@ -130,8 +130,8 @@ export default function MentionsLegales() {
             5. Propriété intellectuelle
           </h2>
           <p>
-            L'ensemble des contenus présents sur medikool.sn — logotype, interface graphique,
-            textes, illustrations, base de données — sont la propriété exclusive de Medikool SAS
+            L'ensemble des contenus présents sur senewerr.com — logotype, interface graphique,
+            textes, illustrations, base de données — sont la propriété exclusive de Séne Wérr SAS
             ou font l'objet d'une licence accordée à la société. Toute reproduction, représentation
             ou diffusion sans autorisation préalable écrite est interdite.
           </p>
@@ -147,7 +147,7 @@ export default function MentionsLegales() {
             <a href="/confidentialite" className="text-primary hover:underline">
               Politique de confidentialité
             </a>{' '}
-            de Medikool, conforme à la loi n° 2008-12 du 25 janvier 2008 portant sur la
+            de Séne Wérr, conforme à la loi n° 2008-12 du 25 janvier 2008 portant sur la
             Protection des Données à Caractère Personnel au Sénégal (loi CDP) et au Règlement
             Général sur la Protection des Données (RGPD) pour les utilisateurs résidant dans
             l'Union Européenne.
