@@ -8,6 +8,99 @@
 --   3. Les admins plateforme (platform_admin, super_admin) ont accès
 --      à tout via private.is_platform()
 -- ============================================================
+-- Drop existants pour idempotence
+DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_select_pro" ON public.profiles;
+DROP POLICY IF EXISTS "patients_select_own" ON public.patients;
+DROP POLICY IF EXISTS "patients_insert_own" ON public.patients;
+DROP POLICY IF EXISTS "patients_update_own" ON public.patients;
+DROP POLICY IF EXISTS "beneficiaries_own" ON public.beneficiaries;
+DROP POLICY IF EXISTS "organizations_select_public" ON public.organizations;
+DROP POLICY IF EXISTS "organizations_update_members" ON public.organizations;
+DROP POLICY IF EXISTS "org_members_select" ON public.organization_members;
+DROP POLICY IF EXISTS "org_members_manage" ON public.organization_members;
+DROP POLICY IF EXISTS "professionals_select" ON public.professionals;
+DROP POLICY IF EXISTS "professionals_insert_own" ON public.professionals;
+DROP POLICY IF EXISTS "professionals_update_own" ON public.professionals;
+DROP POLICY IF EXISTS "qualifications_own" ON public.professional_qualifications;
+DROP POLICY IF EXISTS "schedules_select" ON public.schedules;
+DROP POLICY IF EXISTS "schedules_manage_own" ON public.schedules;
+DROP POLICY IF EXISTS "schedule_exceptions_own" ON public.schedule_exceptions;
+DROP POLICY IF EXISTS "access_select" ON public.patient_professional_access;
+DROP POLICY IF EXISTS "access_patient_manage" ON public.patient_professional_access;
+DROP POLICY IF EXISTS "access_patient_revoke" ON public.patient_professional_access;
+DROP POLICY IF EXISTS "appointments_select" ON public.appointments;
+DROP POLICY IF EXISTS "appointments_insert" ON public.appointments;
+DROP POLICY IF EXISTS "consultations_select" ON public.consultations;
+DROP POLICY IF EXISTS "consultations_manage_pro" ON public.consultations;
+DROP POLICY IF EXISTS "consultations_update_pro" ON public.consultations;
+DROP POLICY IF EXISTS "prescriptions_select" ON public.prescriptions;
+DROP POLICY IF EXISTS "prescriptions_insert_pro" ON public.prescriptions;
+DROP POLICY IF EXISTS "prescriptions_update_pro" ON public.prescriptions;
+DROP POLICY IF EXISTS "prescription_items_select" ON public.prescription_items;
+DROP POLICY IF EXISTS "prescription_items_manage_pro" ON public.prescription_items;
+DROP POLICY IF EXISTS "medicines_select" ON public.medicines;
+DROP POLICY IF EXISTS "medicines_manage_platform" ON public.medicines;
+DROP POLICY IF EXISTS "pharmacies_select" ON public.pharmacies;
+DROP POLICY IF EXISTS "pharmacies_update_own" ON public.pharmacies;
+DROP POLICY IF EXISTS "inventory_select" ON public.pharmacy_products;
+DROP POLICY IF EXISTS "inventory_manage_own" ON public.pharmacy_products;
+DROP POLICY IF EXISTS "prescription_shares_select" ON public.prescription_shares;
+DROP POLICY IF EXISTS "prescription_shares_insert_patient" ON public.prescription_shares;
+DROP POLICY IF EXISTS "reservations_select" ON public.pharmacy_reservations;
+DROP POLICY IF EXISTS "reservations_insert_patient" ON public.pharmacy_reservations;
+DROP POLICY IF EXISTS "reservation_items_select" ON public.reservation_items;
+DROP POLICY IF EXISTS "insurance_providers_select" ON public.insurance_providers;
+DROP POLICY IF EXISTS "insurance_providers_manage_own" ON public.insurance_providers;
+DROP POLICY IF EXISTS "documents_select" ON public.documents;
+DROP POLICY IF EXISTS "documents_insert" ON public.documents;
+DROP POLICY IF EXISTS "documents_soft_delete" ON public.documents;
+DROP POLICY IF EXISTS "doc_logs_select" ON public.document_access_logs;
+DROP POLICY IF EXISTS "insurance_members_select" ON public.insurance_members;
+DROP POLICY IF EXISTS "insurance_members_insert_mutual" ON public.insurance_members;
+DROP POLICY IF EXISTS "insurance_members_update_mutual" ON public.insurance_members;
+DROP POLICY IF EXISTS "coverage_rules_select" ON public.coverage_rules;
+DROP POLICY IF EXISTS "coverage_rules_manage_mutual" ON public.coverage_rules;
+DROP POLICY IF EXISTS "coverage_requests_select" ON public.coverage_requests;
+DROP POLICY IF EXISTS "coverage_events_select" ON public.coverage_request_events;
+DROP POLICY IF EXISTS "payment_providers_select" ON public.payment_providers;
+DROP POLICY IF EXISTS "payments_select" ON public.payments;
+DROP POLICY IF EXISTS "payment_events_platform" ON public.payment_events;
+DROP POLICY IF EXISTS "refunds_select" ON public.refunds;
+DROP POLICY IF EXISTS "refunds_insert" ON public.refunds;
+DROP POLICY IF EXISTS "invoices_select" ON public.invoices;
+DROP POLICY IF EXISTS "commission_entries_select" ON public.commission_entries;
+DROP POLICY IF EXISTS "payouts_select" ON public.payouts;
+DROP POLICY IF EXISTS "reminders_select" ON public.reminders;
+DROP POLICY IF EXISTS "subscription_plans_select" ON public.subscription_plans;
+DROP POLICY IF EXISTS "subscriptions_select" ON public.subscriptions;
+DROP POLICY IF EXISTS "credit_packs_select" ON public.credit_packs;
+DROP POLICY IF EXISTS "credit_wallets_select" ON public.credit_wallets;
+DROP POLICY IF EXISTS "ai_generations_select" ON public.ai_generations;
+DROP POLICY IF EXISTS "notifications_select_own" ON public.notifications;
+DROP POLICY IF EXISTS "notifications_mark_read" ON public.notifications;
+DROP POLICY IF EXISTS "push_subscriptions_own" ON public.push_subscriptions;
+DROP POLICY IF EXISTS "audit_logs_platform" ON public.audit_logs;
+DROP POLICY IF EXISTS "platform_settings_select" ON public.platform_settings;
+DROP POLICY IF EXISTS "platform_settings_update" ON public.platform_settings;
+DROP POLICY IF EXISTS "roles_permissions_select" ON public.roles_permissions;
+DROP POLICY IF EXISTS "roles_permissions_manage" ON public.roles_permissions;
+DROP POLICY IF EXISTS "verification_requests_select" ON public.verification_requests;
+DROP POLICY IF EXISTS "verification_requests_insert" ON public.verification_requests;
+DROP POLICY IF EXISTS "deletion_requests_select" ON public.data_deletion_requests;
+DROP POLICY IF EXISTS "deletion_requests_insert" ON public.data_deletion_requests;
+DROP POLICY IF EXISTS "blog_posts_select" ON public.blog_posts;
+DROP POLICY IF EXISTS "blog_posts_manage" ON public.blog_posts;
+DROP POLICY IF EXISTS "testimonials_select" ON public.testimonials;
+DROP POLICY IF EXISTS "testimonials_insert" ON public.testimonials;
+DROP POLICY IF EXISTS "testimonials_manage" ON public.testimonials;
+DROP POLICY IF EXISTS "faq_items_select" ON public.faq_items;
+DROP POLICY IF EXISTS "faq_items_manage" ON public.faq_items;
+DROP POLICY IF EXISTS "contact_messages_insert" ON public.contact_messages;
+DROP POLICY IF EXISTS "contact_messages_select" ON public.contact_messages;
+DROP POLICY IF EXISTS "contact_messages_update" ON public.contact_messages;
+DROP POLICY IF EXISTS "cron_job_runs_platform" ON public.cron_job_runs;
 
 -- ────────────────────────────────────────────────────────────
 -- PROFILES
@@ -264,7 +357,9 @@ CREATE POLICY "appointments_select"
       SELECT id FROM public.professionals
       WHERE profile_id = (SELECT id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1)
     )
-    OR organization_id = ANY(private.user_org_ids())
+    OR establishment_id IN (
+      SELECT id FROM public.establishments WHERE organization_id = ANY(private.user_org_ids())
+    )
     OR private.is_platform()
   );
 
@@ -544,18 +639,15 @@ CREATE POLICY "documents_select"
   ON public.documents FOR SELECT
   USING (
     deleted_at IS NULL AND (
-      visibility = 'public'
-      OR created_by = (SELECT id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1)
+      created_by = (SELECT id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1)
       OR patient_id IN (
         SELECT id FROM public.patients
         WHERE profile_id = (SELECT id FROM public.profiles WHERE user_id = auth.uid() LIMIT 1)
       )
       OR organization_id = ANY(private.user_org_ids())
-      OR (visibility = 'shared' AND (
-        private.professional_can_access_patient(patient_id)
-        OR private.pharmacy_can_access_prescription(
-          CASE WHEN entity_type = 'prescription' THEN entity_id ELSE NULL::uuid END
-        )
+      OR (visibility = 'shared_professional' AND private.professional_can_access_patient(patient_id))
+      OR (visibility = 'shared_pharmacy' AND private.pharmacy_can_access_prescription(
+        CASE WHEN entity_type = 'prescription' THEN entity_id ELSE NULL::uuid END
       ))
       OR private.is_platform()
     )
@@ -969,3 +1061,4 @@ CREATE POLICY "cron_job_runs_platform"
   ON public.cron_job_runs FOR ALL
   USING (private.is_platform())
   WITH CHECK (private.is_platform());
+

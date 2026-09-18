@@ -60,10 +60,10 @@ WHERE code IN ('est_cabinet','est_centre','est_clinique','est_clinique_plus',
 INSERT INTO public.promo_codes
   (code, discount_type, discount_value, applies_to, plan_codes, max_redemptions, valid_from, valid_until, duration_months, active)
 VALUES
-  ('fonda20',  'percent', 20, 'subscription', null,              null, now(), now() + interval '1 year',   3, true),
-  ('solo50',   'percent', 50, 'subscription', ARRAY['pro_solo'], 500,  now(), now() + interval '6 months', 1, true),
-  ('retour30', 'percent', 30, 'subscription', null,              null, now(), now() + interval '1 year',   1, true),
-  ('moussa10', 'percent', 10, 'subscription', null,              null, now(), now() + interval '3 months', 1, true)
+  ('fonda20',  'percent', 20, ARRAY['subscription'], null,              null, now(), now() + interval '1 year',   3, true),
+  ('solo50',   'percent', 50, ARRAY['subscription'], ARRAY['pro_solo']::plan_code[], 500,  now(), now() + interval '6 months', 1, true),
+  ('retour30', 'percent', 30, ARRAY['subscription'], null,              null, now(), now() + interval '1 year',   1, true),
+  ('moussa10', 'percent', 10, ARRAY['subscription'], null,              null, now(), now() + interval '3 months', 1, true)
 ON CONFLICT (code) DO NOTHING;
 
 -- ── apply_commission SECURITY DEFINER ─────────────────────
