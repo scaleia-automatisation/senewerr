@@ -1,13 +1,14 @@
 import { precacheAndRoute } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import { NetworkFirst } from 'workbox-strategies'
+import { initializeApp } from 'firebase/app'
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw'
 
 declare let self: ServiceWorkerGlobalScope
 
-// Précache des assets générés par vite-plugin-pwa
+// ── Workbox — précache des assets ──────────────────────────────────────────
 precacheAndRoute(self.__WB_MANIFEST)
 
-// Supabase → NetworkFirst (fallback cache si hors-ligne)
 registerRoute(
   ({ url }) => url.hostname.includes('.supabase.co'),
   new NetworkFirst({
@@ -17,19 +18,28 @@ registerRoute(
   }),
 )
 
-// ── Push notifications ───────────────────────────────────────────────────────
+// ── Firebase Cloud Messaging — notifications en arrière-plan ───────────────
+const firebaseApp = initializeApp({
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+})
 
-self.addEventListener('push', event => {
-  if (!event.data) return
-  const { title = 'Séne Wérr', body = '', icon = '/icons/icon-192.png', url = '/' } = event.data.json()
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon,
-      badge: '/icons/icon-192.png',
-      data: { url },
-    }),
-  )
+const messaging = getMessaging(firebaseApp)
+
+onBackgroundMessage(messaging, payload => {
+  const { title = 'Séne Wérr', body = '', icon = '/icons/icon-192.png' } =
+    payload.notification ?? {}
+  const url = payload.data?.url ?? '/'
+  self.registration.showNotification(title, {
+    body,
+    icon,
+    badge: '/icons/icon-192.png',
+    data: { url },
+  })
 })
 
 self.addEventListener('notificationclick', event => {
@@ -39,7 +49,7 @@ self.addEventListener('notificationclick', event => {
     clients
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then(list => {
-        const existing = list.find(c => c.url.startsWith(self.location.origin) && 'focus' in c)
+        const existing = list.find(c => 'focus' in c)
         if (existing) return (existing as WindowClient).focus()
         return clients.openWindow(url)
       }),

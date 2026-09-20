@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react'
+import { getToken, onMessage } from 'firebase/messaging'
+import { getFirebaseMessaging } from '@/lib/firebase'
 import { supabase } from '@/lib/supabase'
 import { useAuthContext } from '@/features/auth/AuthContext'
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const raw = window.atob(base64)
-  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
-}
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined
 
 export function usePushNotifications() {
   const { session } = useAuthContext()
@@ -18,8 +13,7 @@ export function usePushNotifications() {
     typeof window !== 'undefined' &&
     'Notification' in window &&
     'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    !!VAPID_PUBLIC_KEY
+    !!VAPID_KEY
 
   const [permission, setPermission] = useState<NotificationPermission>(
     isSupported ? Notification.permission : 'default',
@@ -27,41 +21,61 @@ export function usePushNotifications() {
   const [subscribed, setSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  // Détecte si l'appareil est déjà souscrit au chargement
+  // Vérifie si un token FCM est déjà enregistré pour cet utilisateur
+  useEffect(() => {
+    if (!session) return
+    supabase
+      .from('push_subscriptions')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .limit(1)
+      .then(({ data }) => setSubscribed((data?.length ?? 0) > 0))
+  }, [session])
+
+  // Écoute les messages FCM en premier plan (app ouverte)
   useEffect(() => {
     if (!isSupported || !session) return
-    navigator.serviceWorker.ready.then(reg =>
-      reg.pushManager.getSubscription().then(sub => setSubscribed(!!sub)),
-    )
+    let unsub: (() => void) | undefined
+    getFirebaseMessaging().then(messaging => {
+      if (!messaging) return
+      unsub = onMessage(messaging, payload => {
+        const { title = 'Séne Wérr', body = '' } = payload.notification ?? {}
+        if (Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/icons/icon-192.png' })
+        }
+      })
+    })
+    return () => unsub?.()
   }, [isSupported, session])
 
   async function subscribe() {
-    if (!isSupported || !session || !VAPID_PUBLIC_KEY) return
+    if (!isSupported || !session || !VAPID_KEY) return
     setLoading(true)
     try {
       const perm = await Notification.requestPermission()
       setPermission(perm)
       if (perm !== 'granted') return
 
-      const reg = await navigator.serviceWorker.ready
-      const existing = await reg.pushManager.getSubscription()
-      const sub =
-        existing ??
-        (await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-        }))
+      const messaging = await getFirebaseMessaging()
+      if (!messaging) return
 
-      const json = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
+      // Utilise notre service worker Workbox (évite firebase-messaging-sw.js séparé)
+      const registration = await navigator.serviceWorker.ready
+
+      const token = await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: registration,
+      })
+
+      if (!token) return
+
       await supabase.from('push_subscriptions').upsert(
         {
-          user_id: session.user.id,
-          endpoint: json.endpoint,
-          p256dh: json.keys.p256dh,
-          auth: json.keys.auth,
+          user_id:   session.user.id,
+          fcm_token: token,
           user_agent: navigator.userAgent.slice(0, 200),
         },
-        { onConflict: 'user_id,endpoint' },
+        { onConflict: 'user_id,fcm_token' },
       )
       setSubscribed(true)
     } catch (err) {
@@ -72,19 +86,20 @@ export function usePushNotifications() {
   }
 
   async function unsubscribe() {
-    if (!isSupported || !session) return
+    if (!session) return
     setLoading(true)
     try {
-      const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.getSubscription()
-      if (sub) {
-        const endpoint = sub.endpoint
-        await sub.unsubscribe()
-        await supabase
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id', session.user.id)
-          .eq('endpoint', endpoint)
+      const messaging = await getFirebaseMessaging()
+      if (messaging) {
+        const registration = await navigator.serviceWorker.ready
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration })
+        if (token) {
+          await supabase
+            .from('push_subscriptions')
+            .delete()
+            .eq('user_id', session.user.id)
+            .eq('fcm_token', token)
+        }
       }
       setSubscribed(false)
     } catch (err) {
