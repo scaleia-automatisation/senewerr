@@ -1,1090 +1,359 @@
-﻿/**
- * LandingPage — BLOC 8
- * Réécriture complète : toutes les sections dans un seul fichier.
- * Pas de framer-motion. Animations via IntersectionObserver + CSS.
+/**
+ * LandingPage — Séne Wérr
+ * Landing SaaS santé premium — multi-acteurs, orientée conversion.
+ * Animations via IntersectionObserver. Pas de framer-motion.
  */
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { PublicFooter } from '@/components/layout/PublicFooter'
 import {
-  Clock, FileText, CreditCard, User, Stethoscope, Building2,
-  Pill, Shield, Check, ChevronDown, ChevronUp, Menu, X,
-  ArrowRight, Star, Lock, BadgeCheck, MapPin,
+  Search, Menu, X, ArrowRight, ChevronDown, ChevronUp,
+  Stethoscope, Building2, Pill, Shield, User, Clock,
+  FileText, CreditCard, Check, MapPin, Zap, Link2,
+  Layers, CheckCircle, Calendar, Star, Bell, HeartPulse,
+  ShoppingBag, Sun, Moon,
 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
-import { supabase } from '@/lib/supabase'
-import { cn, formatFCFA } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { useTheme } from '@/lib/theme'
 
-// ─── Types ─────────────────────────────────────────────────────────────────
+// ─── useInView ─────────────────────────────────────────────────────────────
 
-interface Testimonial {
-  id: string
-  author_name: string
-  role: string
-  content: string
-  avatar_url?: string | null
-}
-
-interface Plan {
-  id: string
-  code: string
-  name: string
-  price_fcfa: number
-  description: string
-  features: string[]
-  is_featured: boolean
-  audience: 'patient' | 'professional' | 'establishment' | 'pharmacy' | 'insurance'
-}
-
-interface LiveStats {
-  professionals: number
-  pharmacies: number
-  cities: number
-}
-
-// ─── Hook : useInView ──────────────────────────────────────────────────────
-
-function useInView(threshold = 0.15) {
+function useInView(threshold = 0.12) {
   const ref = useRef<HTMLElement | null>(null)
   const [visible, setVisible] = useState(false)
-
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-          obs.disconnect()
-        }
-      },
-      { threshold },
-    )
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setVisible(true); obs.disconnect() }
+    }, { threshold })
     obs.observe(el)
     return () => obs.disconnect()
   }, [threshold])
-
   return { ref, visible }
 }
 
-// ─── Hook : useLiveStats ───────────────────────────────────────────────────
-
-function useLiveStats() {
-  const [stats, setStats] = useState<LiveStats | null>(null)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const [profRes, pharmRes] = await Promise.all([
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (supabase as any).from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'professional'),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (supabase as any).from('pharmacies').select('id', { count: 'exact', head: true }),
-        ])
-        const professionals = profRes.count ?? 0
-        const pharmacies = pharmRes.count ?? 0
-        // Approximation : villes = distinct cities from pharmacies
-        setStats({ professionals, pharmacies, cities: Math.max(1, Math.floor(pharmacies / 3)) })
-      } catch {
-        setStats(null)
-      }
-    }
-    load()
-  }, [])
-
-  return stats
-}
-
-// ─── Hook : useTestimonials ────────────────────────────────────────────────
-
-function useTestimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
-
-  useEffect(() => {
-    async function load() {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await (supabase as any)
-          .from('testimonials')
-          .select('id, author_name, role, content, avatar_url')
-          .eq('approved', true)
-          .order('order_index', { ascending: true })
-          .limit(6)
-        if (Array.isArray(data)) setTestimonials(data as Testimonial[])
-      } catch {
-        // silent — section stays hidden
-      }
-    }
-    load()
-  }, [])
-
-  return testimonials
-}
-
-// ─── Hook : usePlans ──────────────────────────────────────────────────────
-
-const FALLBACK_PLANS: Plan[] = [
-  {
-    id: 'patient-free',
-    code: 'patient-gratuit',
-    name: 'Patient · Gratuit',
-    price_fcfa: 0,
-    description: 'Pour tous les patients Séne Wérr',
-    features: ['Rendez-vous illimités', 'Ordonnances numériques', 'Suivi de commande', 'Paiement Wave / Orange Money'],
-    is_featured: true,
-    audience: 'patient',
-  },
-  {
-    id: 'pro-standard',
-    code: 'pro-standard',
-    name: 'Professionnel · Standard',
-    price_fcfa: 9_900,
-    description: 'Pour les praticiens indépendants',
-    features: ['Agenda illimité', 'Ordonnances signées', 'Statistiques de base', 'Essai 14 jours'],
-    is_featured: false,
-    audience: 'professional',
-  },
-  {
-    id: 'pro-premium',
-    code: 'pro-premium',
-    name: 'Professionnel · Premium',
-    price_fcfa: 29_900,
-    description: 'Cabinet & IA médicale inclus',
-    features: ['Tout Standard +', 'Assistant IA', 'Transcription live', 'Multi-praticiens', 'Support prioritaire'],
-    is_featured: false,
-    audience: 'professional',
-  },
-  {
-    id: 'etab-standard',
-    code: 'etab-standard',
-    name: 'Établissement · Standard',
-    price_fcfa: 49_900,
-    description: 'Clinique et cabinet de groupe',
-    features: ['Agenda équipe', 'Statistiques avancées', 'Invitations 1 clic', 'Facturation intégrée'],
-    is_featured: false,
-    audience: 'establishment',
-  },
-  {
-    id: 'pharma',
-    code: 'pharma',
-    name: 'Pharmacie',
-    price_fcfa: 14_900,
-    description: 'Gestion des commandes financées',
-    features: ['Commandes pré-financées', 'Vérification ordonnance', 'Code retrait 4 chiffres', 'Dashboard commissions'],
-    is_featured: false,
-    audience: 'pharmacy',
-  },
-  {
-    id: 'mutuelle',
-    code: 'mutuelle',
-    name: 'Mutuelle',
-    price_fcfa: 0,
-    description: 'Sur devis selon volume',
-    features: ['Prises en charge 1 clic', 'Zéro papier', 'Rapprochement auto', 'API dédiée'],
-    is_featured: false,
-    audience: 'insurance',
-  },
-]
-
-function usePlans() {
-  const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS)
-
-  useEffect(() => {
-    async function load() {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await (supabase as any)
-          .from('subscription_plans')
-          .select('id, code, name, price_fcfa, description, features, is_featured, audience')
-          .eq('active', true)
-          .order('sort_order', { ascending: true })
-        if (Array.isArray(data) && data.length > 0) setPlans(data as Plan[])
-      } catch {
-        // fallback stays
-      }
-    }
-    load()
-  }, [])
-
-  return plans
-}
-
-// ─── NavBar ────────────────────────────────────────────────────────────────
-
-function NavBar() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const links = [
-    { label: 'Tarifs', to: '/tarifs' },
-    { label: 'Blog', to: '/blog' },
-    { label: 'Contact', to: '/contact' },
-  ]
-
-  return (
-    <header
-      className={cn(
-        'fixed inset-x-0 top-0 z-50 transition-shadow duration-200',
-        scrolled ? 'bg-surface shadow-1' : 'bg-transparent',
-      )}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-s-4 px-s-4 py-s-3 sm:px-s-6">
-        {/* Logo */}
-        <Link to="/" className="font-display text-h3 font-bold text-primary" aria-label="Séne Wérr — accueil">
-          Séne Wérr
-        </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-s-2 md:flex" aria-label="Navigation principale">
-          {links.map(l => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className="px-s-3 py-s-2 text-small font-medium text-ink-2 transition-colors hover:text-ink"
-            >
-              {l.label}
-            </Link>
-          ))}
-          <div className="ml-s-4 flex items-center gap-s-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/auth/connexion">Se connecter</Link>
-            </Button>
-            <Button variant="primary" size="sm" asChild>
-              <Link to="/auth/inscription">S'inscrire</Link>
-            </Button>
-          </div>
-        </nav>
-
-        {/* Mobile hamburger */}
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-md text-ink-2 hover:bg-surface-2 md:hidden"
-          onClick={() => setMenuOpen(v => !v)}
-          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="border-t border-line bg-surface px-s-4 pb-s-4 md:hidden">
-          <nav className="flex flex-col gap-s-1 pt-s-3" aria-label="Menu mobile">
-            {links.map(l => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="rounded-md px-s-3 py-s-3 text-body font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
-                onClick={() => setMenuOpen(false)}
-              >
-                {l.label}
-              </Link>
-            ))}
-            <div className="mt-s-3 flex flex-col gap-s-2">
-              <Button variant="secondary" fullWidth asChild>
-                <Link to="/auth/connexion" onClick={() => setMenuOpen(false)}>Se connecter</Link>
-              </Button>
-              <Button variant="primary" fullWidth asChild>
-                <Link to="/auth/inscription" onClick={() => setMenuOpen(false)}>S'inscrire</Link>
-              </Button>
-            </div>
-          </nav>
-        </div>
-      )}
-    </header>
-  )
-}
-
-// ─── Hero Section ──────────────────────────────────────────────────────────
-
-function HeroSection() {
-  return (
-    <section
-      className="relative overflow-hidden pt-[72px]"
-      style={{ background: 'linear-gradient(160deg, var(--surface-1) 0%, #ffffff 100%)' }}
-      aria-labelledby="hero-heading"
-    >
-      <div className="mx-auto grid max-w-7xl items-center gap-s-8 px-s-4 py-s-10 sm:px-s-6 md:grid-cols-2 md:py-s-16 lg:py-s-20">
-        {/* Left: text */}
-        <div className="flex flex-col gap-s-5">
-          <h1
-            id="hero-heading"
-            className="font-display text-[clamp(2rem,5vw,3.25rem)] font-bold leading-[1.15] text-ink"
-          >
-            Votre parcours de santé,{' '}
-            <span className="text-primary">au même endroit</span>
-          </h1>
-          <p className="max-w-prose text-body leading-relaxed text-ink-2">
-            Rendez-vous, professionnels, ordonnances, pharmacies, mutuelle et paiements&nbsp;: Séne Wérr relie tout ce dont vous avez besoin, depuis un seul compte.
-          </p>
-          <div className="flex flex-wrap gap-s-3">
-            <Button variant="primary" size="lg" asChild>
-              <Link to="/auth/inscription">
-                Je suis patient — c'est gratuit
-                <ArrowRight className="ml-s-2 h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button variant="secondary" size="lg" asChild>
-              <Link to="/auth/inscription?role=professional">Je suis professionnel</Link>
-            </Button>
-          </div>
-          <ul className="flex flex-wrap gap-s-4 text-small text-ink-3" aria-label="Points forts">
-            <li className="flex items-center gap-s-1"><Check className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> Gratuit pour les patients</li>
-            <li className="flex items-center gap-s-1"><Check className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> Données chiffrées AES-256</li>
-            <li className="flex items-center gap-s-1"><Check className="h-3.5 w-3.5 text-primary" aria-hidden="true" /> Sénégal · Afrique de l'Ouest</li>
-          </ul>
-        </div>
-
-        {/* Right: inline SVG app mockup */}
-        <div className="flex justify-center md:justify-end" aria-hidden="true">
-          <svg
-            viewBox="0 0 340 540"
-            className="w-full max-w-[300px] drop-shadow-xl md:max-w-[340px]"
-            role="img"
-            aria-label="Aperçu de l'application Séne Wérr"
-          >
-            {/* Phone shell */}
-            <rect x="10" y="10" width="320" height="520" rx="32" fill="var(--surface)" stroke="var(--line)" strokeWidth="1.5" />
-            {/* Status bar */}
-            <rect x="10" y="10" width="320" height="48" rx="32" fill="var(--primary)" />
-            <text x="30" y="33" fill="white" fontSize="11" fontWeight="600" fontFamily="system-ui">Séne Wérr</text>
-            <text x="260" y="33" fill="white" fontSize="10" fontFamily="system-ui">09:41</text>
-            {/* Notch */}
-            <rect x="120" y="10" width="100" height="18" rx="0 0 12 12" fill="var(--primary)" />
-            {/* Greeting */}
-            <text x="30" y="84" fill="var(--ink)" fontSize="13" fontWeight="700" fontFamily="system-ui">Bonjour, Aminata 👋</text>
-            <text x="30" y="100" fill="var(--ink-2)" fontSize="10" fontFamily="system-ui">Mercredi 17 sept. 2026</text>
-            {/* Appointment card */}
-            <rect x="20" y="114" width="300" height="90" rx="12" fill="var(--primary)" />
-            <text x="36" y="137" fill="white" fontSize="10" fontWeight="600" fontFamily="system-ui">PROCHAIN RENDEZ-VOUS</text>
-            <text x="36" y="157" fill="white" fontSize="13" fontWeight="700" fontFamily="system-ui">Dr. Sow · Médecin généraliste</text>
-            <text x="36" y="174" fill="rgba(255,255,255,0.85)" fontSize="10" fontFamily="system-ui">Aujourd'hui à 14h30 · Cabinet Plateau</text>
-            <rect x="36" y="183" width="80" height="14" rx="7" fill="rgba(255,255,255,0.2)" />
-            <text x="46" y="193" fill="white" fontSize="9" fontFamily="system-ui">Confirmé ✓</text>
-            {/* Reservation card */}
-            <rect x="20" y="216" width="300" height="80" rx="12" fill="var(--surface-2)" stroke="var(--line)" strokeWidth="1" />
-            <text x="36" y="237" fill="var(--ink-2)" fontSize="10" fontWeight="600" fontFamily="system-ui">RÉSERVATION EN COURS</text>
-            <text x="36" y="255" fill="var(--ink)" fontSize="12" fontWeight="700" fontFamily="system-ui">Amoxicilline 500mg × 2 boîtes</text>
-            <text x="36" y="271" fill="var(--ink-2)" fontSize="10" fontFamily="system-ui">Pharmacie Centrale · Code : 8 4 2 1</text>
-            <rect x="240" y="221" width="68" height="22" rx="11" fill="var(--accent)" />
-            <text x="252" y="235" fill="white" fontSize="9" fontWeight="600" fontFamily="system-ui">En attente</text>
-            {/* Credits bar */}
-            <rect x="20" y="308" width="300" height="64" rx="12" fill="var(--surface)" stroke="var(--line)" strokeWidth="1" />
-            <text x="36" y="328" fill="var(--ink-2)" fontSize="10" fontWeight="600" fontFamily="system-ui">SOLDE MUTUELLE</text>
-            <text x="36" y="350" fill="var(--ink)" fontSize="13" fontWeight="700" fontFamily="system-ui">32 500 FCFA restants</text>
-            <rect x="36" y="358" width="200" height="6" rx="3" fill="var(--line)" />
-            <rect x="36" y="358" width="130" height="6" rx="3" fill="var(--primary)" />
-            {/* Quick actions */}
-            <text x="30" y="398" fill="var(--ink)" fontSize="11" fontWeight="700" fontFamily="system-ui">Actions rapides</text>
-            {[
-              { x: 20, label: 'Médecin', color: 'var(--primary)' },
-              { x: 95, label: 'Ordonnance', color: 'var(--accent)' },
-              { x: 190, label: 'Pharmacie', color: '#10b981' },
-              { x: 265, label: 'Mutuelle', color: '#8b5cf6' },
-            ].map(({ x, label, color }) => (
-              <g key={label}>
-                <rect x={x} y={406} width="58" height="56" rx="12" fill="var(--surface-2)" stroke="var(--line)" strokeWidth="1" />
-                <circle cx={x + 29} cy={424} r="10" fill={color} opacity="0.15" />
-                <circle cx={x + 29} cy={424} r="5" fill={color} />
-                <text x={x + 29} y={453} fill="var(--ink-2)" fontSize="8" textAnchor="middle" fontFamily="system-ui">{label}</text>
-              </g>
-            ))}
-            {/* Bottom nav indicator */}
-            <rect x="130" y="508" width="80" height="4" rx="2" fill="var(--line)" />
-          </svg>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Pain Points ───────────────────────────────────────────────────────────
-
-const PAIN_POINTS = [
-  {
-    icon: Clock,
-    title: 'Trouver un médecin disponible prend des heures',
-    desc: "Les agendas débordent, les appels restent sans réponse. Vous avancez à l'aveugle.",
-  },
-  {
-    icon: FileText,
-    title: "L'ordonnance papier, la tournée des pharmacies",
-    desc: 'Rupture de stock, perte du document, deuxième déplacement : un parcours du combattant.',
-  },
-  {
-    icon: CreditCard,
-    title: "Avancer l'argent et attendre la mutuelle",
-    desc: 'Dossiers papier, délais de remboursement, incertitude sur la prise en charge réelle.',
-  },
-]
-
-function PainPointsSection() {
-  const { ref, visible } = useInView()
-
-  return (
-    <section
-      ref={ref as React.RefObject<HTMLElement>}
-      className="py-s-12 bg-surface-1"
-      aria-labelledby="pain-heading"
-    >
-      <div className="mx-auto max-w-7xl px-s-4 sm:px-s-6">
-        <h2
-          id="pain-heading"
-          className={cn(
-            'mb-s-8 text-center font-display text-h1 font-semibold text-ink transition-all duration-500',
-            visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',
-          )}
-        >
-          Reconnaissez-vous cette situation&nbsp;?
-        </h2>
-        <div className="grid gap-s-4 sm:grid-cols-3">
-          {PAIN_POINTS.map((p, i) => (
-            <div
-              key={p.title}
-              className={cn(
-                'flex flex-col gap-s-3 rounded-xl border border-[color:var(--status-warning)] bg-[color:var(--status-warning)]/5 p-s-5 transition-all duration-500',
-                visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',
-              )}
-              style={{ transitionDelay: `${i * 80}ms` }}
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--status-warning)]/15">
-                <p.icon className="h-5 w-5 text-[color:var(--status-warning)]" aria-hidden="true" />
-              </span>
-              <h3 className="text-body font-semibold text-ink">{p.title}</h3>
-              <p className="text-small leading-relaxed text-ink-2">{p.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Solution — SVG Parcours Diagram ──────────────────────────────────────
-
-const PARCOURS_NODES = [
-  { id: 'patient', label: 'Patient', Icon: User },
-  { id: 'medecin', label: 'Médecin', Icon: Stethoscope },
-  { id: 'ordonnance', label: 'Ordonnance', Icon: FileText },
-  { id: 'pharmacie', label: 'Pharmacie', Icon: Pill },
-  { id: 'mutuelle', label: 'Mutuelle', Icon: Shield },
-]
-
-function ParcoursDiagram({ visible }: { visible: boolean }) {
-  const W = 380
-  const H = 200
-  const nodeR = 28
-  const spacing = W / (PARCOURS_NODES.length - 1)
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="w-full max-w-[420px]"
-      role="img"
-      aria-label="Parcours Séne Wérr : Patient → Médecin → Ordonnance → Pharmacie → Mutuelle"
-    >
-      {/* Arrows */}
-      {PARCOURS_NODES.slice(0, -1).map((_, i) => {
-        const x1 = i * spacing + nodeR
-        const x2 = (i + 1) * spacing - nodeR
-        const y = H / 2 - 10
-        return (
-          <g key={i}>
-            <line
-              x1={x1} y1={y} x2={x2} y2={y}
-              stroke="var(--ink-3)"
-              strokeWidth="1.5"
-              strokeDasharray="4 3"
-              className={cn('transition-opacity duration-500', visible && i < PARCOURS_NODES.length - 1 ? 'opacity-100' : 'opacity-0')}
-              style={{ transitionDelay: `${(i + 1) * 150}ms` }}
-            />
-            <polygon
-              points={`${x2},${y - 4} ${x2 + 7},${y} ${x2},${y + 4}`}
-              fill="var(--ink-3)"
-              className={cn('transition-opacity duration-300', visible ? 'opacity-100' : 'opacity-0')}
-              style={{ transitionDelay: `${(i + 1) * 150 + 80}ms` }}
-            />
-          </g>
-        )
-      })}
-
-      {/* Nodes */}
-      {PARCOURS_NODES.map((node, i) => {
-        const cx = i * spacing
-        const cy = H / 2 - 10
-        const { Icon } = node
-        return (
-          <g
-            key={node.id}
-            className={cn('transition-all duration-500', visible ? 'opacity-100' : 'opacity-0')}
-            style={{ transitionDelay: `${i * 150}ms` }}
-          >
-            <circle cx={cx} cy={cy} r={nodeR} fill="var(--primary)" />
-            {/* Icon placeholder as text — lucide can't render inside SVG directly */}
-            <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="14" aria-hidden="true">
-              {['👤', '⚕️', '📄', '💊', '🛡️'][i]}
-            </text>
-            <text
-              x={cx}
-              y={cy + nodeR + 18}
-              textAnchor="middle"
-              fill="var(--ink)"
-              fontSize="10"
-              fontWeight="600"
-              fontFamily="system-ui, sans-serif"
-            >
-              {node.label}
-            </text>
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
-
-function SolutionSection() {
-  const { ref, visible } = useInView(0.1)
-
-  return (
-    <section
-      ref={ref as React.RefObject<HTMLElement>}
-      className="py-s-12 bg-surface"
-      aria-labelledby="solution-heading"
-    >
-      <div className="mx-auto grid max-w-7xl items-center gap-s-10 px-s-4 sm:px-s-6 md:grid-cols-2">
-        {/* Left */}
-        <div
-          className={cn('flex flex-col gap-s-6 transition-all duration-600', visible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0')}
-        >
-          <h2 id="solution-heading" className="font-display text-h1 font-semibold text-ink">
-            Un compte. Un dossier. Un parcours.
-          </h2>
-          <ul className="flex flex-col gap-s-4">
-            {[
-              { icon: User, text: 'Trouvez un professionnel vérifié en quelques secondes et réservez en temps réel.' },
-              { icon: FileText, text: 'Votre ordonnance numérique arrive instantanément à la pharmacie de votre choix.' },
-              { icon: Shield, text: 'Votre mutuelle valide sa part automatiquement. Vous ne payez que le reste à charge.' },
-            ].map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-start gap-s-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
-                </span>
-                <p className="text-body leading-relaxed text-ink-2">{text}</p>
-              </li>
-            ))}
-          </ul>
-          <Button variant="primary" size="md" asChild>
-            <Link to="/auth/inscription">Commencer gratuitement</Link>
-          </Button>
-        </div>
-
-        {/* Right: animated SVG diagram */}
-        <div
-          className={cn('flex justify-center transition-all duration-600', visible ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0')}
-          style={{ transitionDelay: '120ms' }}
-        >
-          <div className="flex flex-col items-center gap-s-4 rounded-2xl border border-line bg-surface-1 p-s-6 shadow-1">
-            <p className="text-small font-semibold uppercase tracking-widest text-primary">Votre parcours</p>
-            <ParcoursDiagram visible={visible} />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Comment ça marche ────────────────────────────────────────────────────
-
-const STEPS = [
-  {
-    n: '01',
-    icon: MapPin,
-    title: 'Trouver',
-    desc: 'Cherchez un professionnel vérifié près de chez vous, consultez ses créneaux en temps réel.',
-  },
-  {
-    n: '02',
-    icon: FileText,
-    title: 'Consulter',
-    desc: 'Le médecin signe votre ordonnance directement depuis Séne Wérr. Elle est prête instantanément.',
-  },
-  {
-    n: '03',
-    icon: Shield,
-    title: 'Réserver',
-    desc: 'Sélectionnez votre pharmacie, votre mutuelle valide sa part. Vous ne payez que votre reste à charge.',
-  },
-  {
-    n: '04',
-    icon: Pill,
-    title: 'Retirer',
-    desc: 'Présentez votre code à 4 chiffres en pharmacie. Votre commande est prête, financée, vérifiée.',
-  },
-]
-
-function HowItWorksSection() {
-  const { ref, visible } = useInView(0.1)
-
-  return (
-    <section
-      ref={ref as React.RefObject<HTMLElement>}
-      className="py-s-12 bg-surface-2"
-      aria-labelledby="how-heading"
-    >
-      <div className="mx-auto max-w-7xl px-s-4 sm:px-s-6">
-        <div className="mb-s-10 text-center">
-          <p className="mb-s-2 text-small font-semibold uppercase tracking-[0.06em] text-primary">Simple</p>
-          <h2 id="how-heading" className="font-display text-h1 font-semibold text-ink">Comment ça marche</h2>
-        </div>
-        <ol className="relative grid gap-s-6 sm:grid-cols-2 lg:grid-cols-4" aria-label="Étapes du parcours">
-          {STEPS.map((step, i) => (
-            <li
-              key={step.n}
-              className={cn(
-                'flex flex-col gap-s-3 rounded-xl bg-surface p-s-5 shadow-1 transition-all duration-500',
-                visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',
-              )}
-              style={{ transitionDelay: `${i * 100}ms` }}
-            >
-              <div className="flex items-center gap-s-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-h3 font-bold text-primary-fg">
-                  {step.n}
-                </span>
-                <step.icon className="h-5 w-5 text-ink-3" aria-hidden="true" />
-              </div>
-              <h3 className="text-h3 font-semibold text-ink">{step.title}</h3>
-              <p className="text-small leading-relaxed text-ink-2">{step.desc}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  )
-}
-
-// ─── Fonctionnalités par acteur ────────────────────────────────────────────
-
-const ACTOR_TABS: Array<{
-  value: string
-  label: string
-  icon: typeof User
-  items: string[]
-}> = [
-  {
-    value: 'patient',
-    label: 'Patient',
-    icon: User,
-    items: [
-      'Vous savez toujours où en est votre commande — suivi en temps réel des statuts',
-      'Ordonnance signée, médicament réservé en 2 taps',
-      'Votre famille sur un seul compte — ajout de bénéficiaires',
-      'Payez seulement votre reste à charge, Wave ou Orange Money',
-    ],
-  },
-  {
-    value: 'professionnel',
-    label: 'Professionnel',
-    icon: Stethoscope,
-    items: [
-      "Un seul agenda pour tous vos lieux d'exercice",
-      'Ordonnance signée en 30 secondes, envoyée instantanément',
-      'Résumé pré-consultation généré par IA',
-      'Transcription de consultation en temps réel',
-      "Revenus et commissions en un coup d'œil",
-    ],
-  },
-  {
-    value: 'etablissement',
-    label: 'Établissement',
-    icon: Building2,
-    items: [
-      "Gérez l'agenda de toute votre équipe depuis un tableau de bord",
-      'Invitez vos professionnels en 1 clic',
-      'Statistiques de fréquentation en temps réel',
-    ],
-  },
-  {
-    value: 'pharmacie',
-    label: 'Pharmacie',
-    icon: Pill,
-    items: [
-      'Vous ne préparez que des commandes déjà financées',
-      'Vérification ordonnance intégrée',
-      'Code de retrait sécurisé à 4 chiffres',
-      'Commission transparente sur votre tableau de bord',
-    ],
-  },
-  {
-    value: 'mutuelle',
-    label: 'Mutuelle',
-    icon: Shield,
-    items: [
-      'Des prises en charge traitées en 1 clic',
-      'Zéro dossier papier',
-      'Rapprochement automatique avec vos règles de couverture',
-    ],
-  },
-]
-
-function ActorTabsSection() {
-  return (
-    <section className="py-s-12 bg-surface" aria-labelledby="actor-heading">
-      <div className="mx-auto max-w-7xl px-s-4 sm:px-s-6">
-        <h2 id="actor-heading" className="mb-s-8 text-center font-display text-h1 font-semibold text-ink">
-          Une solution pour chaque acteur
-        </h2>
-        <Tabs defaultValue="patient">
-          <TabsList className="flex w-full flex-wrap justify-center gap-s-1" aria-label="Acteurs">
-            {ACTOR_TABS.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-s-2">
-                <tab.icon className="h-3.5 w-3.5" aria-hidden="true" />
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {ACTOR_TABS.map(tab => (
-            <TabsContent key={tab.value} value={tab.value}>
-              <div className="mx-auto mt-s-6 max-w-2xl rounded-xl border border-line bg-surface-1 p-s-6">
-                <div className="mb-s-4 flex items-center gap-s-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <tab.icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                  </span>
-                  <h3 className="text-h3 font-semibold text-ink">{tab.label}</h3>
-                </div>
-                <ul className="flex flex-col gap-s-3" role="list">
-                  {tab.items.map(item => (
-                    <li key={item} className="flex items-start gap-s-3 text-body text-ink-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
-    </section>
-  )
-}
-
-// ─── Preuves ───────────────────────────────────────────────────────────────
-
-function ProofsSection() {
-  const stats = useLiveStats()
-  const testimonials = useTestimonials()
-  const { ref, visible } = useInView()
-
-  const STAT_THRESHOLD = 10
-
-  return (
-    <section
-      ref={ref as React.RefObject<HTMLElement>}
-      className="py-s-12 bg-surface-2"
-      aria-labelledby="proof-heading"
-    >
-      <div className="mx-auto max-w-7xl px-s-4 sm:px-s-6">
-        <h2 id="proof-heading" className="mb-s-8 text-center font-display text-h1 font-semibold text-ink">
-          Ils font confiance à Séne Wérr
-        </h2>
-
-        {/* Live stats */}
-        {stats && (
-          <div className="mb-s-10 grid gap-s-4 sm:grid-cols-3">
-            {[
-              {
-                value: stats.professionals >= STAT_THRESHOLD ? stats.professionals.toLocaleString('fr-FR') : null,
-                label: 'Professionnels vérifiés',
-              },
-              {
-                value: stats.pharmacies >= STAT_THRESHOLD ? stats.pharmacies.toLocaleString('fr-FR') : null,
-                label: 'Pharmacies partenaires',
-              },
-              {
-                value: stats.cities >= STAT_THRESHOLD ? stats.cities.toLocaleString('fr-FR') : null,
-                label: 'Villes couvertes',
-              },
-            ].map(stat => (
-              <div
-                key={stat.label}
-                className={cn(
-                  'flex flex-col items-center gap-s-1 rounded-xl bg-surface p-s-6 shadow-1 transition-all duration-500',
-                  visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
-                )}
-              >
-                <span className="font-display text-h1 font-bold text-primary">
-                  {stat.value ?? 'Bientôt disponible'}
-                </span>
-                <span className="text-small text-ink-2">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Placeholder partner logos */}
-        <div className="mb-s-10">
-          <p className="mb-s-4 text-center text-small font-semibold uppercase tracking-widest text-ink-3">Nos partenaires</p>
-          <div className="flex flex-wrap justify-center gap-s-4" aria-label="Partenaires à venir">
-            {[1, 2, 3, 4].map(n => (
-              <div
-                key={n}
-                className="flex h-14 w-36 items-center justify-center rounded-lg border border-line bg-surface text-micro font-medium text-ink-3"
-              >
-                Partenaire à venir
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Testimonials — rendered only if data exists */}
-        {testimonials.length > 0 && (
-          <div className="mb-s-10 grid gap-s-4 sm:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map(t => (
-              <article
-                key={t.id}
-                className="flex flex-col gap-s-3 rounded-xl bg-surface p-s-5 shadow-1"
-              >
-                <div className="flex gap-s-1" aria-label="5 étoiles">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[color:var(--accent)] text-[color:var(--accent)]" aria-hidden="true" />
-                  ))}
-                </div>
-                <blockquote className="text-small leading-relaxed text-ink-2">"{t.content}"</blockquote>
-                <footer className="mt-auto">
-                  <p className="text-small font-semibold text-ink">{t.author_name}</p>
-                  <p className="text-micro text-ink-3">{t.role}</p>
-                </footer>
-              </article>
-            ))}
-          </div>
-        )}
-
-        {/* Engagement badges */}
-        <div className="grid gap-s-4 sm:grid-cols-3">
-          {[
-            { icon: BadgeCheck, title: 'Professionnels vérifiés', desc: "Diplôme et numéro d'ordre contrôlés par notre équipe sous 48h." },
-            { icon: Lock, title: 'Données chiffrées AES-256', desc: 'Chiffrement au repos et en transit. Hébergement Union Européenne.' },
-            { icon: Shield, title: 'Audit annuel', desc: 'Sécurité et conformité RGPD auditées chaque année par un tiers indépendant.' },
-          ].map(badge => (
-            <div key={badge.title} className="flex items-start gap-s-3 rounded-xl bg-surface p-s-5 shadow-1">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <badge.icon className="h-5 w-5 text-primary" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-body font-semibold text-ink">{badge.title}</p>
-                <p className="mt-s-1 text-small leading-relaxed text-ink-2">{badge.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Pricing Preview ───────────────────────────────────────────────────────
-
-function PricingPreviewSection() {
-  const plans = usePlans()
-  // Show 3 patient-facing + 3 B2B
-  const patientPlans = plans.filter(p => p.audience === 'patient').slice(0, 3)
-  const b2bPlans = plans.filter(p => p.audience !== 'patient').slice(0, 3)
-  const displayed = [...patientPlans, ...b2bPlans].slice(0, 6)
-
-  return (
-    <section className="py-s-12 bg-surface-1" aria-labelledby="pricing-heading">
-      <div className="mx-auto max-w-7xl px-s-4 sm:px-s-6">
-        <div className="mb-s-8 text-center">
-          <p className="mb-s-2 text-small font-semibold uppercase tracking-[0.06em] text-primary">Tarification</p>
-          <h2 id="pricing-heading" className="font-display text-h1 font-semibold text-ink">Simple et transparent</h2>
-          <p className="mt-s-3 text-body text-ink-2">Gratuit pour les patients · Essai 14 jours sans engagement pour les professionnels</p>
-        </div>
-
-        <div className="grid gap-s-4 sm:grid-cols-2 lg:grid-cols-3">
-          {displayed.map(plan => (
-            <div
-              key={plan.id}
-              className={cn(
-                'flex flex-col rounded-xl border bg-surface p-s-5 shadow-1',
-                plan.is_featured ? 'border-primary ring-1 ring-primary' : 'border-line',
-              )}
-            >
-              {plan.is_featured && (
-                <span className="mb-s-3 inline-flex w-fit items-center rounded-full bg-primary/10 px-s-3 py-s-1 text-micro font-semibold text-primary">
-                  Gratuit pour les patients
-                </span>
-              )}
-              <h3 className="font-display text-h3 font-semibold text-ink">{plan.name}</h3>
-              <p className="mt-s-1 text-small text-ink-3">{plan.description}</p>
-              <div className="mt-s-4 flex items-baseline gap-s-1">
-                {plan.price_fcfa === 0 ? (
-                  <span className="font-display text-h1 font-bold text-ink">Gratuit</span>
-                ) : plan.audience === 'insurance' ? (
-                  <span className="font-display text-h2 font-bold text-ink">Sur devis</span>
-                ) : (
-                  <>
-                    <span className="font-display text-h1 font-bold tabular-nums text-ink">{formatFCFA(plan.price_fcfa)}</span>
-                    <span className="text-small text-ink-3">/mois</span>
-                  </>
-                )}
-              </div>
-              <ul className="my-s-5 flex flex-1 flex-col gap-s-2">
-                {(plan.features ?? []).map((feat: string) => (
-                  <li key={feat} className="flex items-start gap-s-2 text-small text-ink-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                    {feat}
-                  </li>
-                ))}
-              </ul>
-              <Button variant={plan.is_featured ? 'primary' : 'secondary'} fullWidth asChild>
-                <Link to={plan.audience === 'patient' ? '/auth/inscription' : '/auth/inscription?role=professional'}>
-                  {plan.is_featured ? 'Créer mon compte gratuit' : 'Essai 14 jours'}
-                </Link>
-              </Button>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-s-8 text-center">
-          <Button variant="ghost" size="lg" asChild>
-            <Link to="/tarifs">
-              Voir tous les tarifs
-              <ArrowRight className="ml-s-2 h-4 w-4" aria-hidden="true" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── FAQ ──────────────────────────────────────────────────────────────────
-
-const FAQ_ITEMS = [
-  {
-    q: 'Séne Wérr est-il gratuit ?',
-    a: 'Oui, le compte patient est entièrement gratuit et le restera. Les professionnels de santé, établissements, pharmacies et mutuelles disposent de plans adaptés avec un essai de 14 jours sans engagement.',
-  },
-  {
-    q: 'Comment mon ordonnance arrive-t-elle à la pharmacie ?',
-    a: "Lorsque votre médecin signe l'ordonnance sur Séne Wérr, elle est immédiatement disponible dans votre espace patient. Vous la sélectionnez au moment de votre réservation en pharmacie, sans papier.",
-  },
-  {
-    q: 'Qui peut voir mon dossier ?',
-    a: 'Seuls vous, vos bénéficiaires autorisés, le médecin prescripteur et la pharmacie que vous avez choisie peuvent accéder à votre ordonnance — et seulement le temps de la réservation. Séne Wérr applique le principe du minimum nécessaire.',
-  },
-  {
-    q: 'Comment payer ma part ?',
-    a: 'Wave, Orange Money ou carte bancaire. Vous payez uniquement votre reste à charge après validation de votre mutuelle.',
-  },
-  {
-    q: 'Ma mutuelle est-elle compatible ?',
-    a: 'Si votre mutuelle utilise Séne Wérr, les prises en charge sont automatiques. Sinon, votre réservation reste possible et vous serez remboursé selon votre contrat mutuelle habituel.',
-  },
-  {
-    q: 'Comment être vérifié en tant que professionnel ?',
-    a: "Téléversez vos justificatifs (diplôme, numéro d'ordre) lors de l'inscription. Notre équipe valide sous 48 heures ouvrées.",
-  },
-  {
-    q: 'Livrez-vous les médicaments ?',
-    a: "Non — Séne Wérr ne livre pas à domicile. Vous retirez votre commande en pharmacie avec un code à 4 chiffres, une fois qu'elle est préparée.",
-  },
-  {
-    q: 'Mes données sont-elles protégées ?',
-    a: 'Vos données sont chiffrées (AES-256 au repos, TLS 1.3 en transit), hébergées en Union Européenne, et protégées conformément à la loi sénégalaise n° 2008-12 et au RGPD. Vos données de santé ne sont jamais utilisées à des fins publicitaires ni transmises sans votre consentement exprès.',
-  },
-]
-
-function FAQAccordionItem({
-  item,
-  index,
-  open,
-  onToggle,
-}: {
-  item: typeof FAQ_ITEMS[0]
-  index: number
-  open: boolean
-  onToggle: () => void
+function Reveal({ children, delay = 0, className = '' }: {
+  children: React.ReactNode; delay?: number; className?: string
 }) {
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState(0)
-
-  useEffect(() => {
-    if (contentRef.current) {
-      setHeight(open ? contentRef.current.scrollHeight : 0)
-    }
-  }, [open])
-
+  const { ref, visible } = useInView()
   return (
     <div
-      itemScope
-      itemType="https://schema.org/Question"
-      itemProp="mainEntity"
-      className="overflow-hidden rounded-lg border border-line bg-surface"
+      ref={ref as React.RefObject<HTMLDivElement>}
+      className={cn(
+        'transition-all duration-700 ease-out',
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6',
+        className,
+      )}
+      style={{ transitionDelay: `${delay}ms` }}
     >
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        aria-controls={`faq-answer-${index}`}
-        id={`faq-question-${index}`}
-        className="flex w-full items-center justify-between gap-s-4 px-s-5 py-s-4 text-left"
-      >
-        <span className="text-body font-medium text-ink" itemProp="name">{item.q}</span>
-        {open
-          ? <ChevronUp className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-          : <ChevronDown className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
-        }
-      </button>
-      <div
-        id={`faq-answer-${index}`}
-        role="region"
-        aria-labelledby={`faq-question-${index}`}
-        style={{ height, overflow: 'hidden', transition: 'height 220ms ease' }}
-        itemScope
-        itemType="https://schema.org/Answer"
-        itemProp="acceptedAnswer"
-      >
-        <div ref={contentRef} className="px-s-5 pb-s-5">
-          <p className="text-small leading-relaxed text-ink-2" itemProp="text">{item.a}</p>
-        </div>
-      </div>
+      {children}
     </div>
   )
 }
 
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
+// ─── NavBar ────────────────────────────────────────────────────────────────
 
-  const toggle = useCallback((i: number) => {
-    setOpenIndex(prev => (prev === i ? null : i))
+const NAV_LINKS = [
+  { label: 'Professionnels', href: '#acteurs' },
+  { label: 'Médicaments', href: '#medicament' },
+  { label: 'Comment ça marche', href: '#comment' },
+  { label: 'Tarifs', href: '#gratuit-patients' },
+]
+
+function NavBar() {
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const { toggle } = useTheme()
+
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 64)
+    h()
+    window.addEventListener('scroll', h, { passive: true })
+    return () => window.removeEventListener('scroll', h)
+  }, [])
+
+  const scrollTo = (href: string) => {
+    setOpen(false)
+    const el = document.querySelector(href)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  return (
+    <header className={cn(
+      'fixed inset-x-0 top-0 z-50 transition-all duration-300 bg-surface/94 backdrop-blur-md',
+      scrolled ? 'border-b border-line shadow-1' : 'border-b border-line/40',
+    )}>
+      <div className="mx-auto flex max-w-container items-center justify-between px-s-5 h-14">
+
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-s-2 shrink-0" aria-label="Séne Wérr — accueil">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary shadow-sm">
+            <HeartPulse className="h-4 w-4 text-white" />
+          </div>
+          <span className="font-display text-h3 font-bold text-ink leading-none">Séne Wérr</span>
+        </Link>
+
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-center gap-s-1" aria-label="Navigation principale">
+          {NAV_LINKS.map(l => (
+            l.href
+              ? <button key={l.label} onClick={() => scrollTo(l.href!)}
+                  className="px-s-3 py-s-2 text-small font-medium text-ink-2 hover:text-ink hover:bg-surface-2 rounded-md transition-colors">
+                  {l.label}
+                </button>
+              : <Link key={l.label} to={l.to!}
+                  className="px-s-3 py-s-2 text-small font-medium text-ink-2 hover:text-ink hover:bg-surface-2 rounded-md transition-colors">
+                  {l.label}
+                </Link>
+          ))}
+        </nav>
+
+        {/* Desktop CTAs */}
+        <div className="hidden lg:flex items-center gap-s-2">
+          <button onClick={toggle} aria-label="Basculer le thème"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-ink-2 hover:bg-surface-2 transition-colors">
+            <Sun className="h-5 w-5 dark:hidden" />
+            <Moon className="hidden h-5 w-5 dark:block" />
+          </button>
+          <div className="h-5 w-px bg-line mx-s-1" />
+          <Link to="/auth/connexion"
+            className="px-s-4 py-s-2 text-small font-medium text-ink-2 hover:text-ink hover:bg-surface-2 rounded-md transition-colors">
+            Se connecter
+          </Link>
+          <Link to="/auth/inscription"
+            className="px-s-4 py-s-2 text-small font-semibold text-white bg-primary hover:bg-primary-hover rounded-md transition-colors shadow-sm">
+            Créer mon compte
+          </Link>
+        </div>
+
+        {/* Mobile */}
+        <div className="flex lg:hidden items-center gap-s-1">
+          <button onClick={toggle} aria-label="Basculer le thème"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-ink-2 hover:bg-surface-2 transition-colors">
+            <Sun className="h-5 w-5 dark:hidden" />
+            <Moon className="hidden h-5 w-5 dark:block" />
+          </button>
+          <Link to="/recherche-publique" aria-label="Recherche"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-ink-2 hover:bg-surface-2 transition-colors">
+            <Search className="h-5 w-5" />
+          </Link>
+          <button onClick={() => setOpen(v => !v)} aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
+            className="flex h-9 w-9 items-center justify-center rounded-md text-ink-2 hover:bg-surface-2 transition-colors">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu déroulant */}
+      <div className={cn(
+        'lg:hidden overflow-hidden transition-all duration-300',
+        open ? 'max-h-screen' : 'max-h-0',
+      )}>
+        <div className="bg-surface border-t border-line px-s-5 pb-s-5">
+          <nav className="flex flex-col gap-s-1 pt-s-3">
+            {NAV_LINKS.map(l => (
+              l.href
+                ? <button key={l.label} onClick={() => scrollTo(l.href!)}
+                    className="text-left px-s-3 py-s-3 text-body font-medium text-ink-2 hover:text-ink hover:bg-surface-2 rounded-md transition-colors">
+                    {l.label}
+                  </button>
+                : <Link key={l.label} to={l.to!} onClick={() => setOpen(false)}
+                    className="px-s-3 py-s-3 text-body font-medium text-ink-2 hover:text-ink hover:bg-surface-2 rounded-md transition-colors">
+                    {l.label}
+                  </Link>
+            ))}
+          </nav>
+          <div className="mt-s-3 flex flex-col gap-s-2 pt-s-3 border-t border-line">
+            <Link to="/auth/connexion" onClick={() => setOpen(false)}
+              className="w-full py-s-3 text-center text-body font-medium text-ink border border-line rounded-md hover:bg-surface-2 transition-colors">
+              Se connecter
+            </Link>
+            <Link to="/auth/inscription" onClick={() => setOpen(false)}
+              className="w-full py-s-3 text-center text-body font-semibold text-white bg-primary hover:bg-primary-hover rounded-md transition-colors">
+              Créer mon compte gratuitement
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+// ─── Bouton scroll-to-top ───────────────────────────────────────────────────
+
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const h = () => setVisible(window.scrollY > 400)
+    window.addEventListener('scroll', h, { passive: true })
+    return () => window.removeEventListener('scroll', h)
   }, [])
 
   return (
-    <section
-      className="py-s-12 bg-surface"
-      aria-labelledby="faq-heading"
-      itemScope
-      itemType="https://schema.org/FAQPage"
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Remonter en haut de la page"
+      className={cn(
+        'fixed bottom-6 right-6 z-40 h-11 w-11 rounded-full bg-primary text-white shadow-lg',
+        'flex items-center justify-center',
+        'hover:bg-primary-hover hover:shadow-xl hover:-translate-y-0.5',
+        'transition-all duration-300',
+        visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none',
+      )}
     >
-      <div className="mx-auto max-w-3xl px-s-4 sm:px-s-6">
-        <h2 id="faq-heading" className="mb-s-8 text-center font-display text-h1 font-semibold text-ink">
-          Questions fréquentes
-        </h2>
-        <div className="flex flex-col gap-s-3">
-          {FAQ_ITEMS.map((item, i) => (
-            <FAQAccordionItem
-              key={i}
-              item={item}
-              index={i}
-              open={openIndex === i}
-              onToggle={() => toggle(i)}
-            />
+      <ChevronUp className="h-5 w-5" />
+    </button>
+  )
+}
+
+// ─── Hero ──────────────────────────────────────────────────────────────────
+
+function HeroSection() {
+  const navigate = useNavigate()
+  const [tab, setTab] = useState<'med' | 'pro'>('med')
+  const [query, setQuery] = useState('')
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (tab === 'med') navigate(`/recherche-publique?q=${encodeURIComponent(query)}&type=medicament`)
+    else navigate(`/recherche-publique?q=${encodeURIComponent(query)}&type=pro`)
+  }
+
+  return (
+    <section className="sw-hero-bg relative min-h-screen flex flex-col justify-center overflow-hidden pt-20 pb-16 lg:pb-24">
+      <style>{`
+        .sw-hero-bg {
+          background: linear-gradient(158deg, #F0FBFD 0%, #FFFFFF 38%, #F0FAF1 72%, #EAF7F9 100%);
+        }
+        .dark .sw-hero-bg {
+          background: linear-gradient(158deg, #071520 0%, #0c2130 38%, #061308 72%, #081828 100%);
+        }
+      `}</style>
+      {/* Couches décoratives */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden>
+        <div className="absolute -top-24 -right-24 w-[640px] h-[640px] rounded-full blur-[130px]"
+          style={{ background: 'radial-gradient(circle, rgba(28,134,40,0.13) 0%, transparent 70%)' }} />
+        <div className="absolute -bottom-16 -left-16 w-[520px] h-[520px] rounded-full blur-[110px]"
+          style={{ background: 'radial-gradient(circle, rgba(20,126,134,0.11) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(28,134,40,0.07) 0%, transparent 70%)' }} />
+        <div className="absolute inset-0 opacity-[0.035]"
+          style={{ backgroundImage: 'linear-gradient(rgba(21,63,84,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(21,63,84,.25) 1px,transparent 1px)', backgroundSize: '64px 64px' }} />
+      </div>
+
+      <div className="relative mx-auto max-w-container px-s-5 text-center">
+        {/* Pill badge */}
+        <div className="mb-s-6 inline-flex items-center gap-s-2 rounded-pill bg-primary-soft px-s-4 py-s-2 text-small text-primary border border-primary/20">
+          <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+          Plateforme de santé sénégalaise
+        </div>
+
+        {/* H1 */}
+        <h1 className="font-display text-display font-bold text-ink leading-tight tracking-tight mb-s-5 max-w-4xl mx-auto">
+          Votre santé{' '}
+          <span className="bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+            connectée
+          </span>{' '}
+          et centralisée.
+        </h1>
+
+        {/* Sous-titre */}
+        <p className="text-body text-ink-2 max-w-2xl mx-auto mb-s-8 leading-relaxed">
+          Trouvez un professionnel, prenez rendez-vous, retrouvez vos ordonnances,
+          localisez vos médicaments et gérez votre mutuelle — depuis un seul espace.
+        </p>
+
+        {/* Moteur de recherche */}
+        <div className="mx-auto max-w-2xl mb-s-6">
+          <div className="bg-white dark:bg-white rounded-xl border border-line shadow-2 overflow-hidden">
+            {/* Onglets */}
+            <div className="flex border-b border-line">
+              {(['med', 'pro'] as const).map(t => (
+                <button key={t} onClick={() => setTab(t)}
+                  className={cn(
+                    'flex-1 py-s-3 text-small font-semibold transition-all duration-200',
+                    tab === t
+                      ? 'text-white bg-accent'
+                      : 'text-accent bg-white dark:bg-white hover:bg-accent/10',
+                  )}>
+                  {t === 'med' ? '💊 Trouver un médicament' : '🩺 Trouver un professionnel'}
+                </button>
+              ))}
+            </div>
+            {/* Champ */}
+            <form onSubmit={submit} className="flex items-center gap-s-3 p-s-3">
+              <Search className="ml-s-2 h-5 w-5 text-ink-3 dark:text-gray-400 shrink-0" />
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={tab === 'med' ? 'Ex: Doliprane 1000 mg…' : 'Ex: Cardiologue Dakar…'}
+                className="flex-1 text-body text-ink dark:text-gray-900 placeholder:text-ink-3 dark:placeholder:text-gray-400 bg-transparent outline-none"
+                aria-label={tab === 'med' ? 'Rechercher un médicament' : 'Rechercher un professionnel'}
+              />
+              <button type="submit"
+                className="shrink-0 px-s-5 py-s-3 bg-primary hover:bg-primary-hover text-white text-small font-semibold rounded-lg transition-colors">
+                {tab === 'med' ? 'Trouver' : 'Rechercher'}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Réassurance inline */}
+        <p className="text-micro text-ink-3">
+          Recherche gratuite · Sans inscription · Disponibilités locales · Réseau de pharmacies
+        </p>
+
+        {/* Stats */}
+        <div className="mt-s-10 grid grid-cols-2 gap-s-4 sm:grid-cols-4 max-w-2xl mx-auto">
+          {[
+            { n: '500+', label: 'Professionnels' },
+            { n: '120+', label: 'Pharmacies' },
+            { n: '5', label: "Types d'acteurs" },
+            { n: '100%', label: 'Gratuit patients' },
+          ].map(({ n, label }) => (
+            <div key={label} className="rounded-xl bg-surface border border-line px-s-4 py-s-4 shadow-1">
+              <p className="font-display text-h1 font-bold text-ink leading-none">{n}</p>
+              <p className="mt-s-1 text-micro text-ink-2">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div className="absolute bottom-s-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-s-1 text-ink-3/60">
+        <span className="text-micro">Découvrir</span>
+        <ChevronDown className="h-4 w-4 animate-bounce" />
+      </div>
+    </section>
+  )
+}
+
+// ─── Logos acteurs ──────────────────────────────────────────────────────────
+
+function EcosystemBar() {
+  const actors = [
+    { icon: User,        label: 'Patients',         color: 'text-primary',  bg: 'bg-primary-soft' },
+    { icon: Stethoscope, label: 'Médecins',          color: 'text-accent',   bg: 'bg-accent-soft'  },
+    { icon: Building2,   label: 'Établissements',    color: 'text-navy',     bg: 'bg-navy-soft'    },
+    { icon: Pill,        label: 'Pharmacies',        color: 'text-cyan',     bg: 'bg-accent-soft'  },
+    { icon: Shield,      label: 'Mutuelles',         color: 'text-primary',  bg: 'bg-primary-soft' },
+  ]
+  return (
+    <section className="bg-surface border-b border-line py-s-6">
+      <div className="mx-auto max-w-container px-s-5">
+        <p className="text-center text-small text-ink-3 mb-s-5 uppercase tracking-widest font-medium">
+          Tous connectés au même écosystème
+        </p>
+        <div className="flex flex-wrap justify-center gap-s-3 sm:gap-s-5">
+          {actors.map(a => (
+            <div key={a.label} className="flex items-center gap-s-2 px-s-4 py-s-2 rounded-pill border border-line bg-bg">
+              <span className={cn('flex h-7 w-7 items-center justify-center rounded-full', a.bg)}>
+                <a.icon className={cn('h-3.5 w-3.5', a.color)} />
+              </span>
+              <span className="text-small font-medium text-ink">{a.label}</span>
+            </div>
           ))}
         </div>
       </div>
@@ -1092,165 +361,941 @@ function FAQSection() {
   )
 }
 
-// ─── CTA Final ────────────────────────────────────────────────────────────
+// ─── Logos partenaires ──────────────────────────────────────────────────────
 
-function CTAFinalSection() {
+function TrustedBySection() {
+  const logos = [
+    { initials: 'HP',  name: 'Hôpital Principal de Dakar',          bg: 'bg-accent-soft',  dot: 'text-accent',   logo: '/logos/hopital-principal.svg' },
+    { initials: 'CCV', name: 'Clinique du Cap-Vert',                 bg: 'bg-primary-soft', dot: 'text-primary',  logo: '/logos/clinique-cap-vert.svg' },
+    { initials: 'IG',  name: 'IGSAS',                               bg: 'bg-accent-soft',  dot: 'text-accent',   logo: '/logos/ipm-mse.jpg' },
+    { initials: 'IPM', name: 'IPM Sénégal',                         bg: 'bg-primary-soft', dot: 'text-primary',  logo: '/logos/ipm-mse.jpg' },
+    { initials: 'KMS', name: 'Keur Massar Santé',                    bg: 'bg-accent-soft',  dot: 'text-accent',   logo: '/logos/keur-massar-sante.svg' },
+    { initials: 'PG',  name: 'Pharmacie Guigon',                     bg: 'bg-primary-soft', dot: 'text-primary',  logo: '/logos/chr-saint-louis.png' },
+    { initials: 'LP',  name: 'Laboratoire Pasteur',                  bg: 'bg-accent-soft',  dot: 'text-accent',   logo: '/logos/laboratoire-pasteur.svg' },
+    { initials: 'PE',  name: "Polyclinique de l'Étoile",             bg: 'bg-primary-soft', dot: 'text-primary',  logo: '/logos/polyclinique-etoile.svg' },
+    { initials: 'MSF', name: 'Mutuelle de Santé des Fonctionnaires', bg: 'bg-accent-soft',  dot: 'text-accent',   logo: '/logos/ipm-mse.jpg' },
+    { initials: 'CMR', name: 'Centre Médical de Rufisque',           bg: 'bg-primary-soft', dot: 'text-primary',  logo: '/logos/centre-medical-rufisque.svg' },
+  ]
+  const track = [...logos, ...logos]
   return (
-    <section
-      className="py-s-16 text-center"
-      style={{ background: 'linear-gradient(160deg, var(--primary) 0%, #1a56db 100%)' }}
-      aria-labelledby="cta-heading"
-    >
-      <div className="mx-auto max-w-2xl px-s-4 sm:px-s-6">
-        <h2 id="cta-heading" className="font-display text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white">
-          Commencez par&nbsp;: je cherche un médecin.
-        </h2>
-        <p className="mt-s-4 text-body text-white/80">
-          Rejoignez des milliers de patients qui gèrent leur santé simplement avec Séne Wérr.
-        </p>
-        <div className="mt-s-8">
-          <Button
-            variant="accent"
-            size="lg"
-            asChild
-            className="text-base font-bold shadow-lg"
-          >
-            <Link to="/auth/inscription">
-              Créer mon compte patient gratuit
-              <ArrowRight className="ml-s-2 h-4 w-4" aria-hidden="true" />
-            </Link>
-          </Button>
+    <section className="bg-surface border-y border-line py-s-4 overflow-hidden">
+      <style>{`
+        @keyframes marquee-scroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+      <p className="text-center text-small text-ink-3 mb-s-5 uppercase tracking-widest font-medium">
+        Ils nous font déjà confiance
+      </p>
+      <div className="relative">
+        <div
+          className="flex gap-s-5"
+          style={{ animation: 'marquee-scroll 28s linear infinite', width: 'max-content' }}
+        >
+          {track.map((l, i) => (
+            <div
+              key={i}
+              title={l.name}
+              className="h-24 w-28 rounded-xl border border-line bg-bg flex flex-col items-center justify-center gap-1.5 py-3 px-2 shrink-0 shadow-sm"
+            >
+              {l.logo && (
+                <img
+                  src={l.logo}
+                  alt={l.name}
+                  className="h-9 w-20 rounded-md object-contain shrink-0"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none'
+                    const fb = (e.target as HTMLImageElement).nextElementSibling
+                    if (fb) fb.classList.remove('hidden')
+                  }}
+                />
+              )}
+              <span className={cn('flex h-10 w-10 items-center justify-center rounded-md flex-shrink-0', l.bg, l.dot, l.logo ? 'hidden' : '')}>
+                <span className="text-micro font-bold leading-none">{l.initials.slice(0, 2)}</span>
+              </span>
+              <span className="text-[10px] font-semibold text-ink text-center leading-tight line-clamp-2">{l.name}</span>
+            </div>
+          ))}
         </div>
-        <p className="mt-s-4 text-small text-white/60">
-          Aucune carte bancaire requise · Vérification en 2 minutes
-        </p>
       </div>
     </section>
   )
 }
 
-// ─── Footer ───────────────────────────────────────────────────────────────
+// ─── Section Problème ───────────────────────────────────────────────────────
 
-function Footer() {
+function ProblemSection() {
+  const { ref, visible } = useInView()
+  const cards = [
+    { icon: MapPin,    color: 'text-accent bg-accent-soft',   title: 'Trouver un professionnel',  desc: 'Disponibilités difficiles à connaître, informations éparpillées.' },
+    { icon: FileText,  color: 'text-primary bg-primary-soft', title: 'Gérer ses ordonnances',     desc: 'Documents perdus, difficiles à retrouver ou à transmettre.' },
+    { icon: Pill,      color: 'text-cyan bg-accent-soft',     title: 'Localiser un médicament',   desc: 'Appels à répétition dans plusieurs pharmacies sans résultat.' },
+    { icon: CreditCard,color: 'text-navy bg-navy-soft',       title: 'Suivre sa mutuelle',        desc: 'Prises en charge et remboursements impossibles à piloter.' },
+  ]
   return (
-    <footer className="border-t border-line bg-surface" aria-label="Pied de page Séne Wérr">
-      <div className="mx-auto max-w-7xl px-s-4 py-s-10 sm:px-s-6">
-        <div className="grid gap-s-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Col 1: Logo + tagline */}
-          <div className="flex flex-col gap-s-3">
-            <Link to="/" className="font-display text-h3 font-bold text-primary" aria-label="Séne Wérr — accueil">
-              Séne Wérr
-            </Link>
-            <p className="text-small font-medium text-primary">Votre santé connectée et centralisée</p>
-            <p className="text-small leading-relaxed text-ink-2">
-              Plateforme de santé numérique au Sénégal — patients, professionnels, établissements, pharmacies et mutuelles réunis.
-            </p>
-            <div className="flex gap-s-3" aria-label="Réseaux sociaux">
-              {['Twitter', 'LinkedIn', 'Facebook'].map(sn => (
-                <a
-                  key={sn}
-                  href="#"
-                  aria-label={sn}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-micro text-ink-3 transition-colors hover:border-primary hover:text-primary"
-                >
-                  {sn[0]}
-                </a>
-              ))}
+    <section ref={ref as React.RefObject<HTMLElement>} className="bg-bg py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <div className={cn('text-center mb-s-8 transition-all duration-700', visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6')}>
+          <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Le constat</p>
+          <h2 className="font-display text-h1 font-bold text-ink max-w-2xl mx-auto">
+            Votre parcours de santé est encore trop dispersé.
+          </h2>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-s-4">
+          {cards.map((c, i) => (
+            <Reveal key={c.title} delay={i * 80}>
+              <div className="group h-full rounded-xl border border-line bg-surface p-s-5 hover:shadow-2 transition-shadow">
+                <span className={cn('inline-flex h-10 w-10 items-center justify-center rounded-lg mb-s-4', c.color)}>
+                  <c.icon className="h-5 w-5" />
+                </span>
+                <h3 className="font-display text-h3 font-semibold text-ink mb-s-2">{c.title}</h3>
+                <p className="text-small text-ink-2 leading-relaxed">{c.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={200}>
+          <div className="mt-s-8 rounded-xl bg-gradient-to-r from-navy to-accent p-px">
+            <div className="rounded-[11px] bg-surface px-s-6 py-s-5 text-center">
+              <p className="font-display text-h2 font-bold text-ink">
+                Séne Wérr réunit tout cela{' '}
+                <span className="text-primary">au même endroit.</span>
+              </p>
             </div>
           </div>
-
-          {/* Col 2: Produit */}
-          <div>
-            <h3 className="mb-s-3 text-small font-semibold text-ink">Produit</h3>
-            <ul className="flex flex-col gap-s-2">
-              {[
-                { label: 'Tarifs', to: '/tarifs' },
-                { label: 'Blog', to: '/blog' },
-                { label: 'Contact', to: '/contact' },
-                { label: 'Sécurité', to: '/securite' },
-              ].map(l => (
-                <li key={l.to}>
-                  <Link to={l.to} className="text-small text-ink-2 hover:text-primary">
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Col 3: Légal */}
-          <div>
-            <h3 className="mb-s-3 text-small font-semibold text-ink">Légal</h3>
-            <ul className="flex flex-col gap-s-2">
-              {[
-                { label: 'Mentions légales', to: '/mentions-legales' },
-                { label: 'Confidentialité', to: '/confidentialite' },
-                { label: 'CGU', to: '/cgu' },
-                { label: 'CGV', to: '/cgv' },
-                { label: 'Cookies', to: '/cookies' },
-                { label: 'Remboursements', to: '/remboursements' },
-              ].map(l => (
-                <li key={l.to}>
-                  <Link to={l.to} className="text-small text-ink-2 hover:text-primary">
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Col 4: Support */}
-          <div>
-            <h3 className="mb-s-3 text-small font-semibold text-ink">Support</h3>
-            <ul className="flex flex-col gap-s-2">
-              <li>
-                <a href="mailto:contact@senewerr.com" className="text-small text-ink-2 hover:text-primary">
-                  contact@senewerr.com
-                </a>
-              </li>
-              <li>
-                <a href="mailto:support@senewerr.com" className="text-small text-ink-2 hover:text-primary">
-                  support@senewerr.com
-                </a>
-              </li>
-              <li>
-                <Link to="/faq" className="text-small text-ink-2 hover:text-primary">
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom row */}
-        <div className="mt-s-8 flex flex-col items-center justify-between gap-s-4 border-t border-line pt-s-6 sm:flex-row">
-          <p className="text-micro text-ink-3">
-            © 2026 Séne Wérr SAS · Tous droits réservés · 🇸🇳 Sénégal
-          </p>
-          {/* Language selector */}
-          <div className="flex items-center gap-s-2 text-micro text-ink-3" aria-label="Sélecteur de langue">
-            {['fr', 'wo', 'en'].map((lang, i, arr) => (
-              <span key={lang}>
-                <button
-                  className={cn(
-                    'transition-colors hover:text-primary',
-                    lang === 'fr' ? 'font-semibold text-primary' : '',
-                  )}
-                  aria-label={`Langue : ${lang}`}
-                >
-                  {lang}
-                </button>
-                {i < arr.length - 1 && <span className="mx-s-1 text-line">|</span>}
-              </span>
-            ))}
-          </div>
-        </div>
+        </Reveal>
       </div>
-    </footer>
+    </section>
   )
 }
 
-// ─── LandingPage ──────────────────────────────────────────────────────────
+// ─── Solution — Timeline ────────────────────────────────────────────────────
+
+function SolutionSection() {
+  const steps = [
+    { n: '01', label: 'Trouver',         icon: Search },
+    { n: '02', label: 'Réserver',        icon: Calendar },
+    { n: '03', label: 'Consulter',       icon: Stethoscope },
+    { n: '04', label: 'Ordonnance',      icon: FileText },
+    { n: '05', label: 'Médicament',      icon: Pill },
+    { n: '06', label: 'Réservation',     icon: ShoppingBag },
+    { n: '07', label: 'Mutuelle',        icon: Shield },
+    { n: '08', label: 'Paiement',        icon: CreditCard },
+    { n: '09', label: 'Retrait',         icon: Check },
+  ]
+  return (
+    <section id="comment" className="bg-surface py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-16">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">La solution</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Un seul espace pour tout votre parcours.</h2>
+            <p className="mt-s-3 text-body text-ink-2 max-w-xl mx-auto">
+              De la prise de rendez-vous jusqu'au retrait en pharmacie, Séne Wérr connecte chaque étape.
+            </p>
+          </div>
+        </Reveal>
+
+        {/* Timeline desktop */}
+        <div className="hidden lg:block relative">
+          <div className="absolute top-8 left-0 right-0 h-px bg-gradient-to-r from-primary/20 via-accent to-primary/20" />
+          <div className="grid grid-cols-9 gap-s-2">
+            {steps.map((s, i) => (
+              <Reveal key={s.n} delay={i * 50}>
+                <div className="flex flex-col items-center text-center">
+                  <div className={cn(
+                    'relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 mb-s-3 transition-all duration-300',
+                    i < 3
+                      ? 'border-primary bg-primary-soft'
+                      : i < 6
+                        ? 'border-accent bg-accent-soft'
+                        : 'border-navy bg-navy-soft',
+                  )}>
+                    <s.icon className={cn('h-6 w-6', i < 3 ? 'text-primary' : i < 6 ? 'text-accent' : 'text-navy')} />
+                  </div>
+                  <span className="text-micro font-bold text-ink-3">{s.n}</span>
+                  <span className="text-micro font-semibold text-ink mt-s-1 leading-tight">{s.label}</span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        {/* Timeline mobile — vertical */}
+        <div className="lg:hidden space-y-s-3">
+          {steps.map((s, i) => (
+            <Reveal key={s.n} delay={i * 40}>
+              <div className="flex items-center gap-s-4 rounded-lg border border-line bg-bg px-s-4 py-s-3">
+                <span className="font-display text-h3 font-bold text-primary/30 w-8 shrink-0">{s.n}</span>
+                <span className={cn(
+                  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
+                  i < 3 ? 'bg-primary-soft' : i < 6 ? 'bg-accent-soft' : 'bg-navy-soft',
+                )}>
+                  <s.icon className={cn('h-4 w-4', i < 3 ? 'text-primary' : i < 6 ? 'text-accent' : 'text-navy')} />
+                </span>
+                <span className="text-body font-medium text-ink">{s.label}</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={200}>
+          <div className="mt-s-8 text-center">
+            <Link to="/auth/inscription"
+              className="inline-flex items-center gap-s-2 px-s-6 py-s-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-colors shadow-sm">
+              Commencer gratuitement <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ─── Patient Features ───────────────────────────────────────────────────────
+
+function PatientSection() {
+  const features = [
+    { icon: Search,      color: 'text-accent bg-accent-soft',   title: 'Trouver un professionnel',  desc: 'Par spécialité, localisation, disponibilité ou établissement.' },
+    { icon: Calendar,    color: 'text-primary bg-primary-soft', title: 'Prendre rendez-vous',        desc: 'Choisissez votre créneau et confirmez en quelques secondes.' },
+    { icon: FileText,    color: 'text-cyan bg-accent-soft',     title: 'Mes ordonnances',            desc: 'Retrouvez toutes vos ordonnances au même endroit.' },
+    { icon: Pill,        color: 'text-accent bg-accent-soft',   title: 'Trouver un médicament',     desc: 'Localisez les pharmacies où votre médicament est disponible.' },
+    { icon: ShoppingBag, color: 'text-primary bg-primary-soft', title: 'Réserver en pharmacie',     desc: 'Réservez votre médicament depuis votre espace patient.' },
+    { icon: Shield,      color: 'text-navy bg-navy-soft',       title: 'Ma mutuelle',               desc: 'Retrouvez votre couverture et vos prises en charge.' },
+    { icon: CreditCard,  color: 'text-primary bg-primary-soft', title: 'Mes paiements',             desc: 'Suivez vos paiements et vos remboursements en temps réel.' },
+    { icon: Clock,       color: 'text-accent bg-accent-soft',   title: 'Mon historique',            desc: "Votre parcours de santé complet, toujours accessible." },
+  ]
+  return (
+    <section id="patient" className="bg-bg py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-16">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Pour les patients</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Tout ce dont vous avez besoin,<br className="hidden sm:block" /> au même endroit.</h2>
+          </div>
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-s-4">
+          {features.map((f, i) => (
+            <Reveal key={f.title} delay={i * 60}>
+              <div className="h-full rounded-xl border border-line bg-surface p-s-5 hover:shadow-2 hover:-translate-y-0.5 transition-all duration-200">
+                <span className={cn('inline-flex h-10 w-10 items-center justify-center rounded-lg mb-s-4', f.color)}>
+                  <f.icon className="h-5 w-5" />
+                </span>
+                <h3 className="font-display text-small font-semibold text-ink mb-s-1">{f.title}</h3>
+                <p className="text-small text-ink-2 leading-relaxed">{f.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal delay={300}>
+          <div className="mt-s-8 text-center">
+            <Link to="/auth/inscription"
+              className="inline-flex items-center gap-s-2 px-s-6 py-s-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-colors">
+              Créer mon compte gratuitement
+            </Link>
+            <p className="mt-s-2 text-micro text-ink-3">Aucune carte bancaire requise.</p>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ─── Les 5 acteurs ──────────────────────────────────────────────────────────
+
+function ActorsSection() {
+  const actors = [
+    {
+      icon: User,
+      color: 'text-primary', bg: 'bg-primary-soft', border: 'border-primary/20',
+      title: 'Patients',
+      desc: 'Accédez gratuitement à toutes les fonctionnalités de suivi de votre santé.',
+      features: ['Rendez-vous en ligne', 'Ordonnances numériques', 'Réservations pharmacie', 'Suivi mutuelle'],
+      cta: 'Créer mon compte gratuitement',
+      role: 'patient',
+    },
+    {
+      icon: Stethoscope,
+      color: 'text-accent', bg: 'bg-accent-soft', border: 'border-accent/20',
+      title: 'Professionnels de santé',
+      desc: 'Gérez votre agenda, vos consultations, vos ordonnances et vos patients depuis un seul espace.',
+      features: ['Agenda intelligent multi-sites', 'Consultations & ordonnances', "Statistiques d'activité", 'Plusieurs établissements'],
+      cta: 'Créer mon espace professionnel',
+      role: 'professional',
+    },
+    {
+      icon: Building2,
+      color: 'text-primary', bg: 'bg-primary-soft', border: 'border-primary/20',
+      title: 'Cabinets & établissements',
+      desc: 'Centralisez vos professionnels, vos plannings, vos rendez-vous et vos statistiques.',
+      features: ["Gestion d'équipe", 'Planning multi-praticiens', 'Secrétariat intégré', 'Statistiques avancées'],
+      cta: 'Inscrire mon établissement',
+      role: 'establishment',
+    },
+    {
+      icon: Pill,
+      color: 'text-cyan', bg: 'bg-accent-soft', border: 'border-cyan/20',
+      title: 'Pharmacies',
+      desc: 'Soyez visible, gérez vos stocks, recevez des réservations et suivez vos paiements.',
+      features: ['Catalogue & disponibilités', 'Réservations patients', 'Vérification ordonnances', 'Tableau de bord paiements'],
+      cta: 'Inscrire ma pharmacie',
+      role: 'pharmacy',
+    },
+    {
+      icon: Shield,
+      color: 'text-navy', bg: 'bg-navy-soft', border: 'border-navy/20',
+      title: 'Mutuelles',
+      desc: 'Simplifiez la gestion de vos assurés, vos prises en charge et vos paiements.',
+      features: ['Gestion des assurés', 'Prises en charge', 'Validation & paiements', 'Reporting & historique'],
+      cta: 'Inscrire ma mutuelle',
+      role: 'insurance',
+    },
+  ]
+
+  const renderCard = (a: typeof actors[number], i: number) => (
+    <Reveal key={a.title} delay={i * 70}>
+      <div className={cn('h-full rounded-xl border bg-bg p-s-6 hover:shadow-2 transition-all duration-200 flex flex-col', a.border)}>
+        <span className={cn('inline-flex h-11 w-11 items-center justify-center rounded-xl mb-s-4', a.bg)}>
+          <a.icon className={cn('h-5 w-5', a.color)} />
+        </span>
+        <h3 className="font-display text-h3 font-bold text-ink mb-s-2">{a.title}</h3>
+        <p className="text-small text-ink-2 mb-s-4 leading-relaxed">{a.desc}</p>
+        <ul className="space-y-s-2 mb-s-5 flex-1">
+          {a.features.map(f => (
+            <li key={f} className="flex items-start gap-s-2 text-small text-ink-2">
+              <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              {f}
+            </li>
+          ))}
+        </ul>
+        <Link to={`/auth/inscription?role=${a.role}`}
+          className="w-full py-s-3 px-s-4 text-center text-small font-semibold text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors shadow-sm">
+          {a.cta}
+        </Link>
+      </div>
+    </Reveal>
+  )
+
+  return (
+    <section id="acteurs" className="bg-surface py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-16">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">L'écosystème</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Un écosystème de santé<br className="hidden sm:block" /> enfin connecté.</h2>
+            <p className="mt-s-3 text-body text-ink-2 max-w-xl mx-auto">
+              Chaque acteur dispose de son propre espace, ses outils et les bonnes informations au bon moment.
+            </p>
+          </div>
+        </Reveal>
+        {/* Ligne 1 : 3 premières cartes */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-s-4">
+          {actors.slice(0, 3).map((a, i) => renderCard(a, i))}
+        </div>
+        {/* Ligne 2 : 2 dernières cartes centrées */}
+        <div className="grid sm:grid-cols-2 gap-s-4 mt-s-4 lg:w-2/3 lg:mx-auto">
+          {actors.slice(3).map((a, i) => renderCard(a, i + 3))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Section Professionnel ──────────────────────────────────────────────────
+
+function ProfessionalSection() {
+  return (
+    <section id="pro" className="bg-bg py-s-8 lg:py-24 overflow-hidden">
+      <div className="mx-auto max-w-container px-s-5">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+          <Reveal>
+            <div>
+              <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Pour les professionnels</p>
+              <h2 className="font-display text-h1 font-bold text-ink mb-s-4">
+                Votre activité de santé,<br /> enfin centralisée.
+              </h2>
+              <p className="text-body text-ink-2 mb-s-6 leading-relaxed">
+                Que vous exerciez dans un cabinet, une clinique, un hôpital ou plusieurs établissements,
+                Séne Wérr vous permet de gérer toute votre activité depuis un seul espace.
+              </p>
+              <ul className="space-y-s-3 mb-s-7">
+                {[
+                  "Agenda intelligent adapté à vos lieux d'exercice",
+                  'Consultations, ordonnances et documents centralisés',
+                  "Statistiques d'activité en temps réel",
+                  'Collaboration avec les pharmacies et mutuelles',
+                ].map(f => (
+                  <li key={f} className="flex items-start gap-s-3 text-body text-ink-2">
+                    <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/auth/inscription?role=professional"
+                className="inline-flex items-center gap-s-2 px-s-6 py-s-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-colors">
+                Créer mon espace professionnel <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </Reveal>
+
+          {/* Mockup agenda multi-sites */}
+          <Reveal delay={150}>
+            <div className="mt-s-8 lg:mt-0 rounded-2xl border border-line bg-surface shadow-2 overflow-hidden">
+              {/* Header mockup */}
+              <div className="bg-[#153F54] px-s-5 py-s-4 flex items-center justify-between">
+                <span className="text-small font-semibold text-white">Mon agenda — Lundi 18 sept.</span>
+                <span className="text-micro text-white/50">3 lieux</span>
+              </div>
+              {/* Créneaux */}
+              <div className="p-s-4 space-y-s-3">
+                {[
+                  { time: '09:00 – 12:00', lieu: 'Clinique Pasteur', badge: 'bg-accent-soft text-accent', nb: '4 RDV' },
+                  { time: '14:00 – 17:00', lieu: 'Hôpital Principal', badge: 'bg-primary-soft text-primary', nb: '3 RDV' },
+                  { time: '18:00 – 20:00', lieu: 'Cabinet privé', badge: 'bg-navy-soft text-navy', nb: '2 RDV' },
+                ].map(s => (
+                  <div key={s.lieu} className="flex items-center gap-s-3 rounded-lg border border-line bg-bg p-s-3">
+                    <div className="text-right shrink-0">
+                      <p className="text-micro font-bold text-ink">{s.time}</p>
+                    </div>
+                    <div className="w-px h-8 bg-line shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-small font-semibold text-ink">{s.lieu}</p>
+                    </div>
+                    <span className={cn('text-micro font-semibold px-s-2 py-1 rounded-pill', s.badge)}>
+                      {s.nb}
+                    </span>
+                  </div>
+                ))}
+                <p className="text-center text-micro font-semibold text-primary py-s-1">
+                  Un seul agenda · Tous vos lieux d'exercice.
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Section Médicament ─────────────────────────────────────────────────────
+
+function MedicineSection() {
+  const navigate = useNavigate()
+  const [q, setQ] = useState('')
+  const [showModal, setShowModal] = useState(false)
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    navigate(`/recherche-publique?q=${encodeURIComponent(q)}&type=medicament`)
+  }
+
+  return (
+    <section id="medicament" className="bg-bg py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-12">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Recherche médicament</p>
+            <h2 className="font-display text-h1 font-bold text-ink">
+              Trouvez rapidement où votre<br className="hidden sm:block" /> médicament est disponible.
+            </h2>
+            <p className="mt-s-3 text-body text-ink-2">Recherche gratuite et sans inscription.</p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div className="mx-auto max-w-2xl">
+            {/* Barre de recherche */}
+            <form onSubmit={submit} className="flex items-center gap-s-3 rounded-xl border border-line bg-surface p-s-3 shadow-2 mb-s-6">
+              <Search className="ml-s-2 h-5 w-5 text-ink-3 shrink-0" />
+              <input value={q} onChange={e => setQ(e.target.value)}
+                placeholder="Ex : Doliprane 1000 mg, Amoxicilline…"
+                className="flex-1 text-body text-ink placeholder:text-ink-3 bg-transparent outline-none" />
+              <button type="submit"
+                className="shrink-0 px-s-5 py-s-3 bg-primary hover:bg-primary-hover text-white text-small font-semibold rounded-lg transition-colors">
+                Trouver
+              </button>
+            </form>
+
+            {/* Résultat exemple */}
+            <div className="rounded-xl border border-line bg-surface overflow-hidden shadow-1">
+              <div className="px-s-5 py-s-3 border-b border-line bg-bg flex items-center justify-between">
+                <span className="text-small font-semibold text-ink">Doliprane 1000 mg — 3 pharmacies trouvées</span>
+                <span className="text-micro text-ink-3">Exemple de résultat</span>
+              </div>
+              {[
+                { name: 'Pharmacie Mermoz', zone: 'Mermoz, Dakar', dist: '8 min', open: true },
+                { name: 'Pharmacie Almadies', zone: 'Almadies, Dakar', dist: '14 min', open: true },
+                { name: 'Pharmacie Plateau', zone: 'Plateau, Dakar', dist: '22 min', open: false },
+              ].map(p => (
+                <div key={p.name} className="flex items-center justify-between px-s-5 py-s-4 border-b border-line last:border-0 gap-s-3">
+                  <div>
+                    <p className="text-body font-semibold text-ink">{p.name}</p>
+                    <p className="text-micro text-ink-3">{p.zone} · {p.dist}</p>
+                  </div>
+                  <div className="flex items-center gap-s-2 shrink-0">
+                    <span className={cn('text-micro font-semibold px-s-2 py-1 rounded-pill', p.open ? 'bg-primary-soft text-primary' : 'bg-surface-2 text-ink-3')}>
+                      {p.open ? '● Ouvert' : '○ Fermé'}
+                    </span>
+                    <button onClick={() => setShowModal(true)}
+                      className="px-s-3 py-s-2 text-micro font-semibold text-accent border border-accent/30 rounded-lg hover:bg-accent-soft transition-colors">
+                      Voir le prix
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-s-3 text-center text-micro text-ink-3">
+              Recherche gratuite · Prix disponible après connexion · Réservation depuis votre compte
+            </p>
+          </div>
+        </Reveal>
+      </div>
+
+      {/* Modale prix */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-s-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-surface p-s-6 shadow-2 text-center" onClick={e => e.stopPropagation()}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft mx-auto mb-s-4">
+              <Pill className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-display text-h2 font-bold text-ink mb-s-2">Le prix est dans votre espace</h3>
+            <p className="text-small text-ink-2 mb-s-5 leading-relaxed">
+              Créez gratuitement votre compte Séne Wérr pour voir le prix et réserver votre médicament.
+            </p>
+            <div className="flex flex-col gap-s-2">
+              <Link to="/auth/inscription" onClick={() => setShowModal(false)}
+                className="w-full py-s-3 bg-primary hover:bg-primary-hover text-white text-small font-semibold rounded-lg transition-colors">
+                Créer mon compte gratuitement
+              </Link>
+              <Link to="/auth/connexion" onClick={() => setShowModal(false)}
+                className="w-full py-s-3 border border-line text-small font-semibold text-ink-2 rounded-lg hover:bg-surface-2 transition-colors">
+                Se connecter
+              </Link>
+            </div>
+            <p className="mt-s-4 text-micro text-ink-3">Aucun abonnement patient.</p>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+// ─── Dashboard Preview ──────────────────────────────────────────────────────
+
+function DashboardPreview() {
+  return (
+    <section className="bg-surface py-s-8 lg:py-24 overflow-hidden">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-12">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Votre espace</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Votre santé, toujours avec vous.</h2>
+            <p className="mt-s-3 text-body text-ink-2 max-w-lg mx-auto">
+              Tout ce dont vous avez besoin, accessible depuis votre espace personnel.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={100}>
+          <div className="mx-auto max-w-3xl rounded-2xl border border-line bg-bg shadow-2 overflow-hidden">
+            {/* Top bar */}
+            <div className="bg-[#153F54] px-s-5 py-s-4 flex items-center justify-between">
+              <div className="flex items-center gap-s-3">
+                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-small font-semibold text-white">Bonjour, Aminata 👋</p>
+                  <p className="text-micro text-white/50">Patient · Dakar</p>
+                </div>
+              </div>
+              <Bell className="h-5 w-5 text-white/40" />
+            </div>
+            {/* Cards grid */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-s-3 p-s-4">
+              {[
+                { label: 'Prochain RDV', value: 'Dr. Ndiaye', sub: '18 sept. — 15h00', badge: 'Confirmé', badgeColor: 'bg-primary-soft text-primary', icon: Calendar, iconColor: 'text-accent bg-accent-soft' },
+                { label: 'Ma réservation', value: 'Pharmacie Mermoz', sub: 'Doliprane 1000 mg', badge: 'En préparation', badgeColor: 'bg-amber-50 text-amber-700', icon: ShoppingBag, iconColor: 'text-primary bg-primary-soft' },
+                { label: 'Mon ordonnance', value: 'ORD-458721', sub: 'Dr. Ndiaye · 15 sept.', badge: 'Active', badgeColor: 'bg-accent-soft text-accent', icon: FileText, iconColor: 'text-accent bg-accent-soft' },
+                { label: 'Ma mutuelle', value: 'IPMCAS', sub: 'Couverture famille', badge: 'Valide', badgeColor: 'bg-primary-soft text-primary', icon: Shield, iconColor: 'text-navy bg-navy-soft' },
+                { label: 'Mon paiement', value: '4 000 FCFA', sub: 'Réservation pharmacie', badge: 'Réglé', badgeColor: 'bg-primary-soft text-primary', icon: CreditCard, iconColor: 'text-primary bg-primary-soft' },
+                { label: 'Mon historique', value: '12 consultations', sub: 'Depuis janvier 2026', badge: 'À jour', badgeColor: 'bg-surface-2 text-ink-3', icon: Clock, iconColor: 'text-ink-3 bg-surface-2' },
+              ].map(c => (
+                <div key={c.label} className="rounded-xl border border-line bg-surface p-s-4">
+                  <div className="flex items-start justify-between mb-s-3">
+                    <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', c.iconColor)}>
+                      <c.icon className="h-4 w-4" />
+                    </span>
+                    <span className={cn('text-micro font-semibold px-s-2 py-0.5 rounded-pill', c.badgeColor)}>
+                      {c.badge}
+                    </span>
+                  </div>
+                  <p className="text-micro text-ink-3 mb-s-1">{c.label}</p>
+                  <p className="text-small font-bold text-ink leading-tight">{c.value}</p>
+                  <p className="text-micro text-ink-3 mt-s-1">{c.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={200}>
+          <div className="mt-s-7 text-center">
+            <Link to="/auth/inscription"
+              className="inline-flex items-center gap-s-2 px-s-6 py-s-3 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg transition-colors">
+              Créer mon espace <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ─── Sécurité ───────────────────────────────────────────────────────────────
+
+function SecuritySection() {
+  const items = [
+    'Accès contrôlé selon votre rôle',
+    'Documents médicaux privés et protégés',
+    'Historique complet des actions',
+    'Chaque acteur voit uniquement ses données',
+    'Gestion fine des permissions',
+  ]
+  return (
+    <section id="securite" className="bg-bg py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+          <Reveal>
+            <div className="rounded-2xl border border-line bg-surface p-s-6 shadow-2">
+              <div className="flex items-center gap-s-3 mb-s-5">
+                <div className="h-10 w-10 rounded-xl bg-primary-soft flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-small font-bold text-ink">Protection des données</p>
+                  <p className="text-micro text-ink-3">Conforme aux standards</p>
+                </div>
+              </div>
+              <div className="space-y-s-3">
+                {items.map(it => (
+                  <div key={it} className="flex items-center gap-s-3 rounded-lg bg-bg border border-line px-s-4 py-s-3">
+                    <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-small text-ink">{it}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+          <Reveal delay={150}>
+            <div className="mt-s-8 lg:mt-0">
+              <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Sécurité & confidentialité</p>
+              <h2 className="font-display text-h1 font-bold text-ink mb-s-4">
+                Vos informations méritent une protection particulière.
+              </h2>
+              <p className="text-body text-ink-2 leading-relaxed">
+                Séne Wérr est conçu avec des accès contrôlés selon le rôle de chaque utilisateur.
+                Chaque acteur ne voit que les informations nécessaires à son activité.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Pourquoi Séne Wérr ─────────────────────────────────────────────────────
+
+function WhySection() {
+  const cards = [
+    { icon: Zap,   color: 'text-primary bg-primary-soft', title: 'Simple',     desc: "Une seule application au lieu de plusieurs services dispersés." },
+    { icon: Link2, color: 'text-accent bg-accent-soft',   title: 'Connecté',   desc: "Les bons acteurs travaillent autour du même parcours patient." },
+    { icon: MapPin,color: 'text-navy bg-navy-soft',       title: 'Local',      desc: "Pensé pour les réalités du système de santé sénégalais." },
+    { icon: Layers,color: 'text-cyan bg-accent-soft',     title: 'Centralisé', desc: "Rendez-vous, ordonnances, pharmacies, mutuelle réunis au même endroit." },
+  ]
+  return (
+    <section className="bg-surface py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-12">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Nos engagements</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Pourquoi choisir Séne Wérr ?</h2>
+          </div>
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-s-4">
+          {cards.map((c, i) => (
+            <Reveal key={c.title} delay={i * 70}>
+              <div className="h-full rounded-xl border border-line bg-bg p-s-6 text-center hover:shadow-2 transition-shadow">
+                <span className={cn('inline-flex h-12 w-12 items-center justify-center rounded-2xl mb-s-4', c.color)}>
+                  <c.icon className="h-6 w-6" />
+                </span>
+                <h3 className="font-display text-h3 font-bold text-ink mb-s-2">{c.title}</h3>
+                <p className="text-small text-ink-2 leading-relaxed">{c.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Témoignages ────────────────────────────────────────────────────────────
+
+function TestimonialsSection() {
+  const testimonials = [
+    {
+      initials: 'AF', bg: 'bg-primary-soft', color: 'text-primary',
+      name: 'Aminata Fall', role: 'Patiente, Dakar', stars: 5,
+      text: "Grâce à Séne Wérr, j'ai trouvé un cardiologue disponible le lendemain et pris rendez-vous en deux minutes. Mon ordonnance était directement dans mon espace après la consultation. Je n'ai plus besoin de courir partout.",
+    },
+    {
+      initials: 'MN', bg: 'bg-accent-soft', color: 'text-accent',
+      name: 'Dr. Moussa Ndiaye', role: 'Médecin généraliste, Thiès', stars: 5,
+      text: "Gérer mon agenda sur trois sites différents était un cauchemar. Depuis que j'utilise Séne Wérr, je vois tous mes rendez-vous en un seul endroit et je peux générer les ordonnances directement depuis la consultation. Un gain de temps énorme.",
+    },
+    {
+      initials: 'SO', bg: 'bg-navy-soft', color: 'text-navy',
+      name: 'Seydou Ouédraogo', role: 'Patient, Saint-Louis', stars: 4,
+      text: "J'avais du mal à trouver la Metformine dans ma ville. Avec Séne Wérr, j'ai localisé la pharmacie qui l'avait en stock en quelques secondes et j'ai réservé sans même me déplacer inutilement.",
+    },
+    {
+      initials: 'RD', bg: 'bg-primary-soft', color: 'text-primary',
+      name: 'Rokhaya Diallo', role: 'Pharmacienne, Almadies', stars: 5,
+      text: "Notre pharmacie reçoit maintenant des réservations en ligne et nos clients arrivent en sachant que leur médicament est prêt. La gestion des ordonnances numériques a simplifié tout notre flux de travail quotidien.",
+    },
+    {
+      initials: 'IB', bg: 'bg-accent-soft', color: 'text-accent',
+      name: 'Ibrahima Ba', role: 'Patient, Ziguinchor', stars: 5,
+      text: "Ma mutuelle est maintenant liée à mon compte Séne Wérr. Je vois en temps réel ce qui est pris en charge et ce que je dois payer. Fini les mauvaises surprises à la caisse de la clinique.",
+    },
+    {
+      initials: 'FT', bg: 'bg-navy-soft', color: 'text-navy',
+      name: 'Dr. Fatou Touré', role: 'Pédiatre, Hôpital de Fann', stars: 5,
+      text: "La plateforme est vraiment pensée pour le contexte sénégalais. Je peux suivre mes patients entre plusieurs consultations, voir leur historique complet et collaborer facilement avec les pharmacies du quartier.",
+    },
+  ]
+  return (
+    <section className="bg-bg py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8 lg:mb-12">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">Témoignages</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Ce qu'ils en disent.</h2>
+            <p className="mt-s-3 text-body text-ink-2 max-w-xl mx-auto">
+              Patients, médecins et pharmaciens partagent leur expérience avec Séne Wérr.
+            </p>
+          </div>
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-s-4">
+          {testimonials.map((t, i) => (
+            <Reveal key={t.name} delay={i * 70}>
+              <div className="h-full flex flex-col rounded-xl border border-line bg-surface p-s-5 hover:shadow-2 transition-shadow">
+                <div className="flex items-center gap-s-3 mb-s-4">
+                  <span className={cn('flex h-10 w-10 items-center justify-center rounded-full font-bold text-small flex-shrink-0', t.bg, t.color)}>
+                    {t.initials}
+                  </span>
+                  <div>
+                    <p className="text-body font-semibold text-ink leading-tight">{t.name}</p>
+                    <p className="text-micro text-ink-3">{t.role}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-s-1 mb-s-3">
+                  {Array.from({ length: 5 }).map((_, s) => (
+                    <Star key={s} className={cn('h-3.5 w-3.5', s < t.stars ? 'fill-primary text-primary' : 'fill-surface-2 text-line')} />
+                  ))}
+                </div>
+                <p className="text-small text-ink-2 leading-relaxed flex-1">{t.text}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── FAQ ────────────────────────────────────────────────────────────────────
+
+const FAQS = [
+  { q: "L'inscription patient est-elle gratuite ?",          r: "Oui, la création d'un compte patient est entièrement gratuite, sans carte bancaire." },
+  { q: "Puis-je rechercher un médicament sans compte ?",     r: "Oui, la recherche est accessible sans inscription. Seuls le prix et la réservation nécessitent un compte." },
+  { q: "Pourquoi le prix est-il masqué sans compte ?",       r: "Le prix est affiché après connexion ou création de compte gratuite. Cela vous permet de réserver directement." },
+  { q: "Puis-je prendre rendez-vous en ligne ?",             r: "Oui, depuis votre espace patient une fois votre compte créé." },
+  { q: "Les professionnels peuvent-ils exercer en plusieurs endroits ?", r: "Oui, leur agenda gère plusieurs lieux d'exercice simultanément depuis un seul espace." },
+  { q: "Comment fonctionne la réservation en pharmacie ?",   r: "Vous trouvez votre médicament, réservez depuis votre compte, et le retirez en pharmacie avec un code de retrait." },
+  { q: "Les pharmacies et mutuelles ont-elles leur propre espace ?", r: "Oui, chaque acteur professionnel dispose d'un espace adapté à son activité et ses outils spécifiques." },
+  { q: "Comment les ordonnances sont-elles transmises ?",    r: "Après la consultation, le patient retrouve son ordonnance dans son espace et peut l'utiliser pour sa réservation en pharmacie." },
+]
+
+function FAQSection() {
+  const [open, setOpen] = useState<number | null>(null)
+  return (
+    <section id="faq" className="bg-bg py-s-8 lg:py-24">
+      <div className="mx-auto max-w-2xl px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-8">
+            <p className="text-small font-semibold text-primary uppercase tracking-widest mb-s-2">FAQ</p>
+            <h2 className="font-display text-h1 font-bold text-ink">Questions fréquentes</h2>
+          </div>
+        </Reveal>
+        <div className="space-y-s-2">
+          {FAQS.map((f, i) => (
+            <Reveal key={i} delay={i * 30}>
+              <div className="rounded-xl border border-line bg-surface overflow-hidden">
+                <button
+                  onClick={() => setOpen(open === i ? null : i)}
+                  className="flex w-full items-center justify-between px-s-5 py-s-4 text-left gap-s-4"
+                  aria-expanded={open === i}
+                >
+                  <span className="text-body font-semibold text-ink">{f.q}</span>
+                  {open === i
+                    ? <ChevronUp className="h-4 w-4 text-primary shrink-0" />
+                    : <ChevronDown className="h-4 w-4 text-ink-3 shrink-0" />
+                  }
+                </button>
+                {open === i && (
+                  <div className="px-s-5 pb-s-4">
+                    <p className="text-body text-ink-2 leading-relaxed">{f.r}</p>
+                  </div>
+                )}
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── CTA Final ──────────────────────────────────────────────────────────────
+
+function FinalCTA() {
+  return (
+    <section className="bg-[#0B3549] py-s-8 lg:py-24 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none" aria-hidden>
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-accent/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
+      </div>
+      <div className="relative mx-auto max-w-container px-s-5 text-center">
+        <Reveal>
+          <p className="text-small font-semibold text-white/50 uppercase tracking-widest mb-s-3">Rejoignez Séne Wérr</p>
+          <h2 className="font-display text-display font-bold text-white mb-s-4 max-w-3xl mx-auto leading-tight">
+            Votre santé mérite<br /> un espace unique.
+          </h2>
+          <p className="text-body text-white/60 mb-s-2 max-w-xl mx-auto leading-relaxed">
+            Recherchez, prenez rendez-vous, retrouvez vos ordonnances et suivez votre parcours depuis Séne Wérr.
+          </p>
+          <p className="font-display text-h3 font-semibold text-white/80 mb-s-8">
+            Une seule plateforme. Un seul espace. Tout votre parcours de santé.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-s-3 justify-center">
+            <Link to="/auth/inscription"
+              className="px-s-7 py-s-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg text-body">
+              Commencer gratuitement
+            </Link>
+            <Link to="/recherche-publique?type=medicament"
+              className="px-s-7 py-s-4 border border-white/30 text-white hover:bg-white/10 font-semibold rounded-xl transition-colors text-body">
+              Trouver un médicament
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ─── Rejoindre acteurs ──────────────────────────────────────────────────────
+
+function JoinSection() {
+  const actors = [
+    { icon: Stethoscope, color: 'text-accent', bg: 'bg-accent-soft', label: 'Professionnel de santé',         cta: 'Créer mon espace',          role: 'professional' },
+    { icon: Building2,   color: 'text-primary', bg: 'bg-primary-soft', label: 'Cabinet / Clinique / Hôpital', cta: 'Inscrire mon établissement', role: 'establishment' },
+    { icon: Pill,        color: 'text-cyan',    bg: 'bg-accent-soft',  label: 'Pharmacie',                    cta: 'Inscrire ma pharmacie',     role: 'pharmacy' },
+    { icon: Shield,      color: 'text-navy',    bg: 'bg-navy-soft',    label: 'Mutuelle',                     cta: 'Inscrire ma mutuelle',      role: 'insurance' },
+  ]
+  return (
+    <section className="bg-surface py-s-8 lg:py-16 border-t border-line">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center mb-s-7">
+            <h2 className="font-display text-h1 font-bold text-ink">Vous êtes un acteur de santé ?</h2>
+            <p className="mt-s-2 text-body text-ink-2">Rejoignez l'écosystème Séne Wérr.</p>
+          </div>
+        </Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-s-4">
+          {actors.map((a, i) => (
+            <Reveal key={a.label} delay={i * 60}>
+              <div className="h-full flex flex-col items-center text-center rounded-xl border border-line bg-bg p-s-5 hover:shadow-2 transition-shadow">
+                <span className={cn('flex h-12 w-12 items-center justify-center rounded-xl mb-s-3', a.bg)}>
+                  <a.icon className={cn('h-6 w-6', a.color)} />
+                </span>
+                <p className="text-body font-semibold text-ink mb-s-4 flex-1">{a.label}</p>
+                <Link to={`/auth/inscription?role=${a.role}`}
+                  className="w-full py-s-2 px-s-4 text-small font-semibold text-primary border border-primary/30 hover:bg-primary hover:text-white rounded-lg transition-all duration-200">
+                  {a.cta}
+                </Link>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── 100% Gratuit pour les patients ─────────────────────────────────────────
+
+function PatientFreeSection() {
+  const perks = [
+    'Accès illimité',
+    'Aucune carte bancaire requise',
+    'Aucun abonnement',
+  ]
+  return (
+    <section id="gratuit-patients" className="bg-primary-soft py-s-8 lg:py-24">
+      <div className="mx-auto max-w-container px-s-5">
+        <Reveal>
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="inline-flex items-center gap-s-2 rounded-pill bg-surface border border-primary/20 px-s-4 py-s-2 text-small text-primary font-semibold mb-s-5">
+              ✅ Zéro frais, zéro abonnement
+            </span>
+            <h2 className="font-display text-h1 font-bold text-ink mb-s-4 leading-tight">
+              La plateforme est 100% gratuite pour les patients.
+            </h2>
+            <p className="text-body text-ink-2 leading-relaxed mb-s-8">
+              Trouvez un professionnel, prenez rendez-vous, gérez vos ordonnances et localisez vos médicaments — sans jamais payer un centime.
+            </p>
+          </div>
+        </Reveal>
+        <div className="flex flex-col sm:flex-row gap-s-4 justify-center mb-s-8">
+          {perks.map((p, i) => (
+            <Reveal key={p} delay={i * 80}>
+              <div className="flex items-center gap-s-3 rounded-xl border border-primary/20 bg-surface px-s-5 py-s-4 shadow-1">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft shrink-0">
+                  <CheckCircle className="h-4 w-4 text-primary" />
+                </span>
+                <span className="text-body font-semibold text-ink">{p}</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal delay={200}>
+          <div className="text-center">
+            <Link to="/auth/inscription"
+              className="inline-flex items-center gap-s-2 px-s-7 py-s-4 bg-primary hover:bg-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg text-body">
+              Créer mon compte gratuit <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ─── LandingPage ────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   return (
@@ -1258,16 +1303,26 @@ export default function LandingPage() {
       <NavBar />
       <main>
         <HeroSection />
-        <PainPointsSection />
+        <EcosystemBar />
+        <TrustedBySection />
+        <ProblemSection />
         <SolutionSection />
-        <HowItWorksSection />
-        <ActorTabsSection />
-        <ProofsSection />
-        <PricingPreviewSection />
+        <PatientSection />
+        <ActorsSection />
+        <ProfessionalSection />
+        <MedicineSection />
+        <DashboardPreview />
+        <SecuritySection />
+        <WhySection />
+        <TestimonialsSection />
         <FAQSection />
-        <CTAFinalSection />
+        <FinalCTA />
+        <JoinSection />
+        <PatientFreeSection />
       </main>
-      <Footer />
+      <PublicFooter />
+      <ScrollToTop />
     </>
   )
 }
+

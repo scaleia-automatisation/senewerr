@@ -6,6 +6,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
 import App from './app/App'
 import { AuthProvider } from './features/auth/AuthContext'
+import { ThemeProvider } from './lib/theme'
 import './lib/i18n'
 import './index.css'
 
@@ -27,6 +28,7 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
+    <ThemeProvider>
     <HelmetProvider>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
@@ -48,5 +50,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       </QueryClientProvider>
     </BrowserRouter>
     </HelmetProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 )

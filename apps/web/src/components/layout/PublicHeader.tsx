@@ -6,10 +6,9 @@ import { IconButton } from '@/components/ui/IconButton'
 import { useTheme } from '@/lib/theme'
 
 const NAV_LINKS = [
-  { href: '/#features', label: 'Fonctionnalités' },
-  { href: '/#comment',  label: 'Comment ça marche' },
-  { href: '/#tarifs',   label: 'Tarifs' },
-  { href: '/blog',      label: 'Blog' },
+  { href: '/#comment',       label: 'Comment ça marche' },
+  { href: '/#gratuit-patients', label: 'Tarifs' },
+  { href: '/contact',        label: 'Contact' },
 ]
 
 export function PublicHeader() {
@@ -49,7 +48,7 @@ export function PublicHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link to="/auth/connexion">Se connecter</Link>
           </Button>
-          <Button size="sm" asChild>
+          <Button size="sm" className="text-white" asChild>
             <Link to="/auth/inscription">Commencer</Link>
           </Button>
         </div>
@@ -78,10 +77,19 @@ export function PublicHeader() {
             ))}
           </nav>
           <div className="mt-s-4 flex flex-col gap-s-2 border-t border-line pt-s-4">
+            <button
+              onClick={toggle}
+              className="flex w-full items-center gap-s-3 rounded-md px-s-3 py-s-3 text-small font-medium text-ink-2 hover:bg-surface-2"
+            >
+              <Sun className="h-4 w-4 dark:hidden" />
+              <Moon className="hidden h-4 w-4 dark:block" />
+              <span className="dark:hidden">Passer en mode sombre</span>
+              <span className="hidden dark:block">Passer en mode clair</span>
+            </button>
             <Button variant="secondary" asChild fullWidth>
               <Link to="/auth/connexion" onClick={() => setOpen(false)}>Se connecter</Link>
             </Button>
-            <Button asChild fullWidth>
+            <Button asChild fullWidth className="text-white">
               <Link to="/auth/inscription" onClick={() => setOpen(false)}>Commencer</Link>
             </Button>
           </div>

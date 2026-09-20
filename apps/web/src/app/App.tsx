@@ -1,5 +1,5 @@
-import { Suspense, lazy } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Suspense, lazy, useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/features/auth/useAuth'
 import { RequireAuth, RequireRole, Require2FA } from '@/features/auth/guards'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
@@ -14,6 +14,12 @@ const PharmacyRoutes      = lazy(() => import('./pharmacy/PharmacyRoutes'))
 const MutualRoutes        = lazy(() => import('./mutual/MutualRoutes'))
 const AdminRoutes         = lazy(() => import('./admin/AdminRoutes'))
 const SuperAdminRoutes    = lazy(() => import('./super-admin/SuperAdminRoutes'))
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
 
 function LoadingFallback() {
   return (
@@ -30,6 +36,7 @@ export default function App() {
 
   return (
     <>
+      <ScrollToTop />
       <OfflineBanner />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>

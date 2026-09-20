@@ -1,12 +1,16 @@
-import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { PageSpinner }  from '@/components/ui/Spinner'
+import { useAuthContext } from '@/features/auth/AuthContext'
 
 const LandingPage           = lazy(() => import('@/features/landing/LandingPage'))
-const BlogIndexPage         = lazy(() => import('@/features/blog/BlogIndexPage'))
-const BlogArticlePage       = lazy(() => import('@/features/blog/BlogArticlePage'))
 const LoginPage             = lazy(() => import('@/features/auth/LoginPage'))
+const ProLandingPage            = lazy(() => import('@/features/landing/ActorLandingPages').then(m => ({ default: m.ProLandingPage })))
+const EstablishmentLandingPage  = lazy(() => import('@/features/landing/ActorLandingPages').then(m => ({ default: m.EstablishmentLandingPage })))
+const PharmacyLandingPage       = lazy(() => import('@/features/landing/ActorLandingPages').then(m => ({ default: m.PharmacyLandingPage })))
+const InsuranceLandingPage      = lazy(() => import('@/features/landing/ActorLandingPages').then(m => ({ default: m.InsuranceLandingPage })))
+const SuppressionDonnees        = lazy(() => import('@/features/legal/SuppressionDonnees'))
 const RegisterPage          = lazy(() => import('@/features/auth/RegisterPage'))
 const ForgotPasswordPage    = lazy(() => import('@/features/auth/ForgotPasswordPage'))
 const ResetPasswordPage     = lazy(() => import('@/features/auth/ResetPasswordPage'))
@@ -14,6 +18,7 @@ const EmailVerificationPage = lazy(() => import('@/features/auth/EmailVerificati
 const TwoFactorPage         = lazy(() => import('@/features/auth/TwoFactorPage'))
 const InvitationPage           = lazy(() => import('@/features/auth/InvitationPage'))
 const VerifyPrescriptionPage      = lazy(() => import('@/features/public/VerifyPrescriptionPage'))
+const OAuthRoleSelectPage         = lazy(() => import('@/features/auth/OAuthRoleSelectPage'))
 const PricingPage                 = lazy(() => import('@/features/landing/PricingPage'))
 const ProfessionalPublicPage      = lazy(() => import('@/features/public/ProfessionalPublicPage'))
 const PharmacyPublicPage          = lazy(() => import('@/features/public/PharmacyPublicPage'))
@@ -29,7 +34,40 @@ const Remboursements           = lazy(() => import('@/features/legal/Rembourseme
 const ContactPage              = lazy(() => import('@/features/legal/Contact'))
 const Securite                 = lazy(() => import('@/features/legal/Securite'))
 
+const ROLE_DESTINATIONS: Record<string, string> = {
+  patient:              '/patient',
+  professional:         '/pro',
+  establishment_admin:  '/etablissement',
+  establishment_staff:  '/etablissement',
+  pharmacy_admin:       '/pharmacie',
+  pharmacy_staff:       '/pharmacie',
+  mutual_admin:         '/mutuelle',
+  mutual_staff:         '/mutuelle',
+  platform_admin:       '/admin',
+  super_admin:          '/admin',
+}
+
 function AuthCallbackPage() {
+  const { session, profile, loading } = useAuthContext()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (loading) return
+    if (!session) {
+      navigate('/auth/connexion', { replace: true })
+      return
+    }
+    // New Google OAuth users must choose their profile before continuing
+    const isOAuth = session.user.app_metadata?.provider === 'google'
+    const onboardingDone = !!(profile as any)?.onboarding_completed_at
+    if (isOAuth && !onboardingDone) {
+      navigate('/auth/choisir-profil', { replace: true })
+      return
+    }
+    const dest = (profile?.role && ROLE_DESTINATIONS[profile.role]) ?? '/'
+    navigate(dest, { replace: true })
+  }, [loading, session, profile, navigate])
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <PageSpinner />
@@ -52,12 +90,17 @@ export default function PublicRoutes() {
   return (
     <Suspense fallback={<PageSpinner />}>
       <Routes>
-        {/* Landing + blog + legal — avec Header/Footer */}
+        {/* Landing — layout intégré (NavBar + Footer propres) */}
+        <Route index element={<LandingPage />} />
+
+        {/* Tarifs + acteurs + profils publics + légal — avec Header/Footer commun */}
         <Route element={<PublicLayout />}>
-          <Route index element={<LandingPage />} />
           <Route path="tarifs" element={<PricingPage />} />
-          <Route path="blog" element={<BlogIndexPage />} />
-          <Route path="blog/:slug" element={<BlogArticlePage />} />
+          {/* Actor landing pages */}
+          <Route path="acteurs/medecins"       element={<ProLandingPage />} />
+          <Route path="acteurs/etablissements" element={<EstablishmentLandingPage />} />
+          <Route path="acteurs/pharmacies"     element={<PharmacyLandingPage />} />
+          <Route path="acteurs/mutuelles"      element={<InsuranceLandingPage />} />
           {/* Public profiles */}
           <Route path="pro/:slug" element={<ProfessionalPublicPage />} />
           <Route path="pharmacie/:slug" element={<PharmacyPublicPage />} />
@@ -69,8 +112,9 @@ export default function PublicRoutes() {
           <Route path="cgv"              element={<CGV />} />
           <Route path="cookies"          element={<Cookies />} />
           <Route path="remboursements"   element={<Remboursements />} />
-          <Route path="contact"          element={<ContactPage />} />
-          <Route path="securite"         element={<Securite />} />
+          <Route path="contact"              element={<ContactPage />} />
+          <Route path="securite"             element={<Securite />} />
+          <Route path="suppression-donnees"  element={<SuppressionDonnees />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
@@ -81,6 +125,7 @@ export default function PublicRoutes() {
         <Route path="auth/nouveau-mot-de-passe" element={<ResetPasswordPage />} />
         <Route path="auth/verification-email"   element={<EmailVerificationPage />} />
         <Route path="auth/callback"             element={<AuthCallbackPage />} />
+        <Route path="auth/choisir-profil"       element={<OAuthRoleSelectPage />} />
         <Route path="auth/2fa"                  element={<TwoFactorPage />} />
 
         {/* Invitations (accessible sans être connecté pour permettre l'inscription) */}

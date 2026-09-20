@@ -1,8 +1,10 @@
 ﻿import { Link, useLocation } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { LogOut, Sun, Moon, Bell, BellOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/Avatar'
 import { supabase } from '@/lib/supabase'
+import { useTheme } from '@/lib/theme'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import type { NavLink } from './nav-types'
 
 interface SidebarBaseProps {
@@ -18,6 +20,8 @@ function isActive(pathname: string, href: string) {
 
 export function SidebarBase({ links, userFullName, userRole, userAvatar }: SidebarBaseProps) {
   const { pathname } = useLocation()
+  const { toggle } = useTheme()
+  const { isSupported, subscribed, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications()
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -73,6 +77,25 @@ export function SidebarBase({ links, userFullName, userRole, userAvatar }: Sideb
             <p className="truncate text-micro text-ink-3">{userRole}</p>
           </div>
         </div>
+        <button
+          onClick={toggle}
+          className="flex w-full items-center gap-s-2 rounded-md px-s-3 py-s-2 text-small text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
+        >
+          <Sun className="h-4 w-4 dark:hidden" />
+          <Moon className="hidden h-4 w-4 dark:block" />
+          <span className="dark:hidden">Mode sombre</span>
+          <span className="hidden dark:block">Mode clair</span>
+        </button>
+        {isSupported && (
+          <button
+            onClick={subscribed ? unsubscribe : subscribe}
+            disabled={pushLoading}
+            className="flex w-full items-center gap-s-2 rounded-md px-s-3 py-s-2 text-small text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink disabled:opacity-50"
+          >
+            {subscribed ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+            <span>{subscribed ? 'Désactiver les notifications' : 'Activer les notifications'}</span>
+          </button>
+        )}
         <button
           onClick={handleSignOut}
           className="flex w-full items-center gap-s-2 rounded-md px-s-3 py-s-2 text-small text-ink-2 transition-colors hover:bg-surface-2 hover:text-status-danger"
