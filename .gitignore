@@ -1,6 +1,5 @@
 # Environnement (JAMAIS committer)
 .env
-!.env
 .env.local
 .env.*.local
 *.env
