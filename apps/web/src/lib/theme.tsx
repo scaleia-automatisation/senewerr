@@ -1,48 +1,60 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 
-export type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'system'
 
 const STORAGE_KEY = 'medikool-theme'
 
-function getInitial(): Theme {
+function apply(theme: Theme) {
+  const root = document.documentElement
+  root.classList.remove('light', 'dark')
+  if (theme === 'light' || theme === 'dark') {
+    root.classList.add(theme)
+  }
+}
+
+function read(): Theme {
   try {
     const v = localStorage.getItem(STORAGE_KEY)
     if (v === 'light' || v === 'dark') return v
-  } catch { /* ignore */ }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  } catch {
+    /* localStorage indisponible */
+  }
+  return 'system'
 }
 
-interface ThemeCtx {
-  theme: Theme
-  toggle: () => void
-  setTheme: (t: Theme) => void
-}
-
-const ThemeContext = createContext<ThemeCtx>({
-  theme: 'light',
-  toggle: () => {},
-  setTheme: () => {},
-})
-
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitial)
-
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const root = document.documentElement
-    root.classList.toggle('dark', theme === 'dark')
-    try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* ignore */ }
-  }, [theme])
-
-  function setTheme(next: Theme) { setThemeState(next) }
-  function toggle() { setThemeState(t => (t === 'dark' ? 'light' : 'dark')) }
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggle, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+    apply(read())
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => { if (read() === 'system') apply('system') }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return <>{children}</>
 }
 
 export function useTheme() {
-  return useContext(ThemeContext)
+  const [theme, setThemeState] = useState<Theme>(read)
+
+  useEffect(() => {
+    apply(theme)
+  }, [theme])
+
+  function setTheme(next: Theme) {
+    setThemeState(next)
+    try {
+      if (next === 'system') localStorage.removeItem(STORAGE_KEY)
+      else localStorage.setItem(STORAGE_KEY, next)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function toggle() {
+    const isDark = document.documentElement.classList.contains('dark')
+      || (read() === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    setTheme(isDark ? 'light' : 'dark')
+  }
+
+  return { theme, setTheme, toggle }
 }

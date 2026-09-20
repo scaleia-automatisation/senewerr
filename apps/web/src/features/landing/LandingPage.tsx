@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PublicFooter } from '@/components/layout/PublicFooter'
+import { supabase } from '@/lib/supabase'
 import {
   Search, Menu, X, ArrowRight, ChevronDown, ChevronUp,
   Stethoscope, Building2, Pill, Shield, User, Clock,
@@ -1297,7 +1298,35 @@ function PatientFreeSection() {
 
 // ─── LandingPage ────────────────────────────────────────────────────────────
 
+const ROLE_DESTINATIONS: Record<string, string> = {
+  patient:              '/patient',
+  professional:         '/pro',
+  establishment_admin:  '/etablissement',
+  establishment_staff:  '/etablissement',
+  pharmacy_admin:       '/pharmacie',
+  pharmacy_staff:       '/pharmacie',
+  mutual_admin:         '/mutuelle',
+  mutual_staff:         '/mutuelle',
+  platform_admin:       '/admin',
+  super_admin:          '/admin',
+}
+
 export default function LandingPage() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .maybeSingle()
+      const dest = (profile?.role && ROLE_DESTINATIONS[profile.role]) ?? null
+      if (dest) navigate(dest, { replace: true })
+    })
+  }, [navigate])
+
   return (
     <>
       <NavBar />

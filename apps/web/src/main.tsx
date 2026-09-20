@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
 import App from './app/App'
 import { AuthProvider } from './features/auth/AuthContext'
-import { ThemeProvider } from './lib/theme'
+import { ThemeProvider } from './lib/theme.tsx'
 import './lib/i18n'
 import './index.css'
 

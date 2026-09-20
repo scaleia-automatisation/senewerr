@@ -12,6 +12,19 @@ import { Banner }    from '@/components/ui/Banner'
 import { toast }     from 'sonner'
 import { supabase }  from '@/lib/supabase'
 
+const ROLE_DESTINATIONS: Record<string, string> = {
+  patient:              '/patient',
+  professional:         '/pro',
+  establishment_admin:  '/etablissement',
+  establishment_staff:  '/etablissement',
+  pharmacy_admin:       '/pharmacie',
+  pharmacy_staff:       '/pharmacie',
+  mutual_admin:         '/mutuelle',
+  mutual_staff:         '/mutuelle',
+  platform_admin:       '/admin',
+  super_admin:          '/admin',
+}
+
 // ──────────────────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────────────────
@@ -91,7 +104,25 @@ export default function LoginPage() {
       return
     }
 
-    navigate(from, { replace: true })
+    // Si from est une vraie page (pas la racine), on l'utilise directement
+    if (from && from !== '/') {
+      navigate(from, { replace: true })
+      return
+    }
+
+    // Sinon on dispatche selon le rôle
+    const { data: { session } } = await supabase.auth.getSession()
+    const userId = session?.user?.id
+    if (!userId) { navigate('/', { replace: true }); return }
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    const dest = (profileData?.role && ROLE_DESTINATIONS[profileData.role]) ?? '/'
+    navigate(dest, { replace: true })
   }
 
   const sendMagicLink = async () => {
