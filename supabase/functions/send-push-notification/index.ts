@@ -102,7 +102,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { user_id, title, body = '', url = '/', icon = '/icons/icon-192.png' } = await req.json()
+    const { user_id, title, body = '', url = '/', icon = '/icons/icon-192.png', notification_type } = await req.json()
 
     if (!user_id || !title) {
       return new Response(JSON.stringify({ error: 'user_id and title are required' }), {
@@ -115,6 +115,21 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
+
+    // Vérifier les préférences de l'utilisateur si notification_type est fourni
+    if (notification_type) {
+      const { data: prefRow } = await supabase
+        .from('notification_preferences')
+        .select('preferences')
+        .eq('user_id', user_id)
+        .maybeSingle()
+      const prefs = (prefRow as any)?.preferences ?? {}
+      if (prefs[notification_type] === false) {
+        return new Response(JSON.stringify({ sent: 0, skipped: 'user_preference' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
 
     const { data: subs } = await supabase
       .from('push_subscriptions')

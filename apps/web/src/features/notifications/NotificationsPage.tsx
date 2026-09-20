@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, Trash2, CheckCheck } from 'lucide-react'
+import { Bell, Trash2, CheckCheck, Settings2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { NotificationPreferencesPanel } from './NotificationPreferencesPanel'
 
 interface Notification {
   id: string
@@ -30,12 +31,14 @@ function timeAgo(dateStr: string) {
 }
 
 type Filter = 'all' | 'unread'
+type Tab = 'notifications' | 'preferences'
 
 export default function NotificationsPage() {
   const { profile } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
+  const [tab, setTab] = useState<Tab>('notifications')
 
   const fetchAll = useCallback(async () => {
     if (!profile?.id) return
@@ -116,51 +119,84 @@ export default function NotificationsPage() {
         <h1 className="flex items-center gap-s-2 text-h2 font-semibold text-ink">
           <Bell className="w-6 h-6" />
           Notifications
-          {unreadCount > 0 && (
+          {unreadCount > 0 && tab === 'notifications' && (
             <Badge variant="primary">
               {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
             </Badge>
           )}
         </h1>
-        <div className="flex gap-s-2">
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllRead}>
-              <CheckCheck className="w-4 h-4 mr-1" /> Tout marquer lu
-            </Button>
-          )}
-          {notifications.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-status-danger hover:text-status-danger"
-              onClick={deleteAll}
+        {tab === 'notifications' && (
+          <div className="flex gap-s-2">
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllRead}>
+                <CheckCheck className="w-4 h-4 mr-1" /> Tout marquer lu
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-status-danger hover:text-status-danger"
+                onClick={deleteAll}
+              >
+                <Trash2 className="w-4 h-4 mr-1" /> Tout supprimer
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs principaux */}
+      <div className="flex gap-s-4 border-b border-line">
+        <button
+          onClick={() => setTab('notifications')}
+          className={[
+            'pb-s-2 px-1 text-sm font-medium border-b-2 transition-colors flex items-center gap-s-1',
+            tab === 'notifications'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-ink-3 hover:text-ink',
+          ].join(' ')}
+        >
+          <Bell className="w-4 h-4" /> Mes notifications
+        </button>
+        <button
+          onClick={() => setTab('preferences')}
+          className={[
+            'pb-s-2 px-1 text-sm font-medium border-b-2 transition-colors flex items-center gap-s-1',
+            tab === 'preferences'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-ink-3 hover:text-ink',
+          ].join(' ')}
+        >
+          <Settings2 className="w-4 h-4" /> Préférences
+        </button>
+      </div>
+
+      {/* Onglet Préférences */}
+      {tab === 'preferences' && <NotificationPreferencesPanel />}
+
+      {/* Onglet Notifications — sous-filtres */}
+      {tab === 'notifications' && (
+        <div className="flex gap-s-2 border-b border-line">
+          {(['all', 'unread'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={[
+                'pb-s-2 px-1 text-sm font-medium border-b-2 transition-colors',
+                filter === f
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-ink-3 hover:text-ink',
+              ].join(' ')}
             >
-              <Trash2 className="w-4 h-4 mr-1" /> Tout supprimer
-            </Button>
-          )}
+              {f === 'all' ? 'Toutes' : 'Non lues'}
+            </button>
+          ))}
         </div>
-      </div>
+      )}
 
-      {/* Filter tabs */}
-      <div className="flex gap-s-2 border-b border-line">
-        {(['all', 'unread'] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={[
-              'pb-s-2 px-1 text-sm font-medium border-b-2 transition-colors',
-              filter === f
-                ? 'border-primary text-primary'
-                : 'border-transparent text-ink-3 hover:text-ink',
-            ].join(' ')}
-          >
-            {f === 'all' ? 'Toutes' : 'Non lues'}
-          </button>
-        ))}
-      </div>
-
-      {/* List */}
-      {notifications.length === 0 ? (
+      {/* List — visible uniquement dans l'onglet notifications */}
+      {tab === 'notifications' && (notifications.length === 0 ? (
         <div className="flex flex-col items-center gap-s-3 py-16">
           <Bell className="w-12 h-12 text-ink-3" />
           <p className="text-body text-ink-3">
@@ -229,7 +265,7 @@ export default function NotificationsPage() {
             </div>
           ))}
         </div>
-      )}
+      ))}
     </div>
   )
 }
