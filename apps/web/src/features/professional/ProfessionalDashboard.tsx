@@ -21,6 +21,10 @@ import { ConfirmModal } from '@/components/mutuelle/ConfirmModal'
 import { RdvSlot } from '@/components/praticien/RdvSlot'
 import { TimerConsultation } from '@/components/praticien/TimerConsultation'
 import { cn } from '@/lib/utils'
+import {
+  JaugePatients, KpiEnCours, KpiBrouillons,
+  DashboardTendances, ActionsRapides, UsagePlan,
+} from './DashboardWidgets'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -306,6 +310,7 @@ export default function ProfessionalDashboard() {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [absentTarget, setAbsentTarget] = useState<string | null>(null)
   const [timerRunning, setTimerRunning] = useState(false)
+  const [brouillonsCount, setBrouillonsCount] = useState(0)
 
   // ── Load appointments du jour ──────────────────────────────────────────────
   const loadAppts = useCallback(async () => {
@@ -438,6 +443,16 @@ export default function ProfessionalDashboard() {
     setAlertes(items)
   }, [profile?.id])
 
+  // ── Load brouillons ordonnances ────────────────────────────────────────────
+  const loadBrouillons = useCallback(async () => {
+    if (!profile?.id) return
+    const { count } = await db.from('ordonnances')
+      .select('*', { count: 'exact', head: true })
+      .eq('praticien_id', profile.id)
+      .eq('statut', 'brouillon')
+    setBrouillonsCount(count ?? 0)
+  }, [profile?.id])
+
   // ── Load activité récente ──────────────────────────────────────────────────
   const loadActivity = useCallback(async () => {
     if (!profile?.id) return
@@ -501,6 +516,7 @@ export default function ProfessionalDashboard() {
     loadKpis()
     loadAlertes()
     loadActivity()
+    loadBrouillons()
 
     if (!profile?.id) return
 
@@ -581,32 +597,32 @@ export default function ProfessionalDashboard() {
         </div>
       </div>
 
-      {/* ── KPIs du jour (4) ───────────────────────────────────────────────── */}
+      {/* ── KPIs du jour — Jauge + En cours + Brouillons + Revenus ───────── */}
       {kpisLoading ? (
         <div className="grid grid-cols-2 gap-s-3 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-lg" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-s-3 md:grid-cols-4">
-          <KpiCard
-            label="Patients vus"
-            value={String(kpis?.patients_vus ?? 0)}
-            icon={<CheckCircle2 className="h-4 w-4" />}
-            color="primary"
-            sub={<span className="text-ink-3">/{(kpis?.patients_vus ?? 0) + (kpis?.patients_restants ?? 0)} total</span>}
+          {/* Jauge circulaire patients attendus */}
+          <JaugePatients
+            arrives={kpis?.patients_vus ?? 0}
+            total={(kpis?.patients_vus ?? 0) + (kpis?.patients_restants ?? 0)}
           />
-          <KpiCard
-            label="Restants"
-            value={String(kpis?.patients_restants ?? 0)}
-            icon={<Clock className="h-4 w-4" />}
-            color="accent"
+          {/* Consultations en cours */}
+          <KpiEnCours
+            count={fileActive.filter(a => a.status === 'in_consultation').length}
+            onClick={() => {
+              const inCons = fileActive.find(a => a.status === 'in_consultation')
+              if (inCons) navigate(`/pro/consultation/${inCons.id}`)
+            }}
           />
-          <KpiCard
-            label="Durée moy."
-            value={kpis?.duree_moy ? `${kpis.duree_moy} min` : '—'}
-            icon={<Activity className="h-4 w-4" />}
-            color="secondary"
+          {/* Ordonnances brouillon */}
+          <KpiBrouillons
+            count={brouillonsCount}
+            onClick={() => navigate('/pro/ordonnances?statut=brouillon')}
           />
+          {/* Revenus du jour */}
           <KpiCard
             label="Revenus du jour"
             value={formatFCFA(kpis?.revenus_jour ?? 0)}
@@ -773,6 +789,15 @@ export default function ProfessionalDashboard() {
           </Card>
         </div>
       </div>
+
+      {/* ── Actions rapides ────────────────────────────────────────────────── */}
+      <ActionsRapides />
+
+      {/* ── Graphiques tendances ────────────────────────────────────────────── */}
+      <DashboardTendances />
+
+      {/* ── Usage du plan ──────────────────────────────────────────────────── */}
+      <UsagePlan />
 
       {/* ── Confirm absent ─────────────────────────────────────────────────── */}
       <ConfirmModal
