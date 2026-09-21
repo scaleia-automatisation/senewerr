@@ -56,14 +56,16 @@ export const ESTABLISHMENT_NAV: SpaceNav = {
 export const PHARMACY_NAV: SpaceNav = {
   roleLabel: 'Pharmacie',
   links: [
-    { href: '/pharmacie',              label: 'À faire',      icon: <LayoutDashboard className={ic} />, primary: true },
-    { href: '/pharmacie/reservations', label: 'Commandes',    icon: <ShoppingBag className={ic} />,     primary: true },
-    { href: '/pharmacie/ordonnances',  label: 'Ordonnances',  icon: <FileText className={ic} />,        primary: true },
-    { href: '/pharmacie/stock',        label: 'Catalogue',    icon: <Package className={ic} />,         primary: true },
-    { href: '/pharmacie/finances',     label: 'Finances',     icon: <Wallet className={ic} /> },
-    { href: '/pharmacie/statistiques', label: 'Statistiques', icon: <BarChart2 className={ic} /> },
-    { href: '/pharmacie/notifications', label: 'Notifications', icon: <Bell className={ic} /> },
-    { href: '/pharmacie/parametres',   label: 'Paramètres',   icon: <Settings className={ic} /> },
+    { href: '/pharmacie',                label: 'Accueil',       icon: <Home className={ic} />,         primary: true },
+    { href: '/pharmacie/ordonnances',    label: 'Ordonnances',   icon: <FileText className={ic} />,     primary: true },
+    { href: '/pharmacie/dispensations',  label: 'Dispensations', icon: <Pill className={ic} />,         primary: true },
+    { href: '/pharmacie/patients',       label: 'Patients',      icon: <Users className={ic} />,        primary: true },
+    { href: '/pharmacie/stock',          label: 'Stock',         icon: <Package className={ic} /> },
+    { href: '/pharmacie/commandes',      label: 'Commandes',     icon: <ShoppingBag className={ic} /> },
+    { href: '/pharmacie/paiements',      label: 'Paiements',     icon: <CreditCard className={ic} /> },
+    { href: '/pharmacie/documents',      label: 'Documents',     icon: <FolderClosed className={ic} /> },
+    { href: '/pharmacie/notifications',  label: 'Notifications', icon: <Bell className={ic} />,         primary: true },
+    { href: '/pharmacie/pharmacie',      label: 'Ma pharmacie',  icon: <Building2 className={ic} /> },
   ],
 }
 
