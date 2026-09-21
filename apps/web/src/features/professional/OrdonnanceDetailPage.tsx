@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pill, QrCode, AlertTriangle, RefreshCw, X, Printer, ShieldAlert, Share2, ShieldOff, Copy, Clock } from 'lucide-react'
+import { ArrowLeft, Pill, QrCode, AlertTriangle, RefreshCw, X, Printer, ShieldAlert, Share2, ShieldOff, Copy, Clock, PenLine, CheckCircle2, Loader2 } from 'lucide-react'
 import { format, parseISO, isPast } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -98,6 +98,12 @@ export default function OrdonnanceDetailPage() {
 
   // Timeline
   const [timeline, setTimeline] = useState<TimelineEvent[]>([])
+
+  // Signature électronique
+  const [showSign, setShowSign]       = useState(false)
+  const [totp, setTotp]               = useState('')
+  const [confirmSign, setConfirmSign] = useState(false)
+  const [signing, setSigning]         = useState(false)
 
   useEffect(() => {
     if (!id || !profile?.id) return
@@ -217,6 +223,26 @@ export default function OrdonnanceDetailPage() {
       toast.error('Erreur lors de la révocation')
     } finally {
       setRevoking(null)
+    }
+  }
+
+  async function handleSign() {
+    if (!id || totp.length !== 6 || !confirmSign) return
+    setSigning(true)
+    try {
+      const { error } = await supabase.functions.invoke('sign-prescription', {
+        body: { ordonnance_id: id, totp },
+      })
+      if (error) throw error
+      toast.success(`Ordonnance ${ordNumero(id)} signée et envoyée au patient`)
+      setShowSign(false)
+      setTotp('')
+      setConfirmSign(false)
+      await load()
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Erreur lors de la signature')
+    } finally {
+      setSigning(false)
     }
   }
 
@@ -450,6 +476,15 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
 
       {/* Actions */}
       <div className="flex flex-wrap gap-s-2">
+        {ord.statut === 'brouillon' && (
+          <Button
+            variant="primary"
+            leftIcon={<PenLine className="h-4 w-4" />}
+            onClick={() => setShowSign(true)}
+          >
+            Signer
+          </Button>
+        )}
         {ord.statut === 'active' && (
           <Button
             variant="primary"
@@ -492,6 +527,83 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
           </Button>
         )}
       </div>
+
+      {/* Modal Signature électronique */}
+      <Modal
+        open={showSign}
+        onOpenChange={open => { if (!open) { setShowSign(false); setTotp(''); setConfirmSign(false) } }}
+        title="Signature électronique"
+      >
+        <div className="flex flex-col gap-s-4 p-s-4">
+          {/* Résumé ordonnance */}
+          <div className="rounded-lg bg-surface-2 p-s-3 flex flex-col gap-s-1">
+            <p className="text-micro text-ink-3 font-semibold uppercase tracking-wide">Résumé</p>
+            <p className="text-small font-medium text-ink">{ord?.patient_name}</p>
+            <p className="text-micro text-ink-3">
+              {ord?.medicaments.length ?? 0} médicament{(ord?.medicaments.length ?? 0) > 1 ? 's' : ''} ·{' '}
+              Prescription du {ord && format(parseISO(ord.date_prescription), 'dd/MM/yyyy', { locale: fr })}
+            </p>
+            {ord && (
+              <ul className="mt-s-1 flex flex-col gap-s-0.5">
+                {ord.medicaments.slice(0, 3).map(m => (
+                  <li key={m.id} className="text-micro text-ink-3">• {m.nom_medicament}{m.dosage ? ` ${m.dosage}` : ''}</li>
+                ))}
+                {ord.medicaments.length > 3 && (
+                  <li className="text-micro text-ink-3 italic">… et {ord.medicaments.length - 3} autre(s)</li>
+                )}
+              </ul>
+            )}
+          </div>
+
+          {/* TOTP */}
+          <div>
+            <label className="mb-s-1.5 block text-small font-medium text-ink">
+              Code de vérification (TOTP — 6 chiffres)
+            </label>
+            <input
+              value={totp}
+              onChange={e => setTotp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              className="w-full rounded-lg border border-line bg-surface px-s-3 py-s-2 text-center text-h4 font-mono tracking-widest text-ink placeholder:text-ink-3 focus:border-primary focus:outline-none"
+            />
+            <p className="mt-s-1 text-micro text-ink-3">
+              Code généré par votre application d'authentification (Google Authenticator, Authy…)
+            </p>
+          </div>
+
+          {/* Checkbox confirmation */}
+          <label className="flex cursor-pointer items-start gap-s-3 rounded-lg border border-line p-s-3 hover:bg-surface-2 transition-colors">
+            <input
+              type="checkbox"
+              checked={confirmSign}
+              onChange={e => setConfirmSign(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-primary rounded shrink-0"
+            />
+            <span className="text-small text-ink">
+              Je confirme cette ordonnance et certifie en être l'auteur. La signature électronique
+              sera intégrée au PDF et l'ordonnance <strong>{ord && ordNumero(ord.id)}</strong> sera
+              transmise au patient.
+            </span>
+          </label>
+
+          <div className="flex justify-end gap-s-2">
+            <Button variant="ghost" onClick={() => { setShowSign(false); setTotp(''); setConfirmSign(false) }}>
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              leftIcon={signing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              onClick={handleSign}
+              disabled={signing || totp.length !== 6 || !confirmSign}
+            >
+              {signing ? 'Signature en cours…' : 'Signer et envoyer'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Partager Modal */}
       <Modal open={showShare} onOpenChange={setShowShare} title="Partager l'ordonnance">

@@ -19,6 +19,8 @@ const OrdonnanceDetailPage   = lazy(() => import('@/features/professional/Ordonn
 const TiersPayantPage        = lazy(() => import('@/features/professional/TiersPayantPage'))
 const DocumentsPage          = lazy(() => import('@/features/professional/DocumentsPage'))
 const EtablissementsPage     = lazy(() => import('@/features/professional/EtablissementsPage'))
+const RevenusPage            = lazy(() => import('@/features/professional/RevenusPage'))
+const ParametresPage         = lazy(() => import('@/features/professional/ParametresPage'))
 const SubscriptionPage       = lazy(() => import('@/features/billing/SubscriptionPage'))
 
 // ── Route guard ───────────────────────────────────────────────────────────────
@@ -49,13 +51,13 @@ export default function ProfessionalRoutes() {
               <Route path="patients/:id"                element={<DossierPatientPage />} />
               <Route path="consultations"               element={<ConsultationsListPage />} />
               <Route path="tiers-payant"                element={<TiersPayantPage />} />
-              <Route path="paiements/*"                 element={<ComingSoon title="Paiements" />} />
+              <Route path="paiements/*"                 element={<RevenusPage />} />
               <Route path="documents"                   element={<DocumentsPage />} />
               <Route path="etablissements"              element={<EtablissementsPage />} />
               <Route path="statistiques/*"              element={<ComingSoon title="Statistiques" />} />
               <Route path="notifications"               element={<ComingSoon title="Notifications" />} />
               <Route path="abonnement"                  element={<SubscriptionPage />} />
-              <Route path="parametres/*"                element={<ComingSoon title="Paramètres" />} />
+              <Route path="parametres/*"                element={<ParametresPage />} />
               {/* Compatibilité ancien chemin */}
               <Route path="revenus/*"                   element={<Navigate to="/pro/paiements" replace />} />
               <Route path="teleconsultation/*"          element={<ComingSoon title="Téléconsultation" />} />
