@@ -23,6 +23,7 @@ const PricingPage                 = lazy(() => import('@/features/landing/Pricin
 const ProfessionalPublicPage      = lazy(() => import('@/features/public/ProfessionalPublicPage'))
 const PharmacyPublicPage          = lazy(() => import('@/features/public/PharmacyPublicPage'))
 const PublicSearchPage            = lazy(() => import('@/features/public/PublicSearchPage'))
+const PublicSharePage             = lazy(() => import('@/features/public/PublicSharePage'))
 
 // Legal pages (BLOC 8)
 const MentionsLegales          = lazy(() => import('@/features/legal/MentionsLegales'))
@@ -133,6 +134,9 @@ export default function PublicRoutes() {
 
         {/* Vérification publique d'ordonnance */}
         <Route path="verifier/:qrToken" element={<VerifyPrescriptionPage />} />
+
+        {/* Partage de document temporaire (sans auth) */}
+        <Route path="partage/:token" element={<PublicSharePage />} />
       </Routes>
     </Suspense>
   )
