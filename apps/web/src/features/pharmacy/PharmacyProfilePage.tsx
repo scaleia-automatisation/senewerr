@@ -53,7 +53,7 @@ interface PharmacieData {
 }
 
 interface HorairesJsonb {
-  [jour: string]: { matin_ouverture: string; matin_fermeture: string; matin_ferme: boolean; apmidi_ouverture: string; apmidi_fermeture: string; apmidi_ferme: boolean }
+  [jour: string]: { ouverture: string; fermeture: string; ferme: boolean }
 }
 
 interface TeamMember {
@@ -245,10 +245,7 @@ export default function PharmacyProfilePage() {
   function initHoraires(): HorairesJsonb {
     const h: HorairesJsonb = {}
     JOURS.forEach(j => {
-      h[j] = {
-        matin_ouverture: '08:00', matin_fermeture: '12:30', matin_ferme: j === 'dimanche',
-        apmidi_ouverture: '15:00', apmidi_fermeture: '19:00', apmidi_ferme: j === 'dimanche',
-      }
+      h[j] = { ouverture: '08:00', fermeture: '20:00', ferme: j === 'dimanche' }
     })
     return h
   }
@@ -527,50 +524,38 @@ export default function PharmacyProfilePage() {
       <Section title="Horaires d'ouverture" icon={<Clock className="h-5 w-5" />}>
         <div className="flex flex-col gap-s-4">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[540px] text-small border-separate border-spacing-y-s-1">
+            <table className="w-full min-w-[360px] text-small border-separate border-spacing-y-s-1">
               <thead>
                 <tr>
                   <th className="px-s-2 py-s-1 text-left text-micro font-semibold text-ink-3">Jour</th>
-                  <th colSpan={3} className="px-s-2 py-s-1 text-center text-micro font-semibold text-ink-3">Matin</th>
-                  <th colSpan={3} className="px-s-2 py-s-1 text-center text-micro font-semibold text-ink-3">Après-midi</th>
+                  <th className="px-s-2 py-s-1 text-center text-micro font-semibold text-ink-3">Ouverture</th>
+                  <th className="px-s-1 py-s-1" />
+                  <th className="px-s-2 py-s-1 text-center text-micro font-semibold text-ink-3">Fermeture</th>
+                  <th className="px-s-2 py-s-1 text-center text-micro font-semibold text-ink-3">Fermé</th>
                 </tr>
               </thead>
               <tbody>
                 {JOURS.map(jour => {
-                  const h = horaires[jour] ?? { matin_ouverture: '08:00', matin_fermeture: '12:30', matin_ferme: false, apmidi_ouverture: '15:00', apmidi_fermeture: '19:00', apmidi_ferme: false }
+                  const h = horaires[jour] ?? { ouverture: '08:00', fermeture: '20:00', ferme: false }
                   const update = (field: string, val: any) => setHoraires(prev => ({ ...prev, [jour]: { ...prev[jour], [field]: val } }))
                   return (
-                    <tr key={jour} className="bg-surface-2/50 rounded">
-                      <td className="px-s-2 py-s-1.5 font-medium text-ink">{JOURS_LABELS[jour]}</td>
-                      <td className="px-s-1 py-s-1.5">
-                        <input type="time" value={h.matin_ouverture} disabled={h.matin_ferme}
-                          onChange={e => update('matin_ouverture', e.target.value)}
-                          className="rounded border border-line bg-surface px-s-1.5 py-s-0.5 text-micro disabled:opacity-40 focus:outline-none w-20" />
+                    <tr key={jour} className={`rounded ${h.ferme ? 'opacity-50' : ''}`}>
+                      <td className="px-s-2 py-s-2 font-semibold text-ink w-12">{JOURS_LABELS[jour]}</td>
+                      <td className="px-s-1 py-s-2">
+                        <input type="time" value={h.ouverture} disabled={h.ferme}
+                          onChange={e => update('ouverture', e.target.value)}
+                          className="rounded border border-line bg-surface px-s-2 py-s-1 text-small disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-primary w-24" />
                       </td>
-                      <td className="px-s-1 py-s-1.5 text-micro text-ink-3">→</td>
-                      <td className="px-s-1 py-s-1.5">
-                        <input type="time" value={h.matin_fermeture} disabled={h.matin_ferme}
-                          onChange={e => update('matin_fermeture', e.target.value)}
-                          className="rounded border border-line bg-surface px-s-1.5 py-s-0.5 text-micro disabled:opacity-40 focus:outline-none w-20" />
+                      <td className="px-s-2 py-s-2 text-small text-ink-3 text-center">→</td>
+                      <td className="px-s-1 py-s-2">
+                        <input type="time" value={h.fermeture} disabled={h.ferme}
+                          onChange={e => update('fermeture', e.target.value)}
+                          className="rounded border border-line bg-surface px-s-2 py-s-1 text-small disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-primary w-24" />
                       </td>
-                      <td className="px-s-1 py-s-1.5">
-                        <input type="time" value={h.apmidi_ouverture} disabled={h.apmidi_ferme}
-                          onChange={e => update('apmidi_ouverture', e.target.value)}
-                          className="rounded border border-line bg-surface px-s-1.5 py-s-0.5 text-micro disabled:opacity-40 focus:outline-none w-20" />
-                      </td>
-                      <td className="px-s-1 py-s-1.5 text-micro text-ink-3">→</td>
-                      <td className="px-s-1 py-s-1.5">
-                        <input type="time" value={h.apmidi_fermeture} disabled={h.apmidi_ferme}
-                          onChange={e => update('apmidi_fermeture', e.target.value)}
-                          className="rounded border border-line bg-surface px-s-1.5 py-s-0.5 text-micro disabled:opacity-40 focus:outline-none w-20" />
-                      </td>
-                      <td className="px-s-2 py-s-1.5">
-                        <label className="flex items-center gap-s-1 text-micro text-ink-3 cursor-pointer">
-                          <input type="checkbox" checked={h.matin_ferme && h.apmidi_ferme}
-                            onChange={e => { update('matin_ferme', e.target.checked); update('apmidi_ferme', e.target.checked) }}
-                            className="h-3.5 w-3.5 rounded accent-primary" />
-                          Fermé
-                        </label>
+                      <td className="px-s-2 py-s-2 text-center">
+                        <input type="checkbox" checked={h.ferme}
+                          onChange={e => update('ferme', e.target.checked)}
+                          className="h-4 w-4 rounded accent-primary cursor-pointer" />
                       </td>
                     </tr>
                   )
