@@ -11,6 +11,7 @@ const ProfessionalProfilePage = lazy(() => import('@/features/patient/Profession
 const BookAppointmentPage     = lazy(() => import('@/features/patient/BookAppointmentPage'))
 const AppointmentsPage        = lazy(() => import('@/features/patient/AppointmentsPage'))
 const OrdonnancesPage         = lazy(() => import('@/features/patient/OrdonnancesPage'))
+const ReservationsPage        = lazy(() => import('@/features/patient/ReservationsPage'))
 const PrescriptionPage        = lazy(() => import('@/features/patient/PrescriptionPage'))
 const ReservationPage         = lazy(() => import('@/features/patient/ReservationPage'))
 const MedicinesPage           = lazy(() => import('@/features/patient/MedicinesPage'))
@@ -47,7 +48,7 @@ export default function PatientRoutes() {
           <Route path="ordonnances/:prescriptionId" element={<PrescriptionPage />} />
           <Route path="ordonnances"                element={<OrdonnancesPage />} />
           <Route path="medicaments"                element={<MedicinesPage />} />
-          <Route path="reservations"               element={<ReservationPage />} />
+          <Route path="reservations"               element={<ReservationsPage />} />
           <Route path="reserver"                   element={<ReservationPage />} />
           <Route path="pharmacie/*"                element={<ReservationPage />} />
           <Route path="mutuelle/*"                 element={<ComingSoon title="Ma mutuelle" />} />
