@@ -79,7 +79,7 @@ export default function LoginPage() {
     const id = data.identifier.trim()
     const phone = inputIsPhone ? normalizeE164(id) : null
 
-    const { error } = phone
+    const { data: signInResult, error } = phone
       ? await supabase.auth.signInWithPassword({ phone, password: data.password })
       : await supabase.auth.signInWithPassword({ email: id, password: data.password })
 
@@ -110,9 +110,8 @@ export default function LoginPage() {
       return
     }
 
-    // Sinon on dispatche selon le rôle
-    const { data: { session } } = await supabase.auth.getSession()
-    const userId = session?.user?.id
+    // Sinon on dispatche selon le rôle — userId issu directement du résultat signIn
+    const userId = signInResult?.user?.id
     if (!userId) { navigate('/', { replace: true }); return }
 
     const { data: profileData } = await supabase
