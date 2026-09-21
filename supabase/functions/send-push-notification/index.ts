@@ -110,13 +110,16 @@ serve(async (req) => {
       })
     }
 
-    const serviceAccount = JSON.parse(Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON')!)
+    const serviceAccount = JSON.parse(Deno.env.get('FIREBASE_SERVICE_ACCOUNT_KEY')!)
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
     // Vérifier les préférences de l'utilisateur si notification_type est fourni
+    const URGENCES = ['sla_depasse', 'alerte_tresorerie', 'erreur_paiement']
+    const isUrgent = URGENCES.includes(notification_type ?? '')
+
     if (notification_type) {
       const { data: prefRow } = await supabase
         .from('notification_preferences')
@@ -124,10 +127,27 @@ serve(async (req) => {
         .eq('user_id', user_id)
         .maybeSingle()
       const prefs = (prefRow as any)?.preferences ?? {}
+
+      // Toggle par type (false = désactivé)
       if (prefs[notification_type] === false) {
         return new Response(JSON.stringify({ sent: 0, skipped: 'user_preference' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
+      }
+
+      // Plages de silence (ex. 22h-7h) — sauf urgences
+      if (!isUrgent && prefs.silence_heures) {
+        const { debut, fin } = prefs.silence_heures as { debut: number; fin: number }
+        const nowHour = new Date().getUTCHours()
+        // Gestion du cas "croise minuit" (ex. debut=22, fin=7)
+        const isSilent = debut > fin
+          ? (nowHour >= debut || nowHour < fin)
+          : (nowHour >= debut && nowHour < fin)
+        if (isSilent) {
+          return new Response(JSON.stringify({ sent: 0, skipped: 'silence_hours' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
       }
     }
 
