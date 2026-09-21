@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, UserCheck, Wallet, ChevronRight, AlertTriangle } from 'lucide-react'
-import { formatDistanceToNow, parseISO, differenceInYears, subMonths } from 'date-fns'
+import { formatDistanceToNow, parseISO, differenceInYears, subMonths, startOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
@@ -241,7 +241,7 @@ function PatientCard({ patient, onClick }: { patient: Patient; onClick: () => vo
 
 const PAGE_SIZE = 20
 
-type ActivityFilter = 'tous' | 'actif' | 'inactif'
+type PeriodeFilter = 'tous' | 'mois' | '3mois' | '6mois' | '1an'
 type MutuelleFilter = 'tous' | 'avec' | 'sans'
 type SortField = 'derniere_consultation' | 'full_name' | 'nb_consultations'
 
@@ -256,14 +256,12 @@ export default function PatientsPage() {
   const [loading, setLoading]     = useState(true)
 
   const [search, setSearch]               = useState('')
-  const [activityFilter, setActivity]     = useState<ActivityFilter>('tous')
+  const [periodeFilter, setPeriode]       = useState<PeriodeFilter>('tous')
   const [mutuelleFilter, setMutuelle]     = useState<MutuelleFilter>('tous')
   const [pathoFilter, setPathoFilter]     = useState('')
   const [sortBy, setSortBy]               = useState<SortField>('derniere_consultation')
 
   const [showNouveauPatient, setShowNouveauPatient] = useState(false)
-
-  const sixMonthsAgo = subMonths(new Date(), 6).toISOString()
 
   const load = useCallback(async () => {
     if (!profile?.id) return
@@ -283,8 +281,11 @@ export default function PatientsPage() {
       .eq('praticien_id', profile.id)
       .eq('actif', true)
 
-    if (activityFilter === 'actif')   q = q.gte('derniere_consultation', sixMonthsAgo)
-    if (activityFilter === 'inactif') q = q.lt('derniere_consultation', sixMonthsAgo)
+    const now = new Date()
+    if (periodeFilter === 'mois')  q = q.gte('derniere_consultation', startOfMonth(now).toISOString())
+    if (periodeFilter === '3mois') q = q.gte('derniere_consultation', subMonths(now, 3).toISOString())
+    if (periodeFilter === '6mois') q = q.gte('derniere_consultation', subMonths(now, 6).toISOString())
+    if (periodeFilter === '1an')   q = q.gte('derniere_consultation', subMonths(now, 12).toISOString())
 
     if (sortBy === 'derniere_consultation') q = q.order('derniere_consultation', { ascending: false, nullsFirst: false })
     if (sortBy === 'nb_consultations')      q = q.order('nb_consultations', { ascending: false })
@@ -336,19 +337,21 @@ export default function PatientsPage() {
     setPatients(flat)
     setTotal(count ?? 0)
     setLoading(false)
-  }, [profile?.id, page, activityFilter, mutuelleFilter, pathoFilter, sortBy, search, sixMonthsAgo])
+  }, [profile?.id, page, periodeFilter, mutuelleFilter, pathoFilter, sortBy, search])
 
   useEffect(() => { load() }, [load])
 
   // Reset page on filter change
-  useEffect(() => { setPage(0) }, [search, activityFilter, mutuelleFilter, pathoFilter, sortBy])
+  useEffect(() => { setPage(0) }, [search, periodeFilter, mutuelleFilter, pathoFilter, sortBy])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  const ACTIVITY_OPTS = [
-    { value: 'tous',    label: 'Tous' },
-    { value: 'actif',   label: 'Actifs (< 6 mois)' },
-    { value: 'inactif', label: 'Inactifs' },
+  const PERIODE_OPTS = [
+    { value: 'tous',  label: 'Toutes périodes' },
+    { value: 'mois',  label: 'Ce mois' },
+    { value: '3mois', label: '3 derniers mois' },
+    { value: '6mois', label: '6 derniers mois' },
+    { value: '1an',   label: 'Dernière année' },
   ]
   const MUTUELLE_OPTS = [
     { value: 'tous', label: 'Avec ou sans mutuelle' },
@@ -375,11 +378,11 @@ export default function PatientsPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher par nom, téléphone…"
+            placeholder="Chercher un patient (nom, tél., n° dossier)"
             className="w-full rounded-lg border border-line bg-surface py-s-2 pl-9 pr-s-3 text-small text-ink placeholder:text-ink-3 focus:border-primary focus:outline-none"
           />
         </div>
-        <Select options={ACTIVITY_OPTS} value={activityFilter} onValueChange={v => setActivity(v as ActivityFilter)} />
+        <Select options={PERIODE_OPTS} value={periodeFilter} onValueChange={v => setPeriode(v as PeriodeFilter)} />
         <Select options={MUTUELLE_OPTS} value={mutuelleFilter} onValueChange={v => setMutuelle(v as MutuelleFilter)} />
         <Select options={PATHO_OPTS}   value={pathoFilter}    onValueChange={setPathoFilter} />
         <Select options={SORT_OPTS}    value={sortBy}         onValueChange={v => setSortBy(v as SortField)} />

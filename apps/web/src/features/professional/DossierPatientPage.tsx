@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Pencil, Plus, X, Upload, FileText, Image, AlertTriangle,
   Activity, Stethoscope, Pill, FolderOpen, BarChart2, ShieldAlert,
-  Check, Loader2, Eye, Download,
+  Check, Loader2, Eye, Download, Phone, MessageCircle, Heart,
+  StickyNote, Trash2, CheckCircle2, CircleSlash, ClipboardList,
 } from 'lucide-react'
 import {
   format, parseISO, differenceInYears, subMonths,
@@ -22,6 +23,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Modal } from '@/components/ui/Modal'
+import { ConfirmModal } from '@/components/mutuelle/ConfirmModal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Avatar } from '@/components/ui/Avatar'
 import { AllergyBadge } from '@/components/praticien/AllergyBadge'
@@ -435,12 +437,16 @@ function TabOrdonnances({ patientId, praticienId }: { patientId: string; pratici
                 <Badge variant={ORDONNANCE_STATUS_VARIANT[o.statut] ?? 'neutral'}>
                   {ORD_LABEL[o.statut] ?? o.statut}
                 </Badge>
-                {o.statut === 'expiree' && (
-                  <Button variant="ghost" size="sm" leftIcon={<Plus className="h-3 w-3" />}
-                    onClick={() => navigate(`/pro/ordonnances/nouvelle?patient=${patientId}&renouveler=${o.id}`)}>
-                    Renouveler
+                <div className="flex gap-s-1">
+                  <Button variant="ghost" size="sm" leftIcon={<Eye className="h-3 w-3" />}
+                    onClick={() => navigate(`/pro/ordonnances/${o.id}`)}>
+                    Voir
                   </Button>
-                )}
+                  <Button variant="ghost" size="sm" leftIcon={<ClipboardList className="h-3 w-3" />}
+                    onClick={() => navigate(`/pro/ordonnances/nouvelle?patient=${patientId}&renew=${o.id}`)}>
+                    Dupliquer
+                  </Button>
+                </div>
               </div>
             </div>
           ))
@@ -452,10 +458,11 @@ function TabOrdonnances({ patientId, praticienId }: { patientId: string; pratici
 // ── Tab: Documents ────────────────────────────────────────────────────────────
 
 function TabDocuments({ patientId }: { patientId: string }) {
-  const [docs, setDocs]       = useState<Document[]>([])
-  const [loading, setLoading] = useState(true)
+  const [docs, setDocs]         = useState<Document[]>([])
+  const [loading, setLoading]   = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [preview, setPreview] = useState<Document | null>(null)
+  const [preview, setPreview]   = useState<Document | null>(null)
+  const [toDeleteDoc, setToDeleteDoc] = useState<Document | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const db = supabase as any
 
@@ -489,6 +496,17 @@ function TabDocuments({ patientId }: { patientId: string }) {
     setUploading(false)
     loadDocs()
     toast.success('Document(s) ajouté(s)')
+  }
+
+  async function deleteDoc() {
+    if (!toDeleteDoc) return
+    await db.from('patient_documents').delete().eq('id', toDeleteDoc.id)
+    // Optionnel: supprimer du storage (best-effort)
+    supabase.storage.from('documents').remove([toDeleteDoc.url.split('/documents/')[1] ?? ''])
+      .catch(() => {})
+    setToDeleteDoc(null)
+    loadDocs()
+    toast.success('Document supprimé')
   }
 
   function formatSize(n?: number | null) {
@@ -543,9 +561,17 @@ function TabDocuments({ patientId }: { patientId: string }) {
                   </div>
                   <div className="flex shrink-0 gap-s-1">
                     <button onClick={() => setPreview(d)}
-                      className="rounded p-s-1 text-ink-3 hover:text-primary"><Eye className="h-4 w-4" /></button>
+                      className="rounded p-s-1 text-ink-3 hover:text-primary" title="Prévisualiser">
+                      <Eye className="h-4 w-4" />
+                    </button>
                     <a href={d.url} download={d.nom}
-                      className="rounded p-s-1 text-ink-3 hover:text-primary"><Download className="h-4 w-4" /></a>
+                      className="rounded p-s-1 text-ink-3 hover:text-primary" title="Télécharger">
+                      <Download className="h-4 w-4" />
+                    </a>
+                    <button onClick={() => setToDeleteDoc(d)}
+                      className="rounded p-s-1 text-ink-3 hover:text-red-500" title="Supprimer">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -562,6 +588,15 @@ function TabDocuments({ patientId }: { patientId: string }) {
             : <img src={preview.url} alt={preview.nom} className="max-h-[70vh] mx-auto object-contain rounded" />
         )}
       </Modal>
+
+      {/* Suppression document */}
+      <ConfirmModal
+        open={!!toDeleteDoc}
+        onOpenChange={(o) => { if (!o) setToDeleteDoc(null) }}
+        title="Supprimer le document"
+        message={`Supprimer "${toDeleteDoc?.nom}" ? Cette action est irréversible.`}
+        onConfirm={deleteDoc}
+      />
     </div>
   )
 }
@@ -741,7 +776,7 @@ function TabConstantes({ patientId, appointmentId }: { patientId: string; appoin
 
 // ── Main Page — Dossier Patient ────────────────────────────────────────────────
 
-type TabId = 'resume' | 'consultations' | 'ordonnances' | 'documents' | 'constantes'
+type TabId = 'resume' | 'consultations' | 'ordonnances' | 'documents' | 'constantes' | 'notes'
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'resume',        label: 'Résumé clinique', icon: <Activity className="h-4 w-4" /> },
@@ -749,10 +784,135 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'ordonnances',   label: 'Ordonnances',     icon: <Pill className="h-4 w-4" /> },
   { id: 'documents',     label: 'Documents',       icon: <FolderOpen className="h-4 w-4" /> },
   { id: 'constantes',    label: 'Constantes',      icon: <BarChart2 className="h-4 w-4" /> },
+  { id: 'notes',         label: 'Notes internes',  icon: <StickyNote className="h-4 w-4" /> },
 ]
 
 const GROUPES_SANGUINS_LABEL: Record<string, string> = {
   'A+':'A+','A-':'A-','B+':'B+','B-':'B-','AB+':'AB+','AB-':'AB-','O+':'O+','O-':'O-'
+}
+
+// ── Tab: Notes internes ───────────────────────────────────────────────────────
+// Ces notes ne sont JAMAIS partagées avec le patient — usage interne praticien uniquement
+
+interface NoteInterne {
+  id: string
+  contenu: string
+  created_at: string
+  auteur_id: string
+  auteur_nom?: string
+}
+
+function TabNotes({ patientId, praticienId, praticienNom }: {
+  patientId: string
+  praticienId: string
+  praticienNom: string
+}) {
+  const [notes, setNotes]       = useState<NoteInterne[]>([])
+  const [contenu, setContenu]   = useState('')
+  const [saving, setSaving]     = useState(false)
+  const [loading, setLoading]   = useState(true)
+  const [toDelete, setToDelete] = useState<string | null>(null)
+  const db = supabase as any
+
+  const loadNotes = useCallback(async () => {
+    const { data } = await db.from('notes_internes')
+      .select('id, contenu, created_at, auteur_id')
+      .eq('patient_id', patientId)
+      .eq('praticien_id', praticienId)
+      .order('created_at', { ascending: false })
+    setNotes((data ?? []).map((n: any) => ({ ...n, auteur_nom: praticienNom })))
+    setLoading(false)
+  }, [patientId, praticienId])
+
+  useEffect(() => { loadNotes() }, [loadNotes])
+
+  async function saveNote() {
+    if (!contenu.trim()) return
+    setSaving(true)
+    const { error } = await db.from('notes_internes').insert({
+      patient_id:  patientId,
+      praticien_id: praticienId,
+      contenu:     contenu.trim(),
+      shared_with_professionals: false, // JAMAIS partagée avec le patient
+    })
+    setSaving(false)
+    if (error) { toast.error('Erreur lors de la sauvegarde'); return }
+    setContenu('')
+    toast.success('Note enregistrée')
+    loadNotes()
+  }
+
+  async function deleteNote() {
+    if (!toDelete) return
+    await db.from('notes_internes').delete().eq('id', toDelete).eq('praticien_id', praticienId)
+    setToDelete(null)
+    loadNotes()
+    toast.success('Note supprimée')
+  }
+
+  return (
+    <div className="flex flex-col gap-s-4">
+      {/* Avertissement */}
+      <div className="flex items-center gap-s-2 rounded-lg border border-amber-200 bg-amber-50 px-s-3 py-s-2 text-small text-amber-800">
+        <ShieldAlert className="h-4 w-4 shrink-0 text-amber-500" />
+        Notes strictement confidentielles — jamais visibles par le patient ni par d'autres praticiens.
+      </div>
+
+      {/* Saisie */}
+      <div className="flex flex-col gap-s-2">
+        <label className="text-small font-medium text-ink">Nouvelle note</label>
+        <textarea
+          className="w-full rounded-lg border border-line bg-surface p-s-3 text-small text-ink placeholder:text-ink-3 focus:border-primary focus:outline-none resize-none"
+          rows={3}
+          placeholder="Observations, rappels, suivis particuliers…"
+          value={contenu}
+          onChange={e => setContenu(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveNote() }}
+        />
+        <div className="flex justify-end">
+          <Button variant="primary" size="sm" loading={saving} onClick={saveNote} disabled={!contenu.trim()}>
+            Enregistrer
+          </Button>
+        </div>
+      </div>
+
+      {/* Liste */}
+      {loading
+        ? <Skeleton className="h-24 rounded-lg" />
+        : notes.length === 0
+          ? <p className="py-s-8 text-center text-small text-ink-3">Aucune note interne</p>
+          : (
+            <div className="flex flex-col gap-s-2">
+              {notes.map(note => (
+                <div key={note.id} className="rounded-lg border border-line bg-surface p-s-3">
+                  <div className="flex items-start justify-between gap-s-2">
+                    <p className="flex-1 text-small text-ink whitespace-pre-wrap">{note.contenu}</p>
+                    <button
+                      onClick={() => setToDelete(note.id)}
+                      className="shrink-0 rounded p-s-1 text-ink-3 hover:text-red-500"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-s-1 text-micro text-ink-3">
+                    {format(parseISO(note.created_at), "d MMM yyyy 'à' HH:mm", { locale: fr })}
+                    {note.auteur_nom ? ` · ${note.auteur_nom}` : ''}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )
+      }
+
+      <ConfirmModal
+        open={!!toDelete}
+        onOpenChange={(o) => { if (!o) setToDelete(null) }}
+        title="Supprimer la note"
+        message="Supprimer cette note ? Cette action est irréversible."
+        onConfirm={deleteNote}
+      />
+    </div>
+  )
 }
 
 export default function DossierPatientPage() {
@@ -767,8 +927,10 @@ export default function DossierPatientPage() {
   })
   const [mutuelle, setMutuelle] = useState<{ nom: string; contrat: string } | null>(null)
   const [loading, setLoading]   = useState(true)
-  const [forbidden, setForbidden] = useState(false)
-  const [activeTab, setActiveTab] = useState<TabId>('resume')
+  const [forbidden,    setForbidden]    = useState(false)
+  const [activeTab,    setActiveTab]    = useState<TabId>('resume')
+  const [favori,       setFavori]       = useState(false)
+  const [accesDossier, setAccesDossier] = useState<'complet' | 'partiel'>('complet')
 
   const load = useCallback(async () => {
     if (!patientId || !profile?.id) return
@@ -801,6 +963,10 @@ export default function DossierPatientPage() {
     setMutuelle(mutuelleRes.data
       ? { nom: mutuelleRes.data.nom_mutuelle, contrat: mutuelleRes.data.numero_contrat }
       : null)
+
+    // Déterminer niveau d'accès : partiel si dossier médical incomplet (pas de groupe sanguin)
+    const d = dossierRes.data
+    setAccesDossier(d?.groupe_sanguin || d?.allergies?.length > 0 ? 'complet' : 'partiel')
     setLoading(false)
 
     // Audit log — every dossier access is logged
@@ -863,16 +1029,39 @@ export default function DossierPatientPage() {
       {/* En-tête patient */}
       <Card className="p-s-4">
         <div className="flex flex-wrap items-start gap-s-4">
-          <Avatar src={patient.avatar_url} fallback={patient.full_name} size="lg" />
+          <div className="relative">
+            <Avatar src={patient.avatar_url} fallback={patient.full_name} size="lg" />
+            {/* Favoris */}
+            <button
+              onClick={() => setFavori(f => !f)}
+              className="absolute -bottom-1 -right-1 rounded-full border border-line bg-surface p-0.5 shadow-1"
+              title={favori ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            >
+              <Heart className={cn('h-3.5 w-3.5', favori ? 'fill-red-500 text-red-500' : 'text-ink-3')} />
+            </button>
+          </div>
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-heading font-bold text-ink">{patient.full_name}</h1>
+            <div className="flex items-center gap-s-2 flex-wrap">
+              <h1 className="text-heading font-bold text-ink">{patient.full_name}</h1>
+              {/* Badge accès */}
+              {accesDossier === 'complet' ? (
+                <span className="flex items-center gap-s-1 rounded-pill bg-emerald-100 px-s-2 py-0.5 text-micro font-medium text-emerald-700">
+                  <CheckCircle2 className="h-3 w-3" /> Accès autorisé
+                </span>
+              ) : (
+                <span className="flex items-center gap-s-1 rounded-pill bg-amber-100 px-s-2 py-0.5 text-micro font-medium text-amber-700">
+                  <CircleSlash className="h-3 w-3" /> Données partielles
+                </span>
+              )}
+            </div>
             <p className="text-small text-ink-3">
               {age !== null ? `${age} ans` : '—'}
               {patient.sexe ? ` · ${patient.sexe === 'M' ? 'Homme' : patient.sexe === 'F' ? 'Femme' : 'Autre'}` : ''}
               {dossier.groupe_sanguin ? ` · Groupe ${GROUPES_SANGUINS_LABEL[dossier.groupe_sanguin] ?? dossier.groupe_sanguin}` : ''}
             </p>
             {patient.telephone && <p className="text-small text-ink-3">{patient.telephone}</p>}
+            {patient.email && <p className="text-small text-ink-3">{patient.email}</p>}
 
             {/* Badges */}
             <div className="mt-s-2 flex flex-wrap gap-s-1">
@@ -891,6 +1080,32 @@ export default function DossierPatientPage() {
                 <Badge key={p} variant="accent">{p}</Badge>
               ))}
             </div>
+          </div>
+
+          {/* Actions rapides */}
+          <div className="flex flex-wrap gap-s-2 shrink-0">
+            {patient.telephone && (
+              <a href={`tel:${patient.telephone}`}>
+                <Button variant="secondary" size="sm" leftIcon={<Phone className="h-4 w-4" />}>
+                  Appeler
+                </Button>
+              </a>
+            )}
+            {patient.telephone && (
+              <a href={`sms:${patient.telephone}`}>
+                <Button variant="secondary" size="sm" leftIcon={<MessageCircle className="h-4 w-4" />}>
+                  Message
+                </Button>
+              </a>
+            )}
+            <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => navigate(`/pro/agenda?patient=${patient.id}`)}>
+              Nouveau RDV
+            </Button>
+            <Button variant="secondary" size="sm" leftIcon={<ClipboardList className="h-4 w-4" />}
+              onClick={() => navigate(`/pro/ordonnances/nouvelle?patient=${patient.id}`)}>
+              Ordonnance
+            </Button>
           </div>
         </div>
       </Card>
@@ -928,6 +1143,9 @@ export default function DossierPatientPage() {
           )}
           {activeTab === 'constantes' && (
             <TabConstantes patientId={patientId!} />
+          )}
+          {activeTab === 'notes' && (
+            <TabNotes patientId={patientId!} praticienId={profile!.id} praticienNom={profile!.full_name ?? 'Dr.'} />
           )}
         </motion.div>
       </AnimatePresence>
