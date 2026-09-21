@@ -9,7 +9,7 @@ import {
 import {
   format, addDays, addWeeks, addMonths, subWeeks, subMonths,
   startOfWeek, endOfWeek, startOfMonth, endOfMonth,
-  isSameDay, isToday, parseISO, differenceInYears,
+  isSameDay, isToday, parseISO, differenceInYears, getDaysInMonth,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -63,6 +63,17 @@ const BLOCK_TYPE_OPTS = [
   { value: 'conge',    label: 'Congé' },
   { value: 'formation',label: 'Formation' },
   { value: 'absence',  label: 'Absence' },
+  { value: 'repos',    label: 'Repos' },
+  { value: 'autre',    label: 'Autre' },
+]
+
+const ETABLISSEMENT_COLORS = [
+  'hsl(210 40% 55%)',
+  'hsl(150 35% 50%)',
+  'hsl(280 30% 55%)',
+  'hsl(30  45% 55%)',
+  'hsl(190 35% 50%)',
+  'hsl(340 35% 55%)',
 ]
 const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const DAY_FULL  = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
@@ -329,8 +340,29 @@ function MonthView({ currentMonth, appts, blocks, onDayClick }: {
     if (days.length > 42) break
   }
 
+  // Stats du mois
+  const totalRdv   = appts.length
+  const daysInMth  = getDaysInMonth(currentMonth)
+  const occupDays  = new Set(appts.map(a => format(parseISO(a.starts_at), 'yyyy-MM-dd'))).size
+  const txOccup    = daysInMth > 0 ? Math.round((occupDays / daysInMth) * 100) : 0
+  const countByDay: Record<string, number> = {}
+  appts.forEach(a => {
+    const k = format(parseISO(a.starts_at), 'yyyy-MM-dd')
+    countByDay[k] = (countByDay[k] ?? 0) + 1
+  })
+  const topEntry = Object.entries(countByDay).sort((a, b) => b[1] - a[1])[0]
+  const topDay   = topEntry
+    ? `${format(parseISO(topEntry[0]), 'EEE d', { locale: fr })} (${topEntry[1]} RDV)`
+    : '—'
+
   return (
     <div className="rounded-lg border border-line overflow-hidden">
+      {/* Bandeau stats */}
+      <div className="flex items-center gap-s-6 border-b border-line bg-surface-2 px-s-4 py-s-2 text-small">
+        <span className="text-ink-3">Total&nbsp;<strong className="text-ink">{totalRdv}</strong> RDV</span>
+        <span className="text-ink-3">Taux occupation&nbsp;<strong className="text-ink">{txOccup}%</strong></span>
+        {topEntry && <span className="text-ink-3">Jour chargé&nbsp;<strong className="text-ink">{topDay}</strong></span>}
+      </div>
       <div className="grid grid-cols-7 border-b border-line bg-surface-2">
         {DAY_NAMES.map(d => (
           <div key={d} className="p-s-2 text-center text-micro font-semibold text-ink-3">{d}</div>
@@ -664,6 +696,69 @@ function VueListe({ appts, loading, onApptClick }: {
   )
 }
 
+// ── Nouveau Créneau Modal ────────────────────────────────────────────────────
+
+function NouveauCreneauModal({ open, onOpenChange, etablissements, onCreated }: {
+  open: boolean; onOpenChange: (o: boolean) => void
+  etablissements: { id: string; nom: string }[]
+  onCreated: () => void
+}) {
+  const [date,            setDate]            = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [heure_debut,     setHeureDebut]      = useState('08:00')
+  const [heure_fin,       setHeureFin]        = useState('09:00')
+  const [etablissement_id, setEtablissementId] = useState(etablissements[0]?.id ?? '')
+  const [disponible_en_ligne, setDispoLigne]  = useState(false)
+  const [loading,         setLoading]         = useState(false)
+
+  useEffect(() => {
+    if (etablissements.length > 0 && !etablissement_id)
+      setEtablissementId(etablissements[0].id)
+  }, [etablissements])
+
+  async function submit() {
+    if (!etablissement_id) { toast.error('Sélectionner un établissement'); return }
+    if (heure_debut >= heure_fin) { toast.error("L'heure de fin doit être après le début"); return }
+    setLoading(true)
+    const { error } = await supabase.functions.invoke('create-creneau', {
+      body: { date, heure_debut, heure_fin, etablissement_id, disponible_en_ligne }
+    })
+    setLoading(false)
+    if (error) { toast.error('Erreur lors de la création'); return }
+    toast.success('Créneau créé')
+    onOpenChange(false); onCreated()
+  }
+
+  const etabOpts = etablissements.map(e => ({ value: e.id, label: e.nom }))
+
+  return (
+    <Modal open={open} onOpenChange={onOpenChange} title="Nouveau créneau disponible" size="sm">
+      <div className="flex flex-col gap-s-4">
+        <Input label="Date" type="date" value={date} onChange={e => setDate(e.target.value)} />
+        <div className="grid grid-cols-2 gap-s-3">
+          <Input label="Heure début" type="time" value={heure_debut} onChange={e => setHeureDebut(e.target.value)} />
+          <Input label="Heure fin"   type="time" value={heure_fin}   onChange={e => setHeureFin(e.target.value)} />
+        </div>
+        {etabOpts.length > 0 && (
+          <Select label="Établissement" options={etabOpts} value={etablissement_id} onValueChange={setEtablissementId} />
+        )}
+        <label className="flex items-center gap-s-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={disponible_en_ligne}
+            onChange={e => setDispoLigne(e.target.checked)}
+            className="h-4 w-4 rounded border-line accent-primary"
+          />
+          <span className="text-small text-ink">Disponible à la réservation en ligne</span>
+        </label>
+        <div className="flex justify-end gap-s-2 pt-s-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button variant="primary" loading={loading} onClick={submit}>Créer le créneau</Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 // ── Nouveau RDV Modal ─────────────────────────────────────────────────────────
 
 function NouveauRdvModal({ open, onOpenChange, onCreated }: {
@@ -968,9 +1063,20 @@ export default function AgendaPage() {
 
   const [selectedAppt, setSelectedAppt] = useState<Appt | null>(null)
 
-  const [showNouveauRdv,  setShowNouveauRdv]  = useState(false)
-  const [showDispos,      setShowDispos]       = useState(false)
-  const [showBloquer,     setShowBloquer]      = useState(false)
+  const [showNouveauRdv,     setShowNouveauRdv]     = useState(false)
+  const [showNouveauCreneau, setShowNouveauCreneau] = useState(false)
+  const [showDispos,         setShowDispos]          = useState(false)
+  const [showBloquer,        setShowBloquer]         = useState(false)
+
+  // Filtre établissements
+  interface Etab { id: string; nom: string }
+  const [etablissements,  setEtablissements]  = useState<Etab[]>([])
+  const [filtreEtabs,     setFiltreEtabs]     = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(`agenda-etab-filter-${profile?.id ?? 'x'}`)
+      return saved ? new Set(JSON.parse(saved)) : new Set()
+    } catch { return new Set() }
+  })
   const [refusTarget,     setRefusTarget]      = useState<string | null>(null)
   const [refusMotif,      setRefusMotif]       = useState('')
   const [annulerTarget,   setAnnulerTarget]    = useState<string | null>(null)
@@ -1068,6 +1174,26 @@ export default function AgendaPage() {
 
   useEffect(() => {
     if (!profile?.id) return
+    db.from('praticien_etablissements')
+      .select('etablissement_id, etablissements(id, nom)')
+      .eq('praticien_id', profile.id)
+      .then(({ data }: { data: any }) => {
+        const etabs = (data ?? []).map((r: any) => ({ id: r.etablissement_id, nom: r.etablissements?.nom ?? r.etablissement_id }))
+        setEtablissements(etabs)
+      })
+  }, [profile?.id])
+
+  function toggleFiltreEtab(id: string) {
+    setFiltreEtabs(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      try { localStorage.setItem(`agenda-etab-filter-${profile?.id ?? 'x'}`, JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }
+
+  useEffect(() => {
+    if (!profile?.id) return
     const channel = supabase
       .channel(`agenda-pro-${profile.id}`)
       .on('postgres_changes', {
@@ -1121,6 +1247,10 @@ export default function AgendaPage() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  const apptsFiltres = filtreEtabs.size > 0
+    ? appts.filter(a => (a as any).etablissement_id && filtreEtabs.has((a as any).etablissement_id))
+    : appts
 
   const VIEW_OPTS: { value: CalView; icon: React.ReactNode; label: string }[] = [
     { value: 'jour',    icon: <Calendar className="h-4 w-4" />,   label: 'Jour'    },
@@ -1179,6 +1309,9 @@ export default function AgendaPage() {
         <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setShowNouveauRdv(true)}>
           Nouveau RDV
         </Button>
+        <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setShowNouveauCreneau(true)}>
+          Créneau
+        </Button>
         <Button variant="secondary" size="sm" leftIcon={<Settings2 className="h-4 w-4" />} onClick={() => setShowDispos(true)}>
           Disponibilités
         </Button>
@@ -1186,6 +1319,40 @@ export default function AgendaPage() {
           Bloquer
         </Button>
       </div>
+
+      {/* ── Filtre établissements ─────────────────────────────────────────────── */}
+      {etablissements.length > 1 && (
+        <div className="flex flex-wrap items-center gap-s-2">
+          <span className="text-small text-ink-3">Établissement :</span>
+          {etablissements.map((etab, idx) => {
+            const color  = ETABLISSEMENT_COLORS[idx % ETABLISSEMENT_COLORS.length]
+            const active = filtreEtabs.has(etab.id)
+            return (
+              <button
+                key={etab.id}
+                onClick={() => toggleFiltreEtab(etab.id)}
+                className={cn(
+                  'rounded-full border px-s-3 py-s-1 text-small font-medium transition-all',
+                  active
+                    ? 'border-transparent text-white shadow-1'
+                    : 'border-line bg-surface text-ink-3 hover:text-ink',
+                )}
+                style={active ? { backgroundColor: color, borderColor: color } : { borderColor: color, color }}
+              >
+                {etab.nom}
+              </button>
+            )
+          })}
+          {filtreEtabs.size > 0 && (
+            <button
+              onClick={() => { setFiltreEtabs(new Set()); try { localStorage.removeItem(`agenda-etab-filter-${profile?.id ?? 'x'}`) } catch {} }}
+              className="text-small text-ink-3 underline hover:text-ink"
+            >
+              Tout voir
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Main content ─────────────────────────────────────────────────────── */}
       <div className="flex gap-s-4">
@@ -1195,13 +1362,13 @@ export default function AgendaPage() {
           {loading ? (
             <Skeleton className="h-96 w-full rounded-lg" />
           ) : mainView === 'liste' ? (
-            <VueListe appts={appts} loading={loading} onApptClick={a => setSelectedAppt(a)} />
+            <VueListe appts={apptsFiltres} loading={loading} onApptClick={a => setSelectedAppt(a)} />
           ) : view === 'semaine' ? (
-            <WeekView days={weekDays} appts={appts} blocks={blocks} onApptClick={a => setSelectedAppt(a)} />
+            <WeekView days={weekDays} appts={apptsFiltres} blocks={blocks} onApptClick={a => setSelectedAppt(a)} />
           ) : view === 'jour' ? (
-            <DayView day={refDate} appts={appts} blocks={blocks} onApptClick={a => setSelectedAppt(a)} />
+            <DayView day={refDate} appts={apptsFiltres} blocks={blocks} onApptClick={a => setSelectedAppt(a)} />
           ) : (
-            <MonthView currentMonth={refDate} appts={appts} blocks={blocks} onDayClick={onMonthDayClick} />
+            <MonthView currentMonth={refDate} appts={apptsFiltres} blocks={blocks} onDayClick={onMonthDayClick} />
           )}
         </div>
 
@@ -1237,6 +1404,7 @@ export default function AgendaPage() {
 
       {/* ── Modals ────────────────────────────────────────────────────────────── */}
       <NouveauRdvModal open={showNouveauRdv} onOpenChange={setShowNouveauRdv} onCreated={loadAppts} />
+      <NouveauCreneauModal open={showNouveauCreneau} onOpenChange={setShowNouveauCreneau} etablissements={etablissements} onCreated={loadAppts} />
       <DisponibilitesModal open={showDispos} onOpenChange={setShowDispos} />
       <BloquerPeriodeModal open={showBloquer} onOpenChange={setShowBloquer} onBlocked={loadAppts} />
 
