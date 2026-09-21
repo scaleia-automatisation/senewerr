@@ -4,7 +4,7 @@ import {
   Eye, EyeOff, Camera, Pencil, Check, X, Plus, Trash2, Shield,
   ShieldCheck, Download, AlertTriangle, LogOut, ChevronRight, User,
   Phone, MapPin, Stethoscope, Syringe, Pill, AlertCircle, Lock, Mail,
-  Sun, Moon, Laptop, Globe, Clock,
+  Sun, Moon, Globe, Clock,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
@@ -204,6 +204,7 @@ function InfosTab({ data, patientId, medecin, onSave, onRefreshMedecin }: {
   onSave: (partial: Partial<PatientData>) => void; onRefreshMedecin: () => void
 }) {
   const db = supabase as any
+  const { user } = useAuth()
   const [editing, setEditing]     = useState(false)
   const [form, setForm]           = useState<Partial<PatientData>>({})
   const [nssVisible, setNssVisible] = useState(false)
@@ -319,7 +320,7 @@ function InfosTab({ data, patientId, medecin, onSave, onRefreshMedecin }: {
           </div>
           <div>
             <p className="mb-s-1 text-micro font-medium text-ink-3"><Mail className="inline h-3.5 w-3.5 mr-s-1" />Email</p>
-            <p className={readCls + ' text-ink-3'}>{useAuth().user?.email ?? '—'} <span className="text-micro">(modifier dans Sécurité)</span></p>
+            <p className={readCls + ' text-ink-3'}>{user?.email ?? '—'} <span className="text-micro">(modifier dans Sécurité)</span></p>
           </div>
         </div>
       </div>
@@ -569,7 +570,12 @@ function SecuriteTab({ patientId }: { patientId: string }) {
   async function deleteAccount() {
     if (deleteInput !== 'SUPPRIMER') return
     setDeleting(true)
-    await supabase.functions.invoke('delete-patient-account', { body: { patientId } })
+    const { error: deleteErr } = await supabase.functions.invoke('delete-patient-account', { body: { patientId } })
+    if (deleteErr) {
+      toast.error('Erreur lors de la demande de suppression. Réessayez.')
+      setDeleting(false)
+      return
+    }
     // Notification admin
     try {
       await db2.from('notifications').insert({

@@ -659,20 +659,23 @@ export default function FamilyPage() {
   async function removeMembre() {
     if (!removeTarget) return
     setRemoving(true)
-    await db.from('membres_famille').delete().eq('id', removeTarget.id)
+    await db.from('membres_famille').update({ deleted_at: new Date().toISOString() }).eq('id', removeTarget.id)
 
-    // Notifier si membre avec compte
+    // Notifier si membre avec compte (résoudre auth UUID → profiles.id)
     if (removeTarget.membre_user_id) {
       try {
-        await db.from('notifications').insert({
-          event_type: 'famille_retrait',
-          title: 'Accès famille retiré',
-          message: `Votre accès au dossier familial a été retiré.`,
-          badge_category: 'famille',
-          priority: 'normal',
-          target_user_id: removeTarget.membre_user_id,
-          data: {},
-        })
+        const { data: memberProfile } = await db.from('profiles').select('id').eq('user_id', removeTarget.membre_user_id).single()
+        if (memberProfile?.id) {
+          await db.from('notifications').insert({
+            event_type: 'famille_retrait',
+            title: 'Accès famille retiré',
+            message: `Votre accès au dossier familial a été retiré.`,
+            badge_category: 'famille',
+            priority: 'normal',
+            user_id: memberProfile.id,
+            data: {},
+          })
+        }
       } catch { /* non-bloquant */ }
     }
 

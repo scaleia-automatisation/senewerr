@@ -3,7 +3,7 @@ import { format, isPast } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   CreditCard, Download, FileText, AlertTriangle, CheckCircle,
-  Clock, XCircle, Plus, Trash2, Upload, Paperclip, X, RefreshCw,
+  Clock, Plus, Trash2, Upload, Paperclip, X, RefreshCw,
 } from 'lucide-react'
 import { loadStripe, type Stripe, type StripeCardElement } from '@stripe/stripe-js'
 import { supabase } from '@/lib/supabase'
@@ -551,7 +551,7 @@ function AddCardModal({ open, onClose, onSaved }: {
     setError(null)
     Promise.all([
       stripePromise,
-      supabase.functions.invoke('create-setup-intent'),
+      supabase.functions.invoke('create-setup-intent', { body: {} }),
     ]).then(([s, { data }]) => {
       setStripeObj(s)
       setClientSecret(data?.clientSecret ?? null)
