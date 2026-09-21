@@ -157,6 +157,13 @@ export default function NotificationsPage() {
   // Realtime — nouvelles notifs
   useEffect(() => {
     if (!profile?.id) return
+    // Événements critiques : toast persistant (durée Infinie) + email géré côté EF
+    const CRITICAL_EVENTS = new Set([
+      'PAYMENT_FAILED',
+      'COVERAGE_REJECTED',
+      'PRESCRIPTION_PROBLEM_REPORTED',
+    ])
+
     const ch = supabase
       .channel(`notifs-pro-${profile.id}`)
       .on('postgres_changes', {
@@ -166,8 +173,13 @@ export default function NotificationsPage() {
         filter: `user_id=eq.${profile.id}`,
       }, payload => {
         const n = payload.new as Notif
-        const label = EVENT_LABEL[n.event_type] ?? 'Notification'
-        toast(n.message || label, { icon: '🔔' })
+        const msg = n.message || (EVENT_LABEL[n.event_type] ?? 'Notification')
+        if (CRITICAL_EVENTS.has(n.event_type)) {
+          // Persistant — le praticien doit explicitement fermer
+          toast.error(msg, { duration: Infinity, icon: '⚠️' })
+        } else {
+          toast(msg, { duration: 5000, icon: '🔔' })
+        }
         load()
         refreshAll()
       })
