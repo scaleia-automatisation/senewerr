@@ -1,4 +1,4 @@
-import { lazy, useMemo } from 'react'
+import { lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 import { PraticienProvider } from '@/features/professional/PraticienContext'
@@ -13,7 +13,9 @@ const PatientsPage           = lazy(() => import('@/features/professional/Patien
 const DossierPatientPage     = lazy(() => import('@/features/professional/DossierPatientPage'))
 const ConsultationPage       = lazy(() => import('@/features/professional/ConsultationPage'))
 const ConsultationsListPage  = lazy(() => import('@/features/professional/ConsultationsListPage'))
-const NewPrescriptionPage    = lazy(() => import('@/features/professional/NewPrescriptionPage'))
+const OrdonnancesListPage    = lazy(() => import('@/features/professional/OrdonnancesListPage'))
+const OrdonnanceEditorPage   = lazy(() => import('@/features/professional/OrdonnanceEditorPage'))
+const OrdonnanceDetailPage   = lazy(() => import('@/features/professional/OrdonnanceDetailPage'))
 const SubscriptionPage       = lazy(() => import('@/features/billing/SubscriptionPage'))
 
 // ── Route guard ───────────────────────────────────────────────────────────────
@@ -37,10 +39,11 @@ export default function ProfessionalRoutes() {
               <Route path="agenda"                      element={<AgendaPage />} />
               <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
               <Route path="consultations/nouvelle"      element={<ConsultationPage />} />
-              <Route path="ordonnances/nouvelle"        element={<NewPrescriptionPage />} />
+              <Route path="ordonnances/nouvelle"        element={<OrdonnanceEditorPage />} />
+              <Route path="ordonnances/:id"             element={<OrdonnanceDetailPage />} />
+              <Route path="ordonnances"                 element={<OrdonnancesListPage />} />
               <Route path="patients" index              element={<PatientsPage />} />
-              <Route path="patients/:id"              element={<DossierPatientPage />} />
-              <Route path="ordonnances/*"               element={<ComingSoon title="Ordonnances" />} />
+              <Route path="patients/:id"                element={<DossierPatientPage />} />
               <Route path="consultations"               element={<ConsultationsListPage />} />
               <Route path="tiers-payant/*"              element={<ComingSoon title="Tiers Payant" />} />
               <Route path="paiements/*"                 element={<ComingSoon title="Paiements" />} />
