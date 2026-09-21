@@ -9,6 +9,8 @@ import { useAuth } from '@/features/auth/useAuth'
 // ── Pages lazy ────────────────────────────────────────────────────────────────
 const ProfessionalDashboard = lazy(() => import('@/features/professional/ProfessionalDashboard'))
 const AgendaPage             = lazy(() => import('@/features/professional/AgendaPage'))
+const PatientsPage           = lazy(() => import('@/features/professional/PatientsPage'))
+const DossierPatientPage     = lazy(() => import('@/features/professional/DossierPatientPage'))
 const ConsultationPage       = lazy(() => import('@/features/professional/ConsultationPage'))
 const NewPrescriptionPage    = lazy(() => import('@/features/professional/NewPrescriptionPage'))
 const SubscriptionPage       = lazy(() => import('@/features/billing/SubscriptionPage'))
@@ -34,7 +36,8 @@ export default function ProfessionalRoutes() {
               <Route path="agenda"                      element={<AgendaPage />} />
               <Route path="consultation/:appointmentId" element={<ConsultationPage />} />
               <Route path="ordonnances/nouvelle"        element={<NewPrescriptionPage />} />
-              <Route path="patients/*"                  element={<ComingSoon title="Mes patients" />} />
+              <Route path="patients" index              element={<PatientsPage />} />
+              <Route path="patients/:id"              element={<DossierPatientPage />} />
               <Route path="ordonnances/*"               element={<ComingSoon title="Ordonnances" />} />
               <Route path="consultations/*"             element={<ComingSoon title="Consultations" />} />
               <Route path="tiers-payant/*"              element={<ComingSoon title="Tiers Payant" />} />
