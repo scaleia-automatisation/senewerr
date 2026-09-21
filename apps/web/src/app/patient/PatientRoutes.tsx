@@ -21,6 +21,7 @@ const FamilyPage              = lazy(() => import('@/features/patient/FamilyPage
 const DocumentsPage           = lazy(() => import('@/features/patient/DocumentsPage'))
 const HistoryPage             = lazy(() => import('@/features/patient/HistoryPage'))
 const NotificationsPage       = lazy(() => import('@/features/notifications/NotificationsPage'))
+const ProfilPage              = lazy(() => import('@/features/patient/ProfilPage'))
 
 function PatientAppLayout() {
   const { notifications, invoices } = usePatientBadges()
@@ -59,7 +60,7 @@ export default function PatientRoutes() {
           <Route path="famille"                    element={<FamilyPage />} />
           <Route path="historique"                 element={<HistoryPage />} />
           <Route path="notifications"              element={<NotificationsPage />} />
-          <Route path="profil/*"                   element={<ComingSoon title="Mon profil" />} />
+          <Route path="profil/*"                   element={<ProfilPage />} />
           <Route path="*"                          element={<ComingSoon title="Page introuvable" />} />
         </Route>
       </Routes>
