@@ -3,6 +3,7 @@ import {
   FolderClosed, Users, Bell, User, Pill, Stethoscope, Building2,
   LayoutDashboard, ClipboardList, Package, BarChart2, Settings,
   Wallet, AlertTriangle, Shield, FileCheck, Video, HelpCircle,
+  RefreshCw, BookOpen, Coins,
 } from 'lucide-react'
 import type { SpaceNav } from '@/components/layout/nav-types'
 
@@ -72,14 +73,17 @@ export const PHARMACY_NAV: SpaceNav = {
 export const MUTUAL_NAV: SpaceNav = {
   roleLabel: 'Mutuelle / Assurance',
   links: [
-    { href: '/mutuelle',                  label: 'À traiter',    icon: <LayoutDashboard className={ic} />, primary: true },
-    { href: '/mutuelle/prises-en-charge', label: 'Demandes',     icon: <FileCheck className={ic} />,       primary: true },
-    { href: '/mutuelle/membres',          label: 'Assurés',      icon: <Users className={ic} />,           primary: true },
-    { href: '/mutuelle/paiements',        label: 'Paiements',    icon: <CreditCard className={ic} />,      primary: true },
-    { href: '/mutuelle/regles',           label: 'Règles',       icon: <ClipboardList className={ic} /> },
-    { href: '/mutuelle/statistiques',     label: 'Statistiques', icon: <BarChart2 className={ic} /> },
-    { href: '/mutuelle/notifications',    label: 'Notifications', icon: <Bell className={ic} /> },
-    { href: '/mutuelle/parametres',       label: 'Paramètres',   icon: <Settings className={ic} /> },
+    { href: '/mutuelle',                  label: 'Accueil',       icon: <Home className={ic} />,            primary: true },
+    { href: '/mutuelle/adherents',        label: 'Adhérents',     icon: <Users className={ic} />,           primary: true },
+    { href: '/mutuelle/demandes',         label: 'Demandes',      icon: <FileCheck className={ic} />,       primary: true },
+    { href: '/mutuelle/contrats',         label: 'Contrats',      icon: <BookOpen className={ic} /> },
+    { href: '/mutuelle/cotisations',      label: 'Cotisations',   icon: <Coins className={ic} /> },
+    { href: '/mutuelle/tiers-payant',     label: 'Tiers Payant',  icon: <RefreshCw className={ic} />,       primary: true },
+    { href: '/mutuelle/paiements',        label: 'Paiements',     icon: <CreditCard className={ic} /> },
+    { href: '/mutuelle/documents',        label: 'Documents',     icon: <FolderClosed className={ic} /> },
+    { href: '/mutuelle/statistiques',     label: 'Statistiques',  icon: <BarChart2 className={ic} /> },
+    { href: '/mutuelle/notifications',    label: 'Notifications', icon: <Bell className={ic} />,            primary: true },
+    { href: '/mutuelle/parametres',       label: 'Paramètres',    icon: <Settings className={ic} /> },
   ],
 }
 
