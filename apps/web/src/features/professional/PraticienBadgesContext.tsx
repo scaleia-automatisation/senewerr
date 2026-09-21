@@ -38,8 +38,8 @@ export function PraticienBadgesProvider({ children }: { children: ReactNode }) {
       db.from('appointments')
         .select('*', { count: 'exact', head: true })
         .eq('professional_id', profile.id)
-        .gte('start_time', `${today}T00:00:00`)
-        .lt('start_time', `${today}T23:59:59`)
+        .gte('starts_at', `${today}T00:00:00`)
+        .lt('starts_at', `${today}T23:59:59`)
         .not('status', 'in', '("cancelled_patient","cancelled_professional","no_show")'),
       db.from('tiers_payant_demandes')
         .select('*', { count: 'exact', head: true })
