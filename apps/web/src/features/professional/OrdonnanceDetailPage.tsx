@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
-import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { ConfirmModal } from '@/components/mutuelle/ConfirmModal'
 
 function ordNumero(id: string): string {
   return `ORD-${id.slice(-8).toUpperCase()}`

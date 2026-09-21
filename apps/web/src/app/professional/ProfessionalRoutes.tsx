@@ -17,6 +17,8 @@ const OrdonnancesListPage    = lazy(() => import('@/features/professional/Ordonn
 const OrdonnanceEditorPage   = lazy(() => import('@/features/professional/OrdonnanceEditorPage'))
 const OrdonnanceDetailPage   = lazy(() => import('@/features/professional/OrdonnanceDetailPage'))
 const TiersPayantPage        = lazy(() => import('@/features/professional/TiersPayantPage'))
+const DocumentsPage          = lazy(() => import('@/features/professional/DocumentsPage'))
+const EtablissementsPage     = lazy(() => import('@/features/professional/EtablissementsPage'))
 const SubscriptionPage       = lazy(() => import('@/features/billing/SubscriptionPage'))
 
 // ── Route guard ───────────────────────────────────────────────────────────────
@@ -48,7 +50,8 @@ export default function ProfessionalRoutes() {
               <Route path="consultations"               element={<ConsultationsListPage />} />
               <Route path="tiers-payant"                element={<TiersPayantPage />} />
               <Route path="paiements/*"                 element={<ComingSoon title="Paiements" />} />
-              <Route path="documents/*"                 element={<ComingSoon title="Documents" />} />
+              <Route path="documents"                   element={<DocumentsPage />} />
+              <Route path="etablissements"              element={<EtablissementsPage />} />
               <Route path="statistiques/*"              element={<ComingSoon title="Statistiques" />} />
               <Route path="notifications"               element={<ComingSoon title="Notifications" />} />
               <Route path="abonnement"                  element={<SubscriptionPage />} />
