@@ -59,10 +59,15 @@ const MED_DATASET: string[] = [
   'Codéine 30mg',
 ]
 
+const FORME_OPTS = ['', 'Comprimé', 'Gélule', 'Liquide', 'Injection', 'Crème', 'Sirop', 'Suppositoire', 'Patch', 'Gouttes']
+const FREQUENCE_OPTS = ['', '1×/jour', '2×/jour', '3×/jour', '4×/jour', 'Matin et soir', 'Toutes les 8h', 'Toutes les 12h', 'Si besoin', 'En une prise']
+
 interface Medicament {
   id: string
   nom: string
+  forme: string
   dosage: string
+  frequence: string
   posologie: string
   duree: string
   quantite: string
@@ -165,11 +170,19 @@ function MedRow({
       </div>
 
       <div className="grid grid-cols-2 gap-s-2 pl-7">
+        <select value={med.forme} onChange={e => onChange(med.id, 'forme', e.target.value)}
+          className="rounded-lg border border-line bg-surface px-s-3 py-s-1.5 text-small text-ink focus:border-primary focus:outline-none">
+          {FORME_OPTS.map(f => <option key={f} value={f}>{f || 'Forme…'}</option>)}
+        </select>
         <input value={med.dosage} onChange={e => onChange(med.id, 'dosage', e.target.value)}
-          placeholder="Dosage (ex: 1 comprimé)"
+          placeholder="Dosage (ex: 500mg)"
           className="rounded-lg border border-line px-s-3 py-s-1.5 text-small text-ink placeholder:text-ink-3 focus:border-primary focus:outline-none" />
+        <select value={med.frequence} onChange={e => onChange(med.id, 'frequence', e.target.value)}
+          className="rounded-lg border border-line bg-surface px-s-3 py-s-1.5 text-small text-ink focus:border-primary focus:outline-none">
+          {FREQUENCE_OPTS.map(f => <option key={f} value={f}>{f || 'Fréquence…'}</option>)}
+        </select>
         <input value={med.posologie} onChange={e => onChange(med.id, 'posologie', e.target.value)}
-          placeholder="Posologie (ex: 3×/jour)"
+          placeholder="Posologie libre"
           className="rounded-lg border border-line px-s-3 py-s-1.5 text-small text-ink placeholder:text-ink-3 focus:border-primary focus:outline-none" />
         <input value={med.duree} onChange={e => onChange(med.id, 'duree', e.target.value)}
           placeholder="Durée (ex: 7 jours)"
@@ -189,7 +202,7 @@ function MedRow({
 }
 
 function newMed(): Medicament {
-  return { id: crypto.randomUUID(), nom: '', dosage: '', posologie: '', duree: '', quantite: '', instructions: '' }
+  return { id: crypto.randomUUID(), nom: '', forme: '', dosage: '', frequence: '', posologie: '', duree: '', quantite: '', instructions: '' }
 }
 
 // ── Composant principal ───────────────────────────────────────────────────────
@@ -198,9 +211,10 @@ export default function OrdonnanceEditorPage() {
   const navigate     = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const patientIdParam     = searchParams.get('patient')
+  const patientIdParam      = searchParams.get('patient')
   const consultationIdParam = searchParams.get('consultation')
-  const diagnosticParam    = searchParams.get('diagnostic')
+  const diagnosticParam     = searchParams.get('diagnostic')
+  const renewIdParam        = searchParams.get('renew')
 
   const [patients, setPatients] = useState<PatientInfo[]>([])
   const [selectedPatientId, setSelectedPatientId] = useState(patientIdParam ?? '')
@@ -208,7 +222,10 @@ export default function OrdonnanceEditorPage() {
   const [meds, setMeds] = useState<Medicament[]>([newMed()])
   const [notes, setNotes] = useState('')
   const [dureeValidite, setDureeValidite] = useState('30')
+  const [renouvelable, setRenouvelable] = useState(false)
+  const [nbRenouvellements, setNbRenouvellements] = useState(1)
   const [saving, setSaving] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
   const [result, setResult] = useState<{
     ordonnance_id: string
     qr_data_url: string | null
@@ -235,6 +252,38 @@ export default function OrdonnanceEditorPage() {
         setPatients(pts)
       })
   }, [profile?.id])
+
+  // Prefill from renew param
+  useEffect(() => {
+    if (!renewIdParam || !profile?.id) return
+    db.from('ordonnances')
+      .select(`
+        patient_id, notes,
+        ordonnance_medicaments ( nom_medicament, dosage, posologie, duree, quantite, instructions_speciales, ordre )
+      `)
+      .eq('id', renewIdParam)
+      .eq('praticien_id', profile.id)
+      .maybeSingle()
+      .then(({ data }: any) => {
+        if (!data) return
+        if (data.patient_id && !patientIdParam) setSelectedPatientId(data.patient_id)
+        if (data.notes) setNotes(data.notes)
+        const medsFromRenew: Medicament[] = (data.ordonnance_medicaments ?? [])
+          .sort((a: any, b: any) => a.ordre - b.ordre)
+          .map((m: any) => ({
+            id:           crypto.randomUUID(),
+            nom:          m.nom_medicament,
+            forme:        '',
+            dosage:       m.dosage ?? '',
+            frequence:    '',
+            posologie:    m.posologie ?? '',
+            duree:        m.duree ?? '',
+            quantite:     m.quantite ?? '',
+            instructions: m.instructions_speciales ?? '',
+          }))
+        if (medsFromRenew.length > 0) setMeds(medsFromRenew)
+      })
+  }, [renewIdParam, profile?.id])
 
   // Load selected patient allergies
   useEffect(() => {
@@ -268,6 +317,19 @@ export default function OrdonnanceEditorPage() {
     allergenesDetectes.some(a => m.nom.toLowerCase().includes(a.toLowerCase()))
   )
 
+  function buildMedPayload(m: Medicament) {
+    return {
+      nom:          m.nom.trim(),
+      forme:        m.forme.trim() || null,
+      dosage:       m.dosage.trim() || null,
+      frequence:    m.frequence.trim() || null,
+      posologie:    m.posologie.trim() || null,
+      duree:        m.duree.trim() || null,
+      quantite:     m.quantite.trim() || null,
+      instructions: m.instructions.trim() || null,
+    }
+  }
+
   async function handleSubmit() {
     if (!selectedPatientId) { toast.error('Sélectionnez un patient'); return }
     const validMeds = meds.filter(m => m.nom.trim())
@@ -285,18 +347,13 @@ export default function OrdonnanceEditorPage() {
       const expDate = new Date(Date.now() + parseInt(dureeValidite) * 24 * 60 * 60 * 1000).toISOString()
       const { data, error } = await supabase.functions.invoke('create-ordonnance', {
         body: {
-          patient_id:       selectedPatientId,
-          consultation_id:  consultationIdParam ?? null,
-          medicaments:      validMeds.map(m => ({
-            nom:          m.nom.trim(),
-            dosage:       m.dosage.trim() || null,
-            posologie:    m.posologie.trim() || null,
-            duree:        m.duree.trim() || null,
-            quantite:     m.quantite.trim() || null,
-            instructions: m.instructions.trim() || null,
-          })),
-          notes:            notes.trim() || null,
-          date_expiration:  expDate,
+          patient_id:          selectedPatientId,
+          consultation_id:     consultationIdParam ?? null,
+          medicaments:         validMeds.map(buildMedPayload),
+          notes:               notes.trim() || null,
+          date_expiration:     expDate,
+          renouvelable:        renouvelable,
+          nb_renouvellements:  renouvelable ? nbRenouvellements : null,
         },
       })
 
@@ -309,6 +366,53 @@ export default function OrdonnanceEditorPage() {
       toast.error('Erreur lors de la création de l\'ordonnance')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleSaveDraft() {
+    if (!selectedPatientId) { toast.error('Sélectionnez un patient'); return }
+    const validMeds = meds.filter(m => m.nom.trim())
+    if (validMeds.length === 0) { toast.error('Ajoutez au moins un médicament'); return }
+
+    setSavingDraft(true)
+    try {
+      const expDate = new Date(Date.now() + parseInt(dureeValidite) * 24 * 60 * 60 * 1000).toISOString()
+      const { data: ord, error: ordErr } = await (db as any)
+        .from('ordonnances')
+        .insert({
+          praticien_id:        profile!.id,
+          patient_id:          selectedPatientId,
+          consultation_id:     consultationIdParam ?? null,
+          statut:              'brouillon',
+          date_prescription:   new Date().toISOString(),
+          date_expiration:     expDate,
+          notes:               notes.trim() || null,
+          renouvelable:        renouvelable,
+          nb_renouvellements:  renouvelable ? nbRenouvellements : null,
+        })
+        .select('id')
+        .single()
+
+      if (ordErr || !ord) throw ordErr
+
+      const medsRows = validMeds.map((m, i) => ({
+        ordonnance_id:         ord.id,
+        nom_medicament:        m.nom.trim(),
+        dosage:                m.dosage.trim() || null,
+        posologie:             m.posologie.trim() || null,
+        duree:                 m.duree.trim() || null,
+        quantite:              m.quantite.trim() || null,
+        instructions_speciales: m.instructions.trim() || null,
+        ordre:                 i,
+      }))
+      await db.from('ordonnance_medicaments').insert(medsRows)
+
+      toast.success('Brouillon enregistré')
+      navigate(`/pro/ordonnances/${ord.id}`)
+    } catch {
+      toast.error('Erreur lors de l\'enregistrement du brouillon')
+    } finally {
+      setSavingDraft(false)
     }
   }
 
@@ -493,7 +597,7 @@ ${notes ? `<div class="notes"><strong>Notes :</strong> ${notes}</div>` : ''}
         </Button>
       </Card>
 
-      {/* Notes + Durée validité */}
+      {/* Notes + Durée + Renouvelable */}
       <Card className="p-s-4 flex flex-col gap-s-3">
         <h2 className="text-small font-semibold text-ink">Informations complémentaires</h2>
         <textarea
@@ -517,6 +621,27 @@ ${notes ? `<div class="notes"><strong>Notes :</strong> ${notes}</div>` : ''}
             <option value="90">90 jours</option>
           </select>
         </div>
+        <label className="flex items-center gap-s-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={renouvelable}
+            onChange={e => setRenouvelable(e.target.checked)}
+            className="h-4 w-4 rounded border-line accent-primary"
+          />
+          <span className="text-small text-ink">Ordonnance renouvelable</span>
+        </label>
+        {renouvelable && (
+          <div className="flex items-center gap-s-3 ml-s-6">
+            <label className="text-small text-ink-3 whitespace-nowrap">Nb de renouvellements :</label>
+            <select
+              value={nbRenouvellements}
+              onChange={e => setNbRenouvellements(Number(e.target.value))}
+              className="rounded-lg border border-line bg-surface px-s-3 py-s-2 text-small text-ink focus:border-primary focus:outline-none"
+            >
+              {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        )}
       </Card>
 
       {/* Allergie globale warning */}
@@ -531,13 +656,21 @@ ${notes ? `<div class="notes"><strong>Notes :</strong> ${notes}</div>` : ''}
       )}
 
       {/* Actions */}
-      <div className="flex justify-end gap-s-2">
+      <div className="flex justify-end gap-s-2 flex-wrap">
         <Button variant="ghost" onClick={() => navigate(-1)}>Annuler</Button>
+        <Button
+          variant="secondary"
+          leftIcon={savingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+          onClick={handleSaveDraft}
+          disabled={savingDraft || saving}
+        >
+          {savingDraft ? 'Enregistrement…' : 'Enregistrer brouillon'}
+        </Button>
         <Button
           variant="primary"
           leftIcon={saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
           onClick={handleSubmit}
-          disabled={saving}
+          disabled={saving || savingDraft}
         >
           {saving ? 'Génération…' : 'Créer et générer QR'}
         </Button>

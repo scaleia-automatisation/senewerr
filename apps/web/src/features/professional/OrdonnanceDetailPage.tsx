@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pill, QrCode, AlertTriangle, RefreshCw, X, Printer, ShieldAlert } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, Pill, QrCode, AlertTriangle, RefreshCw, X, Printer, ShieldAlert, Share2, ShieldOff, Copy, Clock } from 'lucide-react'
 import { format, parseISO, isPast } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -12,6 +12,10 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+
+function ordNumero(id: string): string {
+  return `ORD-${id.slice(-8).toUpperCase()}`
+}
 
 interface Medicament {
   id: string
@@ -30,7 +34,7 @@ interface OrdonnanceDetail {
   patient_name: string
   patient_avatar?: string | null
   praticien_id: string
-  statut: 'active' | 'dispensee' | 'annulee' | 'expiree'
+  statut: 'active' | 'dispensee' | 'annulee' | 'expiree' | 'brouillon'
   date_prescription: string
   date_expiration: string
   notes?: string | null
@@ -41,7 +45,22 @@ interface OrdonnanceDetail {
   medicaments: Medicament[]
 }
 
-const STATUT_VARIANT: Record<string, 'success' | 'accent' | 'danger' | 'neutral'> = {
+interface ShareInfo {
+  id: string
+  shared_with: string
+  shared_at: string
+  expires_at?: string | null
+  revoked_at?: string | null
+}
+
+interface TimelineEvent {
+  date: string
+  label: string
+  variant: 'success' | 'neutral' | 'danger' | 'pending'
+}
+
+const STATUT_VARIANT: Record<string, 'success' | 'accent' | 'danger' | 'neutral' | 'pending'> = {
+  brouillon: 'pending',
   active:    'success',
   dispensee: 'accent',
   annulee:   'danger',
@@ -49,6 +68,7 @@ const STATUT_VARIANT: Record<string, 'success' | 'accent' | 'danger' | 'neutral'
 }
 
 const STATUT_LABEL: Record<string, string> = {
+  brouillon: 'Brouillon',
   active:    'Active',
   dispensee: 'Dispensée',
   annulee:   'Annulée',
@@ -68,6 +88,16 @@ export default function OrdonnanceDetailPage() {
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [motifAnnulation, setMotifAnnulation] = useState('')
+
+  // Partager / Révoquer
+  const [showShare, setShowShare] = useState(false)
+  const [shareEmail, setShareEmail] = useState('')
+  const [sharing, setSharing] = useState(false)
+  const [shares, setShares] = useState<ShareInfo[]>([])
+  const [revoking, setRevoking] = useState<string | null>(null)
+
+  // Timeline
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([])
 
   useEffect(() => {
     if (!id || !profile?.id) return
@@ -109,7 +139,7 @@ export default function OrdonnanceDetailPage() {
       statut = 'expiree'
     }
 
-    setOrd({
+    const ordData: OrdonnanceDetail = {
       id:                data.id,
       patient_id:        data.patient_id,
       patient_name:      data.patient?.full_name ?? '—',
@@ -124,8 +154,70 @@ export default function OrdonnanceDetailPage() {
       qr_invalidated_at: data.qr_invalidated_at,
       consultation_id:   data.consultation_id,
       medicaments:       meds,
-    })
+    }
+    setOrd(ordData)
+
+    // Build timeline
+    const tl: TimelineEvent[] = [
+      { date: data.date_prescription, label: 'Ordonnance prescrite', variant: 'success' },
+    ]
+    if (data.qr_invalidated_at) {
+      tl.push({ date: data.qr_invalidated_at, label: 'QR invalidé', variant: 'danger' })
+    }
+    if (statut === 'dispensee') {
+      tl.push({ date: data.date_expiration, label: 'Dispensée en pharmacie', variant: 'accent' as any })
+    }
+    if (statut === 'annulee') {
+      tl.push({ date: data.date_expiration, label: 'Annulée', variant: 'danger' })
+    }
+    if (statut === 'expiree') {
+      tl.push({ date: data.date_expiration, label: 'Expirée', variant: 'neutral' })
+    }
+    tl.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    setTimeline(tl)
+
+    // Load shares
+    const { data: sharesData } = await db.from('ordonnance_shares')
+      .select('id, shared_with, shared_at, expires_at, revoked_at')
+      .eq('ordonnance_id', id)
+      .order('shared_at', { ascending: false })
+    setShares(sharesData ?? [])
+
     setLoading(false)
+  }
+
+  async function handleShare() {
+    if (!id || !shareEmail.trim()) return
+    setSharing(true)
+    try {
+      const { error } = await supabase.functions.invoke('share-prescription', {
+        body: { ordonnance_id: id, shared_with: shareEmail.trim() },
+      })
+      if (error) throw error
+      toast.success('Ordonnance partagée')
+      setShareEmail('')
+      await load()
+    } catch {
+      toast.error('Erreur lors du partage')
+    } finally {
+      setSharing(false)
+    }
+  }
+
+  async function handleRevoke(shareId: string) {
+    setRevoking(shareId)
+    try {
+      const { error } = await supabase.functions.invoke('revoke-prescription-share', {
+        body: { share_id: shareId },
+      })
+      if (error) throw error
+      toast.success('Accès révoqué')
+      await load()
+    } catch {
+      toast.error('Erreur lors de la révocation')
+    } finally {
+      setRevoking(null)
+    }
   }
 
   async function handleAnnuler() {
@@ -257,8 +349,15 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-h4 font-semibold text-ink">Ordonnance</h1>
-          <p className="text-micro text-ink-3">{ord.patient_name}</p>
+          <div className="flex items-center gap-s-2">
+            <h1 className="text-h4 font-semibold text-ink">Ordonnance</h1>
+            <span className="font-mono text-micro text-ink-3 rounded bg-surface-2 px-s-1.5 py-0.5">
+              {ordNumero(ord.id)}
+            </span>
+          </div>
+          <Link to={`/pro/patients/${ord.patient_id}`} className="text-micro text-primary hover:underline">
+            {ord.patient_name}
+          </Link>
         </div>
         <Badge variant={STATUT_VARIANT[ord.statut] ?? 'neutral'}>
           {STATUT_LABEL[ord.statut] ?? ord.statut}
@@ -324,6 +423,31 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
         </div>
       </Card>
 
+      {/* Timeline */}
+      {timeline.length > 0 && (
+        <Card className="p-s-4">
+          <div className="flex items-center gap-s-2 mb-s-3">
+            <Clock className="h-4 w-4 text-ink-3" />
+            <h2 className="text-small font-semibold text-ink">Historique</h2>
+          </div>
+          <ol className="relative border-l border-line ml-s-2 flex flex-col gap-s-3">
+            {timeline.map((ev, i) => (
+              <li key={i} className="ml-s-4 relative">
+                <span className={`absolute -left-s-5 flex h-3 w-3 items-center justify-center rounded-full mt-s-1 ${
+                  ev.variant === 'success' ? 'bg-success' :
+                  ev.variant === 'danger'  ? 'bg-danger'  :
+                  ev.variant === 'neutral' ? 'bg-ink-3'   : 'bg-secondary'
+                }`} />
+                <p className="text-small font-medium text-ink">{ev.label}</p>
+                <p className="text-micro text-ink-3">
+                  {format(parseISO(ev.date), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex flex-wrap gap-s-2">
         {ord.statut === 'active' && (
@@ -335,6 +459,15 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
             QR Code
           </Button>
         )}
+        {ord.statut === 'active' && (
+          <Button
+            variant="secondary"
+            leftIcon={<Share2 className="h-4 w-4" />}
+            onClick={() => setShowShare(true)}
+          >
+            Partager
+          </Button>
+        )}
         <Button
           variant="secondary"
           leftIcon={<Printer className="h-4 w-4" />}
@@ -344,10 +477,10 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
         </Button>
         <Button
           variant="ghost"
-          leftIcon={<RefreshCw className="h-4 w-4" />}
+          leftIcon={<Copy className="h-4 w-4" />}
           onClick={handleRenouveler}
         >
-          Renouveler
+          Dupliquer
         </Button>
         {ord.statut === 'active' && (
           <Button
@@ -359,6 +492,56 @@ ${ord.notes ? `<div style="margin-top:16px;padding:8px;border-left:3px solid #1A
           </Button>
         )}
       </div>
+
+      {/* Partager Modal */}
+      <Modal open={showShare} onOpenChange={setShowShare} title="Partager l'ordonnance">
+        <div className="flex flex-col gap-s-4 p-s-4">
+          <p className="text-small text-ink-3">
+            Partagez l'accès à cette ordonnance avec un pharmacien ou un confrère par e-mail.
+          </p>
+          <div className="flex gap-s-2">
+            <input
+              value={shareEmail}
+              onChange={e => setShareEmail(e.target.value)}
+              placeholder="E-mail du destinataire…"
+              className="flex-1 rounded-lg border border-line bg-surface px-s-3 py-s-2 text-small text-ink placeholder:text-ink-3 focus:border-primary focus:outline-none"
+              onKeyDown={e => { if (e.key === 'Enter') handleShare() }}
+            />
+            <Button variant="primary" onClick={handleShare} disabled={sharing || !shareEmail.trim()}>
+              {sharing ? 'Envoi…' : 'Envoyer'}
+            </Button>
+          </div>
+
+          {shares.length > 0 && (
+            <div className="flex flex-col gap-s-2">
+              <p className="text-micro text-ink-3 font-semibold uppercase">Accès existants</p>
+              {shares.map(s => (
+                <div key={s.id} className="flex items-center gap-s-2 rounded-lg border border-line p-s-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-small font-medium text-ink truncate">{s.shared_with}</p>
+                    <p className="text-micro text-ink-3">
+                      Partagé le {format(parseISO(s.shared_at), 'dd/MM/yyyy', { locale: fr })}
+                      {s.revoked_at && (
+                        <span className="ml-s-2 text-danger">(révoqué)</span>
+                      )}
+                    </p>
+                  </div>
+                  {!s.revoked_at && (
+                    <button
+                      onClick={() => handleRevoke(s.id)}
+                      disabled={revoking === s.id}
+                      className="shrink-0 rounded p-s-1 text-danger hover:bg-danger/10 transition-colors disabled:opacity-50"
+                      title="Révoquer l'accès"
+                    >
+                      <ShieldOff className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Modal>
 
       {/* QR Modal */}
       <Modal open={showQr} onOpenChange={setShowQr} title="QR Code — Ordonnance">
