@@ -469,7 +469,7 @@ function ReglesSection({ mutuelle, onUpdate }: { mutuelle: Mutuelle; onUpdate: (
             </Field>
             <Field label="Retard cotisation bloquant TP (jours)">
               <input type="number" min={0} value={retardSeuil} onChange={e => setRetardSeuil(Number(e.target.value))} className={inputCls} />
-              <p className="text-xs text-gray-400 mt-1">Si retard > ce seuil : TP bloqué</p>
+              <p className="text-xs text-gray-400 mt-1">{'Si retard > ce seuil : TP bloqué'}</p>
             </Field>
           </div>
         </div>

@@ -28,15 +28,17 @@ export const PATIENT_NAV: SpaceNav = {
 export const PROFESSIONAL_NAV: SpaceNav = {
   roleLabel: 'Professionnel de santé',
   links: [
-    { href: '/pro',                 label: "Aujourd'hui",   icon: <LayoutDashboard className={ic} />, primary: true },
-    { href: '/pro/agenda',          label: 'Agenda',        icon: <Calendar className={ic} />,        primary: true },
-    { href: '/pro/patients',        label: 'Patients',      icon: <Users className={ic} />,           primary: true },
-    { href: '/pro/ordonnances',     label: 'Ordonnances',   icon: <FileText className={ic} />,        primary: true },
-    { href: '/pro/consultations',   label: 'Consultations', icon: <Stethoscope className={ic} /> },
-    { href: '/pro/teleconsultation', label: 'Téléconsultation', icon: <Video className={ic} /> },
-    { href: '/pro/revenus',         label: 'Revenus',       icon: <Wallet className={ic} /> },
-    { href: '/pro/notifications',   label: 'Notifications', icon: <Bell className={ic} /> },
-    { href: '/pro/parametres',      label: 'Paramètres',    icon: <Settings className={ic} /> },
+    { href: '/pro',                  label: "Aujourd'hui",      icon: <LayoutDashboard className={ic} />, primary: true },
+    { href: '/pro/agenda',           label: 'Agenda',           icon: <Calendar className={ic} />,        primary: true },
+    { href: '/pro/patients',         label: 'Patients',         icon: <Users className={ic} />,           primary: true },
+    { href: '/pro/consultations',    label: 'Consultations',    icon: <Stethoscope className={ic} />,     primary: true },
+    { href: '/pro/ordonnances',      label: 'Ordonnances',      icon: <FileText className={ic} /> },
+    { href: '/pro/tiers-payant',     label: 'Tiers Payant',     icon: <RefreshCw className={ic} /> },
+    { href: '/pro/paiements',        label: 'Paiements',        icon: <Wallet className={ic} /> },
+    { href: '/pro/documents',        label: 'Documents',        icon: <FolderClosed className={ic} /> },
+    { href: '/pro/statistiques',     label: 'Statistiques',     icon: <BarChart2 className={ic} /> },
+    { href: '/pro/notifications',    label: 'Notifications',    icon: <Bell className={ic} /> },
+    { href: '/pro/parametres',       label: 'Paramètres',       icon: <Settings className={ic} /> },
   ],
 }
 

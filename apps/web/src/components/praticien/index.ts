@@ -1,0 +1,7 @@
+export { PatientCard } from './PatientCard'
+export { RdvSlot } from './RdvSlot'
+export { OrdonnanceItem } from './OrdonnanceItem'
+export { ConsultationNote } from './ConsultationNote'
+export { PraticienTable } from './PraticienTable'
+export { TimerConsultation } from './TimerConsultation'
+export { AllergyBadge } from './AllergyBadge'
