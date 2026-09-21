@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, Mic, MicOff, Printer, Pill, RefreshCw, Check,
   AlertTriangle, Copy, Clock, User, Stethoscope, Activity,
-  FileText, Beaker, Save,
+  FileText, Beaker, Save, Play, Phone, Sparkles, ChevronDown,
 } from 'lucide-react'
-import { format, parseISO, differenceInYears, differenceInMinutes } from 'date-fns'
+import { format, parseISO, differenceInYears, differenceInMinutes, isBefore } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
@@ -89,10 +89,24 @@ interface PatientCtx {
   date_naissance?: string | null
   sexe?: string | null
   avatar_url?: string | null
+  phone?: string | null
   allergies: string[]
   pathologies_chroniques: string[]
   groupe_sanguin?: string | null
   derniere_constante?: Record<string, number | null> | null
+}
+
+interface ConsultPrev {
+  id: string
+  date: string
+  motif: string
+  diagnostic?: string | null
+}
+
+interface TraitementActif {
+  ordonnance_id: string
+  date: string
+  medicaments: string[]
 }
 
 interface SoapForm {
@@ -342,6 +356,24 @@ export default function ConsultationPage() {
   const [consultationId, setConsultationId] = useState<string | null>(null)
   const [startTime, setStartTime] = useState<Date | null>(null)
 
+  // 5.1 — pré-consultation
+  const [starting, setStarting]     = useState(false)
+  const [consultStarted, setConsultStarted] = useState(false)
+
+  // 5.2 — contexte enrichi
+  const [consultsPrev, setConsultsPrev]       = useState<ConsultPrev[]>([])
+  const [traitements, setTraitements]         = useState<TraitementActif[]>([])
+  const [showPrevConsults, setShowPrevConsults] = useState(false)
+
+  // 5.2 — IA
+  const [aiSummary, setAiSummary]   = useState<string | null>(null)
+  const [aiLoading, setAiLoading]   = useState(false)
+  const [showAiPanel, setShowAiPanel] = useState(false)
+
+  // 5.3 — durée effective
+  const [dureeEffective, setDureeEffective] = useState<number | null>(null)
+  const [finished, setFinished]             = useState(false)
+
   const [form, setForm]       = useState<SoapForm>(EMPTY_FORM)
   const [cst, setCst]         = useState<Constantes>(EMPTY_CST)
   const [cim10Search, setCim10Search] = useState('')
@@ -411,28 +443,86 @@ export default function ConsultationPage() {
     }
 
     if (patientId) {
-      const [profRes, dossierRes, constRes] = await Promise.all([
-        db.from('profiles').select('id, full_name, date_naissance, sexe, avatar_url').eq('id', patientId).single(),
+      const [profRes, dossierRes, constRes, consultsRes, ordRes] = await Promise.all([
+        db.from('profiles').select('id, full_name, date_naissance, sexe, avatar_url, phone').eq('id', patientId).single(),
         db.from('dossiers_medicaux').select('allergies, pathologies_chroniques, groupe_sanguin').eq('patient_id', patientId).maybeSingle(),
         db.from('constantes_vitales').select('poids_kg, taille_cm, tension_systolique, tension_diastolique, frequence_cardiaque, temperature_c, saturation_o2, glycemie_mmol').eq('patient_id', patientId).order('mesure_at', { ascending: false }).limit(1).maybeSingle(),
+        db.from('consultations').select('id, date_consultation, motif, diagnostic_principal').eq('patient_id', patientId).eq('praticien_id', profile.id).neq('statut', 'in_progress').order('date_consultation', { ascending: false }).limit(5),
+        db.from('ordonnances').select('id, date_prescription, ordonnance_medicaments(nom_medicament)').eq('patient_id', patientId).eq('statut', 'active').order('date_prescription', { ascending: false }).limit(3),
       ])
+
       setPatient({
-        id:                   profRes.data?.id,
-        full_name:            profRes.data?.full_name ?? '',
-        date_naissance:       profRes.data?.date_naissance,
-        sexe:                 profRes.data?.sexe,
-        avatar_url:           profRes.data?.avatar_url,
-        allergies:            dossierRes.data?.allergies ?? [],
-        pathologies_chroniques:dossierRes.data?.pathologies_chroniques ?? [],
-        groupe_sanguin:       dossierRes.data?.groupe_sanguin,
-        derniere_constante:   constRes.data,
+        id:                    profRes.data?.id,
+        full_name:             profRes.data?.full_name ?? '',
+        date_naissance:        profRes.data?.date_naissance,
+        sexe:                  profRes.data?.sexe,
+        avatar_url:            profRes.data?.avatar_url,
+        phone:                 profRes.data?.phone,
+        allergies:             dossierRes.data?.allergies ?? [],
+        pathologies_chroniques: dossierRes.data?.pathologies_chroniques ?? [],
+        groupe_sanguin:        dossierRes.data?.groupe_sanguin,
+        derniere_constante:    constRes.data,
       })
+
+      const prevC: ConsultPrev[] = (consultsRes.data ?? []).map((c: any) => ({
+        id:         c.id,
+        date:       c.date_consultation,
+        motif:      c.motif ?? '—',
+        diagnostic: c.diagnostic_principal,
+      }))
+      setConsultsPrev(prevC)
+
+      const trts: TraitementActif[] = (ordRes.data ?? []).map((o: any) => ({
+        ordonnance_id: o.id,
+        date:          o.date_prescription,
+        medicaments:   (o.ordonnance_medicaments ?? []).map((m: any) => m.nom_medicament),
+      }))
+      setTraitements(trts)
     }
 
     setLoading(false)
   }, [appointmentId, profile?.id, searchParams.get('patient')])
 
   useEffect(() => { load() }, [load])
+
+  // ── Démarrer la consultation (5.1) ──────────────────────────────────────────
+  async function startConsultation() {
+    if (!appointmentId) return
+    setStarting(true)
+    try {
+      const { error } = await supabase.functions.invoke('start-consultation', {
+        body: { appointment_id: appointmentId },
+      })
+      if (error) throw error
+      setStartTime(new Date())
+      setConsultStarted(true)
+      if (appt) setAppt(a => a ? { ...a, status: 'in_consultation' } : a)
+      toast.success('Consultation démarrée — patient notifié')
+    } catch {
+      toast.error('Erreur lors du démarrage de la consultation')
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  // ── Résumé IA pré-consultation (5.2) ─────────────────────────────────────────
+  async function loadAiSummary() {
+    if (!patient || !appointmentId) return
+    setAiLoading(true)
+    setShowAiPanel(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-pre-consultation-summary', {
+        body: { appointment_id: appointmentId, patient_id: patient.id },
+      })
+      if (error) throw error
+      setAiSummary(data?.summary ?? null)
+    } catch {
+      toast.error('Erreur génération résumé IA (2 crédits)')
+      setShowAiPanel(false)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   // ── Dictée vocale ─────────────────────────────────────────────────────────────
   function toggleDictate(field: string) {
@@ -496,6 +586,7 @@ export default function ConsultationPage() {
   async function finish() {
     if (!patient) return
     setFinishing(true)
+    const finishTime = new Date()
     const { data, error } = await supabase.functions.invoke('save-consultation', {
       body: {
         appointment_id: appointmentId ?? null,
@@ -506,11 +597,15 @@ export default function ConsultationPage() {
     setFinishing(false)
     if (error) { toast.error('Erreur lors de la finalisation'); return }
     try { localStorage.removeItem(draftKey) } catch {}
-    toast.success('Consultation enregistrée — patient notifié')
-    if (data?.consultation_id) {
-      setConsultationId(data.consultation_id)
+    if (data?.consultation_id) setConsultationId(data.consultation_id)
+
+    // Durée effective
+    if (startTime) {
+      const duree = differenceInMinutes(finishTime, startTime)
+      setDureeEffective(duree)
     }
-    navigate('/pro/patients/' + patient.id)
+    setFinished(true)
+    toast.success('Consultation enregistrée — patient notifié')
   }
 
   function buildPayload() {
@@ -564,6 +659,132 @@ export default function ConsultationPage() {
     ? differenceInYears(new Date(), parseISO(patient.date_naissance))
     : null
 
+  // ── 5.1 — État pré-consultation (RDV pas encore démarré) ─────────────────────
+  const isPreConsult = appt && !consultStarted &&
+    !['in_consultation', 'completed'].includes(appt.status)
+
+  const rdvFutur = appt ? isBefore(new Date(), new Date(appt.starts_at)) : false
+
+  if (isPreConsult) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-s-6 p-s-10 min-h-[60vh]">
+        <Card className="w-full max-w-lg p-s-6 flex flex-col gap-s-5">
+          <div className="flex items-center gap-s-3">
+            {patient && <Avatar src={patient.avatar_url} fallback={patient.full_name} size="lg" />}
+            <div>
+              <h2 className="text-h4 font-semibold text-ink">{patient?.full_name ?? '—'}</h2>
+              {patientAge !== null && (
+                <p className="text-small text-ink-3">{patientAge} ans{patient?.sexe ? ` · ${patient.sexe === 'M' ? 'Homme' : 'Femme'}` : ''}</p>
+              )}
+            </div>
+            <Badge variant="pending" className="ml-auto">Patient en attente</Badge>
+          </div>
+
+          {appt && (
+            <div className="rounded-lg bg-surface-2 p-s-3 flex flex-col gap-s-1 text-small">
+              <div className="flex items-center gap-s-2">
+                <Clock className="h-4 w-4 text-ink-3 shrink-0" />
+                <span className="text-ink-3">Heure RDV :</span>
+                <span className="font-medium text-ink">
+                  {format(parseISO(appt.starts_at), 'HH:mm — EEEE d MMMM', { locale: fr })}
+                </span>
+              </div>
+              {appt.motif && (
+                <div className="flex items-center gap-s-2">
+                  <FileText className="h-4 w-4 text-ink-3 shrink-0" />
+                  <span className="text-ink-3">Motif :</span>
+                  <span className="font-medium text-ink">{appt.motif}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {patient?.allergies && patient.allergies.length > 0 && (
+            <div className="flex items-start gap-s-2 rounded-lg bg-danger/10 p-s-3">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-danger mt-0.5" />
+              <div>
+                <p className="text-small font-semibold text-danger">Allergies connues</p>
+                <p className="text-micro text-danger/80">{patient.allergies.join(' · ')}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-s-2">
+            <Button
+              variant="primary"
+              leftIcon={starting ? undefined : <Play className="h-4 w-4" />}
+              loading={starting}
+              disabled={rdvFutur}
+              onClick={startConsultation}
+            >
+              {rdvFutur ? `Démarrer à ${format(parseISO(appt!.starts_at), 'HH:mm')}` : 'Démarrer la consultation'}
+            </Button>
+            {patient?.phone && (
+              <Button
+                variant="ghost"
+                leftIcon={<Phone className="h-4 w-4" />}
+                onClick={() => window.open(`tel:${patient.phone}`, '_self')}
+              >
+                Appeler patient
+              </Button>
+            )}
+          </div>
+
+          {rdvFutur && (
+            <p className="text-micro text-ink-3 text-center">
+              Le RDV est prévu à {format(parseISO(appt!.starts_at), 'HH:mm')}. Le bouton sera actif à cette heure.
+            </p>
+          )}
+        </Card>
+        <button onClick={() => navigate(-1)} className="text-small text-ink-3 hover:text-ink">← Retour</button>
+      </div>
+    )
+  }
+
+  // ── 5.3 — Vue post-consultation ───────────────────────────────────────────────
+  if (finished) {
+    return (
+      <div className="flex flex-col items-center gap-s-6 p-s-10 max-w-lg mx-auto">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+          <Check className="h-8 w-8 text-success" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-h3 font-semibold text-ink">Consultation terminée</h2>
+          {dureeEffective !== null && (
+            <p className="mt-s-1 text-small text-ink-3">
+              Durée effective : <strong className="text-ink">{dureeEffective} min</strong>
+            </p>
+          )}
+        </div>
+
+        {aiSummary && (
+          <Card className="w-full p-s-4">
+            <p className="text-micro font-semibold text-ink-3 uppercase mb-s-2">Notes IA générées</p>
+            <p className="text-small text-ink whitespace-pre-wrap">{aiSummary}</p>
+          </Card>
+        )}
+
+        <div className="flex flex-wrap gap-s-2 justify-center">
+          {consultationId && (
+            <Button variant="secondary" leftIcon={<Pill className="h-4 w-4" />}
+              onClick={() => navigate(`/pro/ordonnances/nouvelle?patient=${patient?.id ?? ''}&consultation=${consultationId}`)}>
+              Créer une ordonnance
+            </Button>
+          )}
+          <Button variant="primary"
+            onClick={() => navigate('/pro/patients/' + (patient?.id ?? ''))}>
+            Fiche patient
+          </Button>
+          <Button variant="ghost"
+            leftIcon={<Printer className="h-4 w-4" />}
+            onClick={() => patient && printCR(patient, form, profile?.full_name ?? 'Médecin', appt)}>
+            PDF CR
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full gap-s-4 overflow-hidden p-s-4 md:p-s-6">
 
@@ -610,11 +831,22 @@ export default function ConsultationPage() {
             </Card>
 
             {/* Timer si depuis RDV */}
-            {appt && appt.status === 'in_consultation' && startTime && (
+            {(appt?.status === 'in_consultation' || consultStarted) && startTime && (
               <Card className="p-s-3">
                 <p className="mb-s-1 text-micro font-semibold text-ink-3 uppercase tracking-wide">Durée</p>
                 <TimerConsultation running={true} />
               </Card>
+            )}
+
+            {/* Appeler patient */}
+            {patient.phone && (
+              <button
+                onClick={() => window.open(`tel:${patient.phone}`, '_self')}
+                className="flex items-center gap-s-2 rounded-lg border border-line px-s-3 py-s-2 text-small text-ink-3 hover:text-primary hover:border-primary transition-colors"
+              >
+                <Phone className="h-4 w-4" />
+                {patient.phone}
+              </button>
             )}
 
             {/* Dernières constantes */}
@@ -629,6 +861,65 @@ export default function ConsultationPage() {
                 </div>
               </Card>
             )}
+
+            {/* Traitements en cours */}
+            {traitements.length > 0 && (
+              <Card className="p-s-3">
+                <p className="mb-s-2 text-micro font-semibold text-ink-3 uppercase tracking-wide">Traitements actifs</p>
+                <div className="flex flex-col gap-s-2">
+                  {traitements.map(t => (
+                    <div key={t.ordonnance_id} className="flex flex-col gap-s-0.5">
+                      <p className="text-micro text-ink-3">
+                        {format(parseISO(t.date), 'dd/MM/yy', { locale: fr })}
+                      </p>
+                      {t.medicaments.slice(0, 3).map(m => (
+                        <p key={m} className="text-small text-ink truncate">· {m}</p>
+                      ))}
+                      {t.medicaments.length > 3 && (
+                        <p className="text-micro text-ink-3">+{t.medicaments.length - 3} autres</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Consultations précédentes */}
+            {consultsPrev.length > 0 && (
+              <Card className="p-s-3">
+                <button
+                  onClick={() => setShowPrevConsults(v => !v)}
+                  className="flex w-full items-center justify-between text-micro font-semibold text-ink-3 uppercase tracking-wide"
+                >
+                  <span>Consultations précédentes ({consultsPrev.length})</span>
+                  <ChevronDown className={cn('h-4 w-4 transition-transform', showPrevConsults && 'rotate-180')} />
+                </button>
+                <AnimatePresence>
+                  {showPrevConsults && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex flex-col gap-s-2 mt-s-2">
+                        {consultsPrev.map(c => (
+                          <div key={c.id} className="rounded-md bg-surface-2 p-s-2">
+                            <p className="text-micro text-ink-3">
+                              {format(parseISO(c.date), 'dd/MM/yy', { locale: fr })}
+                            </p>
+                            <p className="text-small text-ink font-medium truncate">{c.motif}</p>
+                            {c.diagnostic && (
+                              <p className="text-micro text-ink-3 truncate">{c.diagnostic}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Card>
+            )}
           </>
         )}
       </aside>
@@ -641,7 +932,17 @@ export default function ConsultationPage() {
           <h1 className="text-heading font-bold text-ink">
             {appt ? 'Consultation en cours' : 'Nouvelle consultation'}
           </h1>
-          <div className="flex items-center gap-s-2">
+          <div className="flex items-center gap-s-2 flex-wrap">
+            {appointmentId && patient && (
+              <Button variant="ghost" size="sm"
+                leftIcon={aiLoading ? undefined : <Sparkles className="h-4 w-4" />}
+                loading={aiLoading}
+                onClick={loadAiSummary}
+              >
+                Résumé IA
+                <span className="ml-s-1 rounded bg-accent/20 px-s-1 text-micro font-bold text-accent">2 crédits</span>
+              </Button>
+            )}
             <Button variant="ghost" size="sm" leftIcon={<Save className="h-4 w-4" />}
               loading={saving} onClick={saveDraft}>
               Brouillon
@@ -654,6 +955,38 @@ export default function ConsultationPage() {
             )}
           </div>
         </div>
+
+        {/* Panel Résumé IA */}
+        <AnimatePresence>
+          {showAiPanel && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+            >
+              <Card className="p-s-4 border-accent/30 bg-accent/5">
+                <div className="flex items-center justify-between mb-s-2">
+                  <div className="flex items-center gap-s-2">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                    <span className="text-small font-semibold text-ink">Résumé pré-consultation (IA)</span>
+                  </div>
+                  <button onClick={() => setShowAiPanel(false)} className="text-micro text-ink-3 hover:text-ink">✕</button>
+                </div>
+                {aiLoading ? (
+                  <div className="flex flex-col gap-s-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                ) : aiSummary ? (
+                  <p className="text-small text-ink whitespace-pre-wrap">{aiSummary}</p>
+                ) : (
+                  <p className="text-small text-ink-3">Résumé non disponible.</p>
+                )}
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Section 1 — Patient & type */}
         <Card className="p-s-4">
