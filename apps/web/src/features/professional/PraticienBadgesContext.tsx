@@ -7,6 +7,7 @@ interface PraticienBadges {
   notifications: number
   agenda: number
   tiersPayant: number
+  ordonnances: number
   refreshAll: () => void
 }
 
@@ -14,6 +15,7 @@ const PraticienBadgesCtx = createContext<PraticienBadges>({
   notifications: 0,
   agenda: 0,
   tiersPayant: 0,
+  ordonnances: 0,
   refreshAll: () => {},
 })
 
@@ -24,12 +26,13 @@ export function PraticienBadgesProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState(0)
   const [agenda, setAgenda] = useState(0)
   const [tiersPayant, setTiersPayant] = useState(0)
+  const [ordonnances, setOrdonnances] = useState(0)
 
   const fetchAll = useCallback(async () => {
     if (!profile?.id) return
     const today = format(new Date(), 'yyyy-MM-dd')
 
-    const [notifRes, agendaRes, tiersRes] = await Promise.all([
+    const [notifRes, agendaRes, tiersRes, ordRes] = await Promise.all([
       db.from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', profile.id)
@@ -45,11 +48,16 @@ export function PraticienBadgesProvider({ children }: { children: ReactNode }) {
         .select('*', { count: 'exact', head: true })
         .eq('professional_id', profile.id)
         .eq('statut', 'pending'),
+      db.from('ordonnances')
+        .select('*', { count: 'exact', head: true })
+        .eq('praticien_id', profile.id)
+        .eq('statut', 'brouillon'),
     ])
 
     setNotifications(notifRes.count ?? 0)
     setAgenda(agendaRes.count ?? 0)
     setTiersPayant(tiersRes.count ?? 0)
+    setOrdonnances(ordRes.count ?? 0)
   }, [profile?.id])
 
   useEffect(() => {
@@ -70,13 +78,17 @@ export function PraticienBadgesProvider({ children }: { children: ReactNode }) {
         event: '*', schema: 'public', table: 'tiers_payant_demandes',
         filter: `professional_id=eq.${profile.id}`,
       }, () => fetchAll())
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'ordonnances',
+        filter: `praticien_id=eq.${profile.id}`,
+      }, () => fetchAll())
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
   }, [profile?.id, fetchAll])
 
   return (
-    <PraticienBadgesCtx.Provider value={{ notifications, agenda, tiersPayant, refreshAll: fetchAll }}>
+    <PraticienBadgesCtx.Provider value={{ notifications, agenda, tiersPayant, ordonnances, refreshAll: fetchAll }}>
       {children}
     </PraticienBadgesCtx.Provider>
   )

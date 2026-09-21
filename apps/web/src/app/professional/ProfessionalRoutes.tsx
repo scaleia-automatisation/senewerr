@@ -21,6 +21,7 @@ const DocumentsPage          = lazy(() => import('@/features/professional/Docume
 const EtablissementsPage     = lazy(() => import('@/features/professional/EtablissementsPage'))
 const RevenusPage            = lazy(() => import('@/features/professional/RevenusPage'))
 const ParametresPage         = lazy(() => import('@/features/professional/ParametresPage'))
+const NotificationsPage      = lazy(() => import('@/features/professional/NotificationsPage'))
 const SubscriptionPage       = lazy(() => import('@/features/billing/SubscriptionPage'))
 
 // ── Route guard ───────────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ export default function ProfessionalRoutes() {
               <Route path="documents"                   element={<DocumentsPage />} />
               <Route path="etablissements"              element={<EtablissementsPage />} />
               <Route path="statistiques/*"              element={<ComingSoon title="Statistiques" />} />
-              <Route path="notifications"               element={<ComingSoon title="Notifications" />} />
+              <Route path="notifications"               element={<NotificationsPage />} />
               <Route path="abonnement"                  element={<SubscriptionPage />} />
               <Route path="parametres/*"                element={<ParametresPage />} />
               {/* Compatibilité ancien chemin */}

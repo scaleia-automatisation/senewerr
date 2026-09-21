@@ -77,7 +77,7 @@ function StatusToggle() {
 
 export function PraticienLayout() {
   const { praticien } = usePraticien()
-  const { notifications, agenda, tiersPayant } = usePraticienBadges()
+  const { notifications, agenda, tiersPayant, ordonnances } = usePraticienBadges()
   const navigate = useNavigate()
   const breadcrumbs = useBreadcrumb()
 
@@ -87,6 +87,7 @@ export function PraticienLayout() {
       if (l.href === '/pro/notifications') return { ...l, badge: notifications || undefined }
       if (l.href === '/pro/agenda')        return { ...l, badge: agenda        || undefined }
       if (l.href === '/pro/tiers-payant')  return { ...l, badge: tiersPayant   || undefined }
+      if (l.href === '/pro/ordonnances')   return { ...l, badge: ordonnances   || undefined }
       return l
     }),
   }), [notifications, agenda, tiersPayant])
