@@ -9,7 +9,8 @@ const PublicRoutes        = lazy(() => import('./public/PublicRoutes'))
 const DesignSystemPage    = lazy(() => import('@/features/dev/DesignSystemPage'))
 const PatientRoutes       = lazy(() => import('./patient/PatientRoutes'))
 const ProfessionalRoutes  = lazy(() => import('./professional/ProfessionalRoutes'))
-const EstablishmentRoutes = lazy(() => import('./establishment/EstablishmentRoutes'))
+const EstablishmentRoutes  = lazy(() => import('./establishment/EstablishmentRoutes'))
+const EtabHealthRoutes     = lazy(() => import('./establishment/EtabHealthRoutes'))
 const PharmacyRoutes      = lazy(() => import('./pharmacy/PharmacyRoutes'))
 const MutualRoutes        = lazy(() => import('./mutual/MutualRoutes'))
 const AdminRoutes         = lazy(() => import('./admin/AdminRoutes'))
@@ -69,6 +70,16 @@ export default function App() {
             <RequireAuth>
               <RequireRole roles={['establishment_admin', 'establishment_staff']}>
                 <EstablishmentRoutes />
+              </RequireRole>
+            </RequireAuth>
+          } />
+
+          {/* Espace établissement de santé enrichi (clinique, hôpital, labo, imagerie…) */}
+          <Route path="/etab-health/*" element={
+            <RequireAuth>
+              {/* health_staff ajouté en migration 0029 — cast nécessaire jusqu'à régénération des types TS */}
+              <RequireRole roles={['establishment_admin', 'establishment_staff', 'health_staff' as any]}>
+                <EtabHealthRoutes />
               </RequireRole>
             </RequireAuth>
           } />

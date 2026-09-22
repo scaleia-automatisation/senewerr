@@ -3,7 +3,7 @@ import {
   FolderClosed, Users, Bell, User, Pill, Stethoscope, Building2,
   LayoutDashboard, ClipboardList, Package, BarChart2, Settings,
   Wallet, AlertTriangle, Shield, FileCheck, Video, HelpCircle,
-  RefreshCw, BookOpen, Coins,
+  RefreshCw, BookOpen, Coins, Microscope, UserCheck,
 } from 'lucide-react'
 import type { SpaceNav } from '@/components/layout/nav-types'
 
@@ -39,6 +39,21 @@ export const PROFESSIONAL_NAV: SpaceNav = {
     { href: '/pro/statistiques',     label: 'Statistiques',     icon: <BarChart2 className={ic} /> },
     { href: '/pro/notifications',    label: 'Notifications',    icon: <Bell className={ic} /> },
     { href: '/pro/parametres',       label: 'Paramètres',       icon: <Settings className={ic} /> },
+  ],
+}
+
+export const ETAB_HEALTH_NAV: SpaceNav = {
+  roleLabel: 'Établissement de santé',
+  links: [
+    { href: '/etab-health',                  label: "Aujourd'hui", icon: <LayoutDashboard className={ic} />, primary: true },
+    { href: '/etab-health/patients',         label: 'Patients',    icon: <Users className={ic} />,          primary: true },
+    { href: '/etab-health/examens',          label: 'Examens',     icon: <Microscope className={ic} />,     primary: true },
+    { href: '/etab-health/dossiers',         label: 'Dossiers',    icon: <FolderClosed className={ic} />,   primary: true },
+    { href: '/etab-health/equipe',           label: 'Équipe',      icon: <UserCheck className={ic} /> },
+    { href: '/etab-health/pharmacie',        label: 'Pharmacie',   icon: <Pill className={ic} /> },
+    { href: '/etab-health/statistiques',     label: 'Statistiques', icon: <BarChart2 className={ic} /> },
+    { href: '/etab-health/notifications',    label: 'Notifications', icon: <Bell className={ic} /> },
+    { href: '/etab-health/parametres',       label: 'Paramètres',  icon: <Settings className={ic} /> },
   ],
 }
 
