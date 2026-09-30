@@ -52,13 +52,13 @@ export default async function PharmacieReservationDetailPage({ params }: { param
 
   const { data: resaData } = await supabase
     .from('pharmacy_reservations')
-    .select('id, status, created_at, expires_at, quantity, notes, pharmacist_notes, has_coverage, pickup_code, patients(id, profiles(full_name, phone)), pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), prescriptions(id, issued_at)')
+    .select('id, status, created_at, expiry_at, quantity, notes, pharmacist_notes, has_coverage, pickup_code, patients(id, profiles(full_name, phone)), pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), prescriptions(id, issued_at)')
     .eq('id', id)
     .eq('pharmacy_id', pharmacy.id)
     .maybeSingle()
 
   const resa = resaData as unknown as {
-    id: string; status: string; created_at: string; expires_at: string | null; quantity: number | null
+    id: string; status: string; created_at: string; expiry_at: string | null; quantity: number | null
     notes: string | null; pharmacist_notes: string | null; has_coverage: boolean; pickup_code: string | null
     patients: { id: string; profiles: { full_name: string | null; phone: string | null } | null } | null
     pharmacy_reservation_items: { medication_name: string; pharmacy_products: { dosage: string | null; form: string | null; prescription_required: boolean } | null }[]
@@ -154,7 +154,7 @@ export default async function PharmacieReservationDetailPage({ params }: { param
           {resa.quantity && <Field label="Quantité demandée" value={`${resa.quantity}`} />}
           {med?.requires_prescription && <Field label="Ordonnance" value="Requise" />}
           <Field label="Réservé le" value={fmtDateTime(resa.created_at)} />
-          {resa.expires_at && <Field label="Expire le" value={fmtDateTime(resa.expires_at)} />}
+          {resa.expiry_at && <Field label="Expire le" value={fmtDateTime(resa.expiry_at)} />}
         </div>
       </div>
 

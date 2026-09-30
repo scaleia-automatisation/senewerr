@@ -91,7 +91,7 @@ export default async function CouvertureDocumentsPage({ searchParams }: { search
     supabase
       .from('payments')
       .select('id, status, payment_type, amount_fcfa, reference_code, created_at')
-      .eq('coverage_org_id', organisme.id)
+      .eq('payer_id', organisme.id)
       .order('created_at', { ascending: false })
       .limit(100),
   ])

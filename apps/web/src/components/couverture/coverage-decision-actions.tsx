@@ -73,12 +73,18 @@ export function CoverageDecisionActions({ requestId, reservationId, currentStatu
     }
     if (action.key === 'info') updatePayload.required_documents = requiredDocs || null
     if (action.needsAmounts && amountCovered) {
-      updatePayload.amount_covered = parseFloat(amountCovered)
-      updatePayload.amount_patient = parseFloat(amountPatient || '0')
+      const covered = parseFloat(amountCovered)
+      const patient = parseFloat(amountPatient || '0')
+      updatePayload.amount_covered = covered
+      updatePayload.amount_patient = patient
+      updatePayload.coverage_amount_fcfa = covered
+      updatePayload.patient_amount_fcfa = patient
     }
     if (action.nextStatus === 'approved' && currentAmountTotal && !amountCovered) {
       updatePayload.amount_covered = currentAmountTotal
       updatePayload.amount_patient = 0
+      updatePayload.coverage_amount_fcfa = currentAmountTotal
+      updatePayload.patient_amount_fcfa = 0
     }
 
     const { error: err } = await (supabase.from('coverage_requests') as unknown as UpdateFn)

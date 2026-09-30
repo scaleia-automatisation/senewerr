@@ -8,131 +8,110 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Validation des comptes — Admin' }
 
-// Spec 21.4 — validation des acteurs, chaque décision historisée et notifiée
-type PendingActor = {
-  id: string; profile_id: string; name: string | null; actor_type: string
-  status: string | null; created_at: string; email: string | null
-}
-
 const ACTOR_META: Record<string, { label: string; icon: React.ReactNode }> = {
-  professionals: { label: 'Professionnel de santé', icon: <Stethoscope className="w-4 h-4 text-purple-600" /> },
-  establishments: { label: 'Établissement', icon: <Building2 className="w-4 h-4 text-blue-600" /> },
-  pharmacies: { label: 'Pharmacie', icon: <Package className="w-4 h-4 text-orange-600" /> },
-  coverage_orgs: { label: 'Organisme de couverture', icon: <Shield className="w-4 h-4 text-[var(--sw-success)]" /> },
+  sante:      { label: 'Professionnel de santé', icon: <Stethoscope className="w-4 h-4 text-purple-600" /> },
+  pharmacie:  { label: 'Pharmacie',              icon: <Package   className="w-4 h-4 text-orange-600" /> },
+  couverture: { label: 'Organisme de couverture',icon: <Shield    className="w-4 h-4 text-[var(--sw-success)]" /> },
 }
 
-// Spec 21.4 — server actions : valider / refuser / demander un complément / suspendre
 async function validateActor(formData: FormData) {
   'use server'
   const supabase = await createClient()
-  const actorId = formData.get('actor_id') as string
-  const table = formData.get('table') as string
-  const action = formData.get('action') as 'approve' | 'refuse' | 'info_required' | 'suspend'
-  const motif = formData.get('motif') as string | null
+  const profileId = formData.get('profile_id') as string
+  const actorType = formData.get('actor_type') as string
+  const action    = formData.get('action') as 'approve' | 'refuse' | 'info_required' | 'suspend'
+  const motif     = formData.get('motif') as string | null
 
-  const newStatus = action === 'approve' ? 'verifie'
-    : action === 'refuse' ? 'refuse'
-    : action === 'suspend' ? 'suspendu'
+  const newStatus = action === 'approve'        ? 'verifie'
+    : action === 'refuse'       ? 'refuse'
+    : action === 'suspend'      ? 'suspendu'
     : 'a_completer'
 
-  type UpdateFn = { update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> } }
-  await (supabase.from(table) as unknown as UpdateFn)
-    .update({ status: newStatus, ...(motif ? { admin_notes: motif } : {}) })
-    .eq('id', actorId)
+  await supabase.from('profiles')
+    .update({
+      account_status: newStatus,
+      ...(motif ? { verification_notes: motif } : {}),
+    })
+    .eq('id', profileId)
 
-  // Spec 21.4 — notifier l'acteur de la décision
   if (action === 'approve' || action === 'refuse' || action === 'info_required') {
-    // Récupérer le profile_id de l'acteur pour lui envoyer la notification
-    type SelectFn = { select: (q: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { profile_id: string } | null }> } } }
-    const { data: actorRow } = await (supabase.from(table) as unknown as SelectFn)
-      .select('profile_id').eq('id', actorId).maybeSingle()
-    if (actorRow?.profile_id) {
-      const notifType = action === 'approve' ? 'account_validated' : action === 'refuse' ? 'account_refused' : 'account_needs_info'
-      const notifBody = action === 'approve' ? 'Votre compte a été validé. Vous pouvez maintenant utiliser votre espace.'
-        : action === 'refuse' ? `Votre compte n'a pas été validé.${motif ? ` Motif : ${motif}` : ''}`
-        : `Complément d'information requis.${motif ? ` ${motif}` : ''}`
-      sendNotificationAction({
-        recipient_id: actorRow.profile_id,
-        type: notifType,
-        body: notifBody,
-        reference_type: 'account',
-        reference_id: actorId,
-      }).catch(() => {})
-    }
+    const notifType = action === 'approve' ? 'account_validated'
+      : action === 'refuse' ? 'account_refused'
+      : 'account_needs_info'
+    const notifBody = action === 'approve'
+      ? 'Votre compte a été validé. Vous pouvez maintenant utiliser votre espace.'
+      : action === 'refuse'
+      ? `Votre compte n'a pas été validé.${motif ? ` Motif : ${motif}` : ''}`
+      : `Complément d'information requis.${motif ? ` ${motif}` : ''}`
+    sendNotificationAction({
+      recipient_id: profileId,
+      type: notifType,
+      body: notifBody,
+      reference_type: 'account',
+      reference_id: profileId,
+    }).catch(() => {})
   }
 
-  // Spec 21.4 — chaque décision est historisée (logEvent stub)
   type InsertEventFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
   await (supabase.from('system_events') as unknown as InsertEventFn).insert({
     event_type: `account.${action}`,
     actor_type: 'admin',
-    object_type: table,
-    object_id: actorId,
+    object_type: actorType,
+    object_id: profileId,
     result: 'success',
     category: 'compte',
     metadata: { motif, new_status: newStatus },
   })
 
   revalidatePath('/admin/validation')
-  // Revalider les espaces concernés pour que le changement de statut soit visible immédiatement
   revalidatePath('/sante/accueil')
   revalidatePath('/sante/onboarding')
   revalidatePath('/pharmacie/accueil')
   revalidatePath('/couverture/accueil')
 }
 
-export default async function AdminValidationPage({ searchParams }: { searchParams: Promise<{ table?: string }> }) {
-  const { table: filterTable } = await searchParams
+export default async function AdminValidationPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+  const { type: filterType } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
-  const profile = profileData as unknown as { actor_type: string } | null
+  const { data: profileData } = await supabase.from('profiles').select('actor_type, account_status').eq('id', user.id).maybeSingle()
+  const profile = profileData as unknown as { actor_type: string; account_status: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
-  // Fetch pending actors from all actor tables
-  type ActorRow = { id: string; profile_id: string; name?: string | null; full_name?: string | null; status: string | null; created_at: string; profiles?: { email: string | null } | null }
-  type FetchFn = { select: (q: string) => { in: (c: string, v: string[]) => Promise<{ data: unknown[] | null }> } }
+  type ProfileRow = {
+    id: string; actor_type: string; full_name: string | null
+    email: string | null; account_status: string | null; verification_notes: string | null; created_at: string
+  }
 
-  const tables = Object.keys(ACTOR_META)
-  const fetches = await Promise.allSettled(
-    tables.map(t =>
-      (supabase.from(t) as unknown as FetchFn)
-        .select('id, profile_id, name, full_name, status, created_at, profiles(email)')
-        .in('status', ['pending_verification', 'info_required', 'pending'])
-        .then(r => ({ table: t, rows: (r.data ?? []) as ActorRow[] }))
-    )
-  )
+  const { data: rawProfiles } = await supabase
+    .from('profiles')
+    .select('id, actor_type, full_name, email, account_status, verification_notes, created_at')
+    .in('account_status', ['pending', 'a_completer', 'brouillon', 'pending_verification'])
+    .in('actor_type', ['sante', 'pharmacie', 'couverture'])
+    .order('created_at', { ascending: true })
 
-  const allActors: (PendingActor & { table: string })[] = fetches
-    .flatMap(f => {
-      if (f.status !== 'fulfilled') return []
-      return f.value.rows.map(r => ({
-        id: r.id,
-        profile_id: r.profile_id,
-        name: r.name ?? r.full_name ?? null,
-        actor_type: ACTOR_META[f.value.table]?.label ?? f.value.table,
-        status: r.status,
-        created_at: r.created_at,
-        email: (r.profiles as unknown as { email: string | null } | null)?.email ?? null,
-        table: f.value.table,
-      }))
-    })
-    .filter(a => !filterTable || a.table === filterTable)
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  const allActors = ((rawProfiles ?? []) as unknown as ProfileRow[])
+    .filter(a => !filterType || a.actor_type === filterType)
 
-  const TABS = [{ key: '', label: `Tous (${allActors.length})` }, ...tables.map(t => ({
-    key: t, label: `${ACTOR_META[t]?.label} (${allActors.filter(a => a.table === t).length})`,
-  }))]
+  const TABS = [
+    { key: '',          label: `Tous (${(rawProfiles ?? []).length})` },
+    ...Object.entries(ACTOR_META).map(([key, meta]) => ({
+      key,
+      label: `${meta.label} (${(rawProfiles ?? []).filter((a: unknown) => (a as ProfileRow).actor_type === key).length})`,
+    })),
+  ]
 
   const STATUS_LABELS: Record<string, string> = {
-    pending_verification: 'À vérifier', info_required: 'Complément requis', pending: 'En attente',
+    pending: 'En attente', a_completer: 'Complément requis',
+    brouillon: 'Brouillon', pending_verification: 'À vérifier',
   }
   const STATUS_CLASSES: Record<string, string> = {
-    pending_verification: 'bg-[var(--sw-warning-bg)] text-[var(--sw-warning)]',
-    info_required: 'bg-orange-50 text-orange-600',
     pending: 'bg-[var(--sw-warning-bg)] text-[var(--sw-warning)]',
+    a_completer: 'bg-orange-50 text-orange-600',
+    brouillon: 'bg-[var(--sw-surface-2)] text-[var(--sw-ink-3)]',
+    pending_verification: 'bg-[var(--sw-warning-bg)] text-[var(--sw-warning)]',
   }
 
   return (
@@ -142,11 +121,10 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
         <p className="text-xs text-[var(--sw-ink-2)]">Spec 21.4 — inscriptions, justificatifs, décisions historisées</p>
       </div>
 
-      {/* Filtres */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
         {TABS.map(t => (
-          <a key={t.key} href={t.key ? `?table=${t.key}` : '?'}
-            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${(t.key === (filterTable ?? '')) ? 'bg-[var(--sw-primary)] text-white' : 'bg-[var(--sw-surface-2)] text-[var(--sw-ink-2)]'}`}>
+          <a key={t.key} href={t.key ? `?type=${t.key}` : '?'}
+            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${(t.key === (filterType ?? '')) ? 'bg-[var(--sw-primary)] text-white' : 'bg-[var(--sw-surface-2)] text-[var(--sw-ink-2)]'}`}>
             {t.label}
           </a>
         ))}
@@ -164,17 +142,20 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
               <div className="px-4 py-3.5 border-b border-[var(--sw-line)]">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-[var(--sw-surface-2)] flex items-center justify-center shrink-0">
-                    {ACTOR_META[actor.table]?.icon ?? <User className="w-4 h-4" />}
+                    {ACTOR_META[actor.actor_type]?.icon ?? <User className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${STATUS_CLASSES[actor.status ?? ''] ?? ''}`}>
-                        {STATUS_LABELS[actor.status ?? ''] ?? actor.status}
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${STATUS_CLASSES[actor.account_status ?? ''] ?? ''}`}>
+                        {STATUS_LABELS[actor.account_status ?? ''] ?? actor.account_status}
                       </span>
-                      <span className="text-xs text-[var(--sw-ink-3)]">{actor.actor_type}</span>
+                      <span className="text-xs text-[var(--sw-ink-3)]">{ACTOR_META[actor.actor_type]?.label ?? actor.actor_type}</span>
                     </div>
-                    <p className="text-sm font-semibold text-[var(--sw-ink)] mt-0.5">{actor.name ?? 'Sans nom'}</p>
+                    <p className="text-sm font-semibold text-[var(--sw-ink)] mt-0.5">{actor.full_name ?? 'Sans nom'}</p>
                     {actor.email && <p className="text-xs text-[var(--sw-ink-3)]">{actor.email}</p>}
+                    {actor.verification_notes && (
+                      <p className="text-xs text-orange-600 mt-0.5">Note : {actor.verification_notes}</p>
+                    )}
                     <p className="text-xs text-[var(--sw-ink-3)]">
                       Inscrit le {new Date(actor.created_at).toLocaleDateString('fr-SN', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
@@ -182,20 +163,19 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
                 </div>
               </div>
 
-              {/* Actions spec 21.4 */}
               <div className="px-4 py-3 bg-[var(--sw-surface-2)] space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <form action={validateActor}>
-                    <input type="hidden" name="actor_id" value={actor.id} />
-                    <input type="hidden" name="table" value={actor.table} />
+                    <input type="hidden" name="profile_id" value={actor.id} />
+                    <input type="hidden" name="actor_type" value={actor.actor_type} />
                     <input type="hidden" name="action" value="approve" />
                     <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--sw-success)] text-white text-xs font-medium">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Valider
                     </button>
                   </form>
                   <form action={validateActor}>
-                    <input type="hidden" name="actor_id" value={actor.id} />
-                    <input type="hidden" name="table" value={actor.table} />
+                    <input type="hidden" name="profile_id" value={actor.id} />
+                    <input type="hidden" name="actor_type" value={actor.actor_type} />
                     <input type="hidden" name="action" value="refuse" />
                     <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 text-[var(--sw-danger)] text-xs font-medium border border-[var(--sw-danger)]">
                       <XCircle className="w-3.5 h-3.5" /> Refuser
@@ -204,16 +184,16 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <form action={validateActor}>
-                    <input type="hidden" name="actor_id" value={actor.id} />
-                    <input type="hidden" name="table" value={actor.table} />
+                    <input type="hidden" name="profile_id" value={actor.id} />
+                    <input type="hidden" name="actor_type" value={actor.actor_type} />
                     <input type="hidden" name="action" value="info_required" />
                     <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-orange-50 text-orange-600 text-xs font-medium border border-orange-200">
                       <MessageSquare className="w-3.5 h-3.5" /> Complément
                     </button>
                   </form>
                   <form action={validateActor}>
-                    <input type="hidden" name="actor_id" value={actor.id} />
-                    <input type="hidden" name="table" value={actor.table} />
+                    <input type="hidden" name="profile_id" value={actor.id} />
+                    <input type="hidden" name="actor_type" value={actor.actor_type} />
                     <input type="hidden" name="action" value="suspend" />
                     <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--sw-surface-2)] text-[var(--sw-ink-3)] text-xs font-medium border border-[var(--sw-line)]">
                       Suspendre

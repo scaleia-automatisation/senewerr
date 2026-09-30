@@ -66,7 +66,7 @@ export function ReservationFlow({ patientId, product, pharmacy, stock, prescript
         pharmacy_id: pharmacy.id,
         prescription_id: prescriptionId || null,
         status: 'new',
-        expires_at: expiresAt,
+        expiry_at: expiresAt,
         total_amount_fcfa: total ?? 0,
         has_coverage: hasCoverage,
         notes: notes || null,
