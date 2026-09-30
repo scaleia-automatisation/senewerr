@@ -186,7 +186,11 @@ function InscriptionPageInner() {
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
         if (dateNaissance) {
           await (supabase.from('patients') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-            profile_id: data.user.id, first_name: firstName, last_name: lastName, date_of_birth: dateNaissance, status: 'verifie',
+            profile_id: data.user.id, date_of_birth: dateNaissance,
+          })
+        } else {
+          await (supabase.from('patients') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
+            profile_id: data.user.id,
           })
         }
         router.push('/patient/accueil')
@@ -201,9 +205,9 @@ function InscriptionPageInner() {
           })
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
           await (supabase.from('professionals') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-            profile_id: data.user.id, professional_type: professionalType, specialty: specialty || null,
-            license_number: licenseNumber || null, consultation_fee_fcfa: consultationFee ? parseInt(consultationFee) : null,
-            address_region: region || null, address_commune: commune || null, status: 'pending',
+            profile_id: data.user.id, professional_type: professionalType || 'autre', specialty: specialty || null,
+            ordre_number: licenseNumber || null, consultation_fee_fcfa: consultationFee ? parseInt(consultationFee) : null,
+            address_region: region || null, address_commune: commune || null,
             plan: 'essentiel', teleconsultation_enabled: false, home_visit_enabled: false,
           })
           router.push('/sante/accueil')
@@ -216,9 +220,8 @@ function InscriptionPageInner() {
           })
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
           await (supabase.from('establishments') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-            profile_id: data.user.id, name: estName, category: estCategory, establishment_type: estType,
-            address_region: estRegion || null, phone: estPhone || null, email: estEmail || null,
-            responsible_name: respNom || null, status: 'pending',
+            profile_id: data.user.id, name: estName, category: estCategory || 'prive', establishment_type: estType || 'autre_specialise',
+            address_region: estRegion || 'À renseigner', phone: estPhone || null, email: estEmail || null,
           })
           router.push('/sante/accueil')
         }
@@ -231,9 +234,9 @@ function InscriptionPageInner() {
         })
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
         await (supabase.from('pharmacies') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-          profile_id: data.user.id, name: pharmName, pharmacist_name: pharmPharm,
+          profile_id: data.user.id, name: pharmName,
           phone: pharmPhone || null, email: pharmEmail || null,
-          address_region: pharmRegion || null, address_text: pharmAdresse || null, status: 'pending',
+          address_region: pharmRegion || 'À renseigner', address_details: pharmAdresse || null,
         })
         router.push('/pharmacie/accueil')
 
@@ -245,9 +248,9 @@ function InscriptionPageInner() {
         })
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
         await (supabase.from('coverage_orgs') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-          profile_id: data.user.id, name: covName, category: covCategory,
+          profile_id: data.user.id, name: covName, org_type: covCategory || 'mutuelle_communautaire',
           phone: covPhone || null, email: covEmail || null,
-          address_region: covRegion || null, status: 'pending',
+          address_region: covRegion || null,
         })
         router.push('/couverture/accueil')
       }

@@ -22,10 +22,10 @@ async function validateActor(formData: FormData) {
   const action    = formData.get('action') as 'approve' | 'refuse' | 'info_required' | 'suspend'
   const motif     = formData.get('motif') as string | null
 
-  const newStatus = action === 'approve'        ? 'verifie'
-    : action === 'refuse'       ? 'refuse'
-    : action === 'suspend'      ? 'suspendu'
-    : 'a_completer'
+  const newStatus = action === 'approve'        ? 'verified'
+    : action === 'refuse'       ? 'refused'
+    : action === 'suspend'      ? 'suspended'
+    : 'needs_info'
 
   await supabase.from('profiles')
     .update({
@@ -88,7 +88,7 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
   const { data: rawProfiles } = await supabase
     .from('profiles')
     .select('id, actor_type, full_name, email, account_status, verification_notes, created_at')
-    .in('account_status', ['pending', 'a_completer', 'brouillon', 'pending_verification'])
+    .in('account_status', ['pending', 'needs_info', 'draft'])
     .in('actor_type', ['sante', 'pharmacie', 'couverture'])
     .order('created_at', { ascending: true })
 
@@ -104,14 +104,12 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
   ]
 
   const STATUS_LABELS: Record<string, string> = {
-    pending: 'En attente', a_completer: 'Complément requis',
-    brouillon: 'Brouillon', pending_verification: 'À vérifier',
+    pending: 'En attente', needs_info: 'Complément requis', draft: 'Brouillon',
   }
   const STATUS_CLASSES: Record<string, string> = {
     pending: 'bg-[var(--sw-warning-bg)] text-[var(--sw-warning)]',
-    a_completer: 'bg-orange-50 text-orange-600',
-    brouillon: 'bg-[var(--sw-surface-2)] text-[var(--sw-ink-3)]',
-    pending_verification: 'bg-[var(--sw-warning-bg)] text-[var(--sw-warning)]',
+    needs_info: 'bg-orange-50 text-orange-600',
+    draft: 'bg-[var(--sw-surface-2)] text-[var(--sw-ink-3)]',
   }
 
   return (

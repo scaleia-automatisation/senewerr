@@ -17,9 +17,9 @@ export default async function ReserverRDVPage({ params }: { params: Promise<{ pr
 
   const { data: proData } = await supabase
     .from('professionals')
-    .select('id, specialty, professional_type, title, consultation_fee_fcfa, profiles!inner(first_name, last_name), establishment_professionals(establishments(id, name, address_commune))')
+    .select('id, specialty, professional_type, title, consultation_fee_fcfa, profiles!inner(first_name, last_name, account_status), establishment_professionals(establishments(id, name, address_commune))')
     .eq('id', professionalId)
-    .eq('status', 'verifie')
+    .eq('profiles.account_status', 'verified')
     .maybeSingle()
 
   if (!proData) notFound()

@@ -34,9 +34,16 @@ export default async function PharmacieAccueilPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: pharmacyData } = await supabase.from('pharmacies').select('id, name, status, refusal_reason').eq('profile_id', user.id).maybeSingle()
-  const pharmacy = pharmacyData as unknown as { id: string; name: string; status: string; refusal_reason?: string | null } | null
+  const { data: pharmacyData } = await supabase.from('pharmacies').select('id, name').eq('profile_id', user.id).maybeSingle()
+  const pharmacy = pharmacyData as unknown as { id: string; name: string } | null
   if (!pharmacy) redirect('/connexion')
+
+  const { data: profileStatusData } = await supabase
+    .from('profiles')
+    .select('account_status, verification_notes')
+    .eq('id', user.id)
+    .maybeSingle()
+  const profileStatus = profileStatusData as unknown as { account_status: string | null; verification_notes: string | null } | null
 
   const [
     { count: newCount },
@@ -63,8 +70,8 @@ export default async function PharmacieAccueilPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
-      {pharmacy.status !== 'verifie' && (
-        <AccountStatusBanner status={pharmacy.status as 'pending'} motif={pharmacy.refusal_reason} />
+      {profileStatus?.account_status && profileStatus.account_status !== 'verified' && (
+        <AccountStatusBanner status={profileStatus.account_status as 'pending'} motif={profileStatus.verification_notes} />
       )}
 
       <div>

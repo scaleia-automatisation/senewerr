@@ -33,16 +33,16 @@ export default async function EtablissementParametresPage() {
 
   const { data: estRaw } = await supabase
     .from('establishments')
-    .select('id, name, establishment_type, phone, email, address_region, address_commune, status')
+    .select('id, name, establishment_type, phone, email, address_region, address_commune')
     .eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
   const est = estRaw as unknown as {
     id: string; name: string; establishment_type: string; phone: string | null;
-    email: string | null; address_region: string | null; address_commune: string | null; status: string
+    email: string | null; address_region: string | null; address_commune: string | null
   }
 
-  const { data: profileData } = await supabase.from('profiles').select('first_name, last_name, phone').eq('id', user.id).single()
-  const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null } | null
+  const { data: profileData } = await supabase.from('profiles').select('first_name, last_name, phone, account_status').eq('id', user.id).single()
+  const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; account_status: string | null } | null
 
   return (
     <div className="p-4 lg:p-6 max-w-xl mx-auto space-y-5">
@@ -81,11 +81,11 @@ export default async function EtablissementParametresPage() {
       <div className="sw-card p-4 flex items-center justify-between">
         <p className="text-sm text-[var(--sw-ink)]">Statut du compte</p>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-          est.status === 'verifie'
+          profile?.account_status === 'verified'
             ? 'text-[var(--sw-success)] bg-[var(--sw-success-bg)]'
             : 'text-[var(--sw-warning)] bg-[var(--sw-warning-bg)]'
         }`}>
-          {est.status === 'verifie' ? 'Vérifié' : est.status === 'pending' ? 'En attente' : est.status}
+          {profile?.account_status === 'verified' ? 'Vérifié' : profile?.account_status === 'pending' ? 'En attente' : (profile?.account_status ?? 'En attente')}
         </span>
       </div>
     </div>

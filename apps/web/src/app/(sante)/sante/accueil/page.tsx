@@ -99,7 +99,7 @@ export default async function SanteAccueilPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
-      {accountStatus && accountStatus.status !== 'verifie' && (
+      {accountStatus && accountStatus.status !== 'verified' && (
         <AccountStatusBanner status={accountStatus.status as 'pending'} motif={accountStatus.refusal_reason} />
       )}
 

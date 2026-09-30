@@ -25,17 +25,17 @@ export default async function PharmacieParametresPage() {
 
   const { data: pharmacyRaw } = await supabase
     .from('pharmacies')
-    .select('name, license_number, phone, email, address_region, address_commune, status')
+    .select('name, ordre_number, phone, email, address_region, address_commune')
     .eq('profile_id', user.id)
     .maybeSingle()
   const pharmacy = pharmacyRaw as unknown as {
-    name: string; license_number: string | null; phone: string | null
-    email: string | null; address_region: string | null; address_commune: string | null; status: string
+    name: string; ordre_number: string | null; phone: string | null
+    email: string | null; address_region: string | null; address_commune: string | null
   } | null
   if (!pharmacy) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('first_name, last_name, phone').eq('id', user.id).single()
-  const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null } | null
+  const { data: profileData } = await supabase.from('profiles').select('first_name, last_name, phone, account_status').eq('id', user.id).single()
+  const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; account_status: string | null } | null
 
   return (
     <div className="p-4 lg:p-6 max-w-xl mx-auto space-y-5">
@@ -52,7 +52,7 @@ export default async function PharmacieParametresPage() {
           <Building2 className="w-4 h-4" /> Informations de la pharmacie
         </h2>
         <Field icon={Building2} label="Nom de la pharmacie"  value={pharmacy.name} />
-        <Field icon={Building2} label="N° de licence"        value={pharmacy.license_number} />
+        <Field icon={Building2} label="N° de licence"        value={pharmacy.ordre_number} />
         <Field icon={Phone}     label="Téléphone"            value={pharmacy.phone} />
         <Field icon={Mail}      label="Email"                value={pharmacy.email} />
         <Field icon={MapPin}    label="Région"               value={pharmacy.address_region} />
@@ -74,11 +74,11 @@ export default async function PharmacieParametresPage() {
       <div className="sw-card p-4 flex items-center justify-between">
         <p className="text-sm text-[var(--sw-ink)]">Statut du compte</p>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-          pharmacy.status === 'verifie'
+          profile?.account_status === 'verified'
             ? 'text-[var(--sw-success)] bg-[var(--sw-success-bg)]'
             : 'text-[var(--sw-warning)] bg-[var(--sw-warning-bg)]'
         }`}>
-          {pharmacy.status === 'verifie' ? 'Vérifiée' : pharmacy.status === 'pending' ? 'En attente de vérification' : pharmacy.status}
+          {profile?.account_status === 'verified' ? 'Vérifiée' : profile?.account_status === 'pending' ? 'En attente de vérification' : (profile?.account_status ?? 'En attente')}
         </span>
       </div>
     </div>

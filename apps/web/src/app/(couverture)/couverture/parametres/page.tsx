@@ -15,13 +15,15 @@ const ORG_TYPE_LABELS: Record<string, string> = {
 
 const STATUS_CLASSES: Record<string, string> = {
   pending:  'bg-[var(--sw-warning-bg)] text-[var(--sw-warning)]',
-  verifie:  'bg-[var(--sw-success-bg)] text-[var(--sw-success)]',
+  verified: 'bg-[var(--sw-success-bg)] text-[var(--sw-success)]',
   refused:  'bg-red-50 text-[var(--sw-danger)]',
   suspended:'bg-[var(--sw-surface-2)] text-[var(--sw-ink-3)]',
+  needs_info: 'bg-orange-50 text-orange-600',
+  draft:    'bg-[var(--sw-surface-2)] text-[var(--sw-ink-3)]',
 }
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'En attente de vérification', verifie: 'Vérifié',
-  refused: 'Refusé', suspended: 'Suspendu',
+  pending: 'En attente de vérification', verified: 'Vérifié',
+  refused: 'Refusé', suspended: 'Suspendu', needs_info: 'Complément requis', draft: 'Brouillon',
 }
 
 function Field({ icon: Icon, label, value }: { icon: typeof Settings; label: string; value: string | null }) {
@@ -43,17 +45,18 @@ export default async function ParametresPage() {
   if (!user) redirect('/connexion')
 
   const [orgResult, profileResult] = await Promise.all([
-    supabase.from('coverage_orgs').select('id, name, org_type, registration_number, status, refusal_reason, address_region, address_commune').eq('profile_id', user.id).maybeSingle(),
-    supabase.from('profiles').select('first_name, last_name, phone, email').eq('id', user.id).single(),
+    supabase.from('coverage_orgs').select('id, name, org_type, registration_number, address_region, address_details').eq('profile_id', user.id).maybeSingle(),
+    supabase.from('profiles').select('first_name, last_name, phone, email, account_status, verification_notes').eq('id', user.id).single(),
   ])
 
   const org = orgResult.data as unknown as {
     id: string; name: string; org_type: string | null; registration_number: string | null
-    status: string; refusal_reason: string | null; address_region: string | null; address_commune: string | null
+    address_region: string | null; address_details: string | null
   } | null
 
   const profile = profileResult.data as unknown as {
     first_name: string | null; last_name: string | null; phone: string | null; email: string | null
+    account_status: string | null; verification_notes: string | null
   } | null
 
   if (!org) redirect('/connexion')
@@ -73,15 +76,15 @@ export default async function ParametresPage() {
       {/* Statut */}
       <div className="sw-card p-4 flex items-center justify-between gap-3">
         <span className="text-sm font-medium text-[var(--sw-ink)]">Statut du compte</span>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_CLASSES[org.status] ?? ''}`}>
-          {STATUS_LABELS[org.status] ?? org.status}
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_CLASSES[profile?.account_status ?? ''] ?? ''}`}>
+          {STATUS_LABELS[profile?.account_status ?? ''] ?? (profile?.account_status ?? 'En attente')}
         </span>
       </div>
 
-      {org.refusal_reason && (
+      {profile?.verification_notes && (
         <div className="sw-card p-4 border-red-200 bg-red-50">
-          <p className="text-sm font-medium text-[var(--sw-danger)]">Motif de refus</p>
-          <p className="text-sm text-[var(--sw-ink-2)] mt-1">{org.refusal_reason}</p>
+          <p className="text-sm font-medium text-[var(--sw-danger)]">Notes de vérification</p>
+          <p className="text-sm text-[var(--sw-ink-2)] mt-1">{profile.verification_notes}</p>
         </div>
       )}
 
@@ -95,7 +98,7 @@ export default async function ParametresPage() {
           <Field icon={Building2} label="Type d'organisme" value={org.org_type ? (ORG_TYPE_LABELS[org.org_type] ?? org.org_type) : null} />
           <Field icon={Building2} label="N° d'immatriculation" value={org.registration_number} />
           <Field icon={MapPin}     label="Région" value={org.address_region} />
-          <Field icon={MapPin}     label="Commune" value={org.address_commune} />
+          <Field icon={MapPin}     label="Adresse" value={org.address_details} />
         </div>
       </div>
 

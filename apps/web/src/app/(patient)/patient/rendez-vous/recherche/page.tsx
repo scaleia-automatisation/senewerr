@@ -30,8 +30,8 @@ export default function RechercheRDVPage() {
       const supabase = createClient()
       let query = supabase
         .from('professionals')
-        .select('id, specialty, professional_type, title, consultation_fee_fcfa, languages, profiles!inner(first_name, last_name), establishment_professionals(establishments(id, name, address_commune, address_region))')
-        .eq('status', 'verifie')
+        .select('id, specialty, professional_type, title, consultation_fee_fcfa, languages, profiles!inner(first_name, last_name, account_status), establishment_professionals(establishments(id, name, address_commune, address_region))')
+        .eq('profiles.account_status', 'verified')
 
       if (specialty) query = query.eq('specialty', specialty)
       if (q) query = query.or(`specialty.ilike.%${q}%`)

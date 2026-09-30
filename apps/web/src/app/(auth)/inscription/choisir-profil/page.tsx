@@ -53,13 +53,13 @@ export default function ChoisirProfilPage() {
     const displayName = profileData?.full_name ?? user.email ?? 'Utilisateur'
     type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
     if (actorType === 'patient') {
-      await (supabase.from('patients') as unknown as InsertFn).insert({ profile_id: user.id, status: 'verifie' })
+      await (supabase.from('patients') as unknown as InsertFn).insert({ profile_id: user.id })
     } else if (actorType === 'sante') {
-      await (supabase.from('professionals') as unknown as InsertFn).insert({ profile_id: user.id, status: 'pending', plan: 'essentiel' })
+      await (supabase.from('professionals') as unknown as InsertFn).insert({ profile_id: user.id, professional_type: 'autre', plan: 'essentiel' })
     } else if (actorType === 'pharmacie') {
-      await (supabase.from('pharmacies') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, status: 'pending' })
+      await (supabase.from('pharmacies') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, address_region: 'À renseigner' })
     } else if (actorType === 'couverture') {
-      await (supabase.from('coverage_orgs') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, status: 'pending' })
+      await (supabase.from('coverage_orgs') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, org_type: 'mutuelle_communautaire' })
     }
 
     const routes: Record<string, string> = {

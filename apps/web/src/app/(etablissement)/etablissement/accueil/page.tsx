@@ -34,12 +34,19 @@ export default async function EtablissementAccueilPage() {
 
   const { data: estRaw } = await supabase
     .from('establishments')
-    .select('id, name, status, refusal_reason')
+    .select('id, name')
     .eq('profile_id', user.id)
     .single()
   if (!estRaw) redirect('/sante/accueil')
 
-  const est = estRaw as unknown as { id: string; name: string; status: string; refusal_reason?: string | null }
+  const est = estRaw as unknown as { id: string; name: string }
+
+  const { data: estProfileData } = await supabase
+    .from('profiles')
+    .select('account_status, verification_notes')
+    .eq('id', user.id)
+    .maybeSingle()
+  const estProfile = estProfileData as unknown as { account_status: string | null; verification_notes: string | null } | null
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -119,8 +126,8 @@ export default async function EtablissementAccueilPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-6">
-      {est.status !== 'verifie' && (
-        <AccountStatusBanner status={est.status as 'pending'} motif={est.refusal_reason} />
+      {estProfile?.account_status && estProfile.account_status !== 'verified' && (
+        <AccountStatusBanner status={estProfile.account_status as 'pending'} motif={estProfile.verification_notes} />
       )}
 
       <div>

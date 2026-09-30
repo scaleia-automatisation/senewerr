@@ -36,9 +36,16 @@ export default async function CouvertureAccueilPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id, name, org_type, status, refusal_reason').eq('profile_id', user.id).maybeSingle()
-  const org = orgData as unknown as { id: string; name: string; org_type: string | null; status: string; refusal_reason?: string | null } | null
+  const { data: orgData } = await supabase.from('coverage_orgs').select('id, name, org_type').eq('profile_id', user.id).maybeSingle()
+  const org = orgData as unknown as { id: string; name: string; org_type: string | null } | null
   if (!org) redirect('/connexion')
+
+  const { data: coverageProfileData } = await supabase
+    .from('profiles')
+    .select('account_status, verification_notes')
+    .eq('id', user.id)
+    .maybeSingle()
+  const coverageProfile = coverageProfileData as unknown as { account_status: string | null; verification_notes: string | null } | null
 
   const [
     { count: membresCount },
@@ -78,8 +85,8 @@ export default async function CouvertureAccueilPage() {
 
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto space-y-6">
-      {org.status !== 'verifie' && (
-        <AccountStatusBanner status={org.status as 'pending'} motif={org.refusal_reason} />
+      {coverageProfile?.account_status && coverageProfile.account_status !== 'verified' && (
+        <AccountStatusBanner status={coverageProfile.account_status as 'pending'} motif={coverageProfile.verification_notes} />
       )}
 
       <div>
