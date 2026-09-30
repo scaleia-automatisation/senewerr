@@ -94,25 +94,6 @@ function PasswordField({ value, onChange, placeholder = 'Mot de passe' }: { valu
   )
 }
 
-function PhoneField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="flex gap-2">
-      <div className="flex items-center px-3 bg-[var(--sw-surface-2)] border border-[var(--sw-line)] rounded-lg text-sm font-medium text-[var(--sw-ink-2)] shrink-0">
-        🇸🇳 +221
-      </div>
-      <input
-        type="tel"
-        value={value}
-        onChange={e => onChange(e.target.value.replace(/\D/g, '').slice(0, 9))}
-        placeholder="7X XXX XX XX"
-        className="sw-input flex-1"
-        required
-        pattern="[0-9]{9}"
-      />
-    </div>
-  )
-}
-
 /* ─── Page principale ─── */
 
 function InscriptionPageInner() {
@@ -130,7 +111,6 @@ function InscriptionPageInner() {
   // Champs communs
   const [firstName, setFirstName] = useState('')
   const [lastName,  setLastName]  = useState('')
-  const [phone,     setPhone]     = useState('')
   const [email,     setEmail]     = useState('')  // obligatoire — identifiant Supabase Auth
   const [password,  setPassword]  = useState('')
 
@@ -149,7 +129,6 @@ function InscriptionPageInner() {
   const [estName,     setEstName]     = useState('')
   const [estCategory, setEstCategory] = useState('prive')
   const [estType,     setEstType]     = useState('')
-  const [estPhone,    setEstPhone]    = useState('')
   const [estEmail,    setEstEmail]    = useState('')
   const [estRegion,   setEstRegion]   = useState('')
   const [respNom,     setRespNom]     = useState('')
@@ -157,7 +136,6 @@ function InscriptionPageInner() {
   // Pharmacie
   const [pharmName,  setPharmName]  = useState('')
   const [pharmPharm, setPharmPharm] = useState('')
-  const [pharmPhone, setPharmPhone] = useState('')
   const [pharmEmail, setPharmEmail] = useState('')
   const [pharmRegion, setPharmRegion] = useState('')
   const [pharmAdresse, setPharmAdresse] = useState('')
@@ -165,7 +143,6 @@ function InscriptionPageInner() {
   // Couverture
   const [covCategory, setCovCategory] = useState('')
   const [covName,     setCovName]     = useState('')
-  const [covPhone,    setCovPhone]    = useState('')
   const [covEmail,    setCovEmail]    = useState('')
   const [covRegion,   setCovRegion]   = useState('')
 
@@ -181,7 +158,7 @@ function InscriptionPageInner() {
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { first_name: firstName, last_name: lastName, actor_type: 'patient', phone: phone ? `+221${phone.replace(/\D/g, '')}` : null } },
+          options: { data: { first_name: firstName, last_name: lastName, actor_type: 'patient' } },
         })
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
         if (dateNaissance) {
@@ -201,7 +178,7 @@ function InscriptionPageInner() {
           const { data, error: signUpErr } = await supabase.auth.signUp({
             email,
             password,
-            options: { data: { first_name: firstName, last_name: lastName, actor_type: 'sante', sante_type: 'professionnel', phone: phone ? `+221${phone.replace(/\D/g, '')}` : null } },
+            options: { data: { first_name: firstName, last_name: lastName, actor_type: 'sante', sante_type: 'professionnel' } },
           })
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
           await (supabase.from('professionals') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
@@ -221,7 +198,7 @@ function InscriptionPageInner() {
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
           await (supabase.from('establishments') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
             profile_id: data.user.id, name: estName, category: estCategory || 'prive', establishment_type: estType || 'autre_specialise',
-            address_region: estRegion || 'À renseigner', phone: estPhone || null, email: estEmail || null,
+            address_region: estRegion || 'À renseigner', phone: null, email: estEmail || null,
           })
           router.push('/sante/accueil')
         }
@@ -235,7 +212,7 @@ function InscriptionPageInner() {
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
         await (supabase.from('pharmacies') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
           profile_id: data.user.id, name: pharmName,
-          phone: pharmPhone || null, email: pharmEmail || null,
+          phone: null, email: pharmEmail || null,
           address_region: pharmRegion || 'À renseigner', address_details: pharmAdresse || null,
         })
         router.push('/pharmacie/accueil')
@@ -249,7 +226,7 @@ function InscriptionPageInner() {
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
         await (supabase.from('coverage_orgs') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
           profile_id: data.user.id, name: covName, org_type: covCategory || 'mutuelle_communautaire',
-          phone: covPhone || null, email: covEmail || null,
+          phone: null, email: covEmail || null,
           address_region: covRegion || null,
         })
         router.push('/couverture/accueil')
@@ -387,10 +364,6 @@ function InscriptionPageInner() {
                 <input type="email" className="sw-input w-full" value={email} onChange={e => setEmail(e.target.value)} placeholder="fatou@email.com" required />
               </div>
               <div>
-                <Label>Téléphone (facultatif)</Label>
-                <PhoneField value={phone} onChange={setPhone} />
-              </div>
-              <div>
                 <Label>Date de naissance *</Label>
                 <input type="date" className="sw-input w-full" value={dateNaissance} onChange={e => setDateNaissance(e.target.value)} required max={new Date().toISOString().split('T')[0]} />
               </div>
@@ -417,10 +390,6 @@ function InscriptionPageInner() {
               <div>
                 <Label>Adresse e-mail *</Label>
                 <input type="email" className="sw-input w-full" value={email} onChange={e => setEmail(e.target.value)} placeholder="dr.fall@cabinet.sn" required />
-              </div>
-              <div>
-                <Label>Téléphone (facultatif)</Label>
-                <PhoneField value={phone} onChange={setPhone} />
               </div>
               <div>
                 <Label>Profession *</Label>
@@ -501,15 +470,9 @@ function InscriptionPageInner() {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>E-mail *</Label>
-                  <input type="email" className="sw-input w-full" value={estEmail} onChange={e => setEstEmail(e.target.value)} placeholder="contact@etab.sn" required />
-                </div>
-                <div>
-                  <Label>Téléphone (facultatif)</Label>
-                  <input type="tel" className="sw-input w-full" value={estPhone} onChange={e => setEstPhone(e.target.value)} placeholder="338 XX XX XX" />
-                </div>
+              <div>
+                <Label>E-mail *</Label>
+                <input type="email" className="sw-input w-full" value={estEmail} onChange={e => setEstEmail(e.target.value)} placeholder="contact@etab.sn" required />
               </div>
               <div>
                 <Label>Région *</Label>
@@ -543,15 +506,9 @@ function InscriptionPageInner() {
                 <Label>Pharmacien(ne) responsable *</Label>
                 <input className="sw-input w-full" value={pharmPharm} onChange={e => setPharmPharm(e.target.value)} placeholder="Nom complet" required />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>E-mail *</Label>
-                  <input type="email" className="sw-input w-full" value={pharmEmail} onChange={e => setPharmEmail(e.target.value)} placeholder="contact@pharmacie.sn" required />
-                </div>
-                <div>
-                  <Label>Téléphone (facultatif)</Label>
-                  <input type="tel" className="sw-input w-full" value={pharmPhone} onChange={e => setPharmPhone(e.target.value)} placeholder="338 XX XX XX" />
-                </div>
+              <div>
+                <Label>E-mail *</Label>
+                <input type="email" className="sw-input w-full" value={pharmEmail} onChange={e => setPharmEmail(e.target.value)} placeholder="contact@pharmacie.sn" required />
               </div>
               <div>
                 <Label>Région *</Label>
@@ -588,15 +545,9 @@ function InscriptionPageInner() {
                 <Label>Nom de l&apos;organisme *</Label>
                 <input className="sw-input w-full" value={covName} onChange={e => setCovName(e.target.value)} placeholder="Mutuelle de Santé des Enseignants" required />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>E-mail *</Label>
-                  <input type="email" className="sw-input w-full" value={covEmail} onChange={e => setCovEmail(e.target.value)} placeholder="contact@mutuelle.sn" required />
-                </div>
-                <div>
-                  <Label>Téléphone (facultatif)</Label>
-                  <input type="tel" className="sw-input w-full" value={covPhone} onChange={e => setCovPhone(e.target.value)} placeholder="338 XX XX XX" />
-                </div>
+              <div>
+                <Label>E-mail *</Label>
+                <input type="email" className="sw-input w-full" value={covEmail} onChange={e => setCovEmail(e.target.value)} placeholder="contact@mutuelle.sn" required />
               </div>
               <div>
                 <Label>Région *</Label>

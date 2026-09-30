@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Phone, User, Mail, Calendar } from 'lucide-react'
+import { Eye, EyeOff, User, Mail, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,8 +49,7 @@ const PROFILES = [
 const schema = z.object({
   first_name: z.string().min(2, 'Prénom requis'),
   last_name: z.string().min(2, 'Nom requis'),
-  phone: z.string().min(9, 'Numéro de téléphone invalide'),
-  email: z.string().email('Email invalide').optional().or(z.literal('')),
+  email: z.string().email('Email invalide'),
   date_of_birth: z.string().optional(),
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
   confirm_password: z.string(),
@@ -85,26 +84,23 @@ export function RegisterForm() {
     if (!actorType) return
     setServerError(null)
     const supabase = createClient()
-    const phone = data.phone.startsWith('+') ? data.phone : `+221${data.phone.replace(/^0+/, '')}`
-    const email = data.email || `${phone.replace('+', '')}@phone.senewerr.internal`
 
     const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email,
+      email: data.email,
       password: data.password,
       options: {
         data: {
           first_name: data.first_name,
           last_name: data.last_name,
-          phone,
           actor_type: actorType,
-          date_of_birth: data.date_of_birth,
+          date_of_birth: data.date_of_birth ?? null,
         },
       },
     })
 
     if (signUpError) {
       if (signUpError.message.includes('already registered')) {
-        setServerError('Ce numéro de téléphone ou cette adresse email est déjà utilisé.')
+        setServerError('Cette adresse email est déjà utilisée.')
       } else {
         setServerError(signUpError.message)
       }
@@ -185,31 +181,20 @@ export function RegisterForm() {
       </div>
 
       <Input
-        label="Téléphone"
-        type="tel"
-        placeholder="77 000 00 00"
-        leftIcon={<Phone className="w-4 h-4" />}
-        error={errors.phone?.message}
-        required
-        {...register('phone')}
-      />
-
-      <Input
         label="Adresse e-mail"
         type="email"
         placeholder="awa@exemple.com"
         leftIcon={<Mail className="w-4 h-4" />}
-        hint="Facultatif — permet la récupération de compte"
         error={errors.email?.message}
+        required
         {...register('email')}
       />
 
-      {actorType === 'patient' && (
+      {(actorType === 'patient' || actorType === 'sante') && (
         <Input
           label="Date de naissance"
           type="date"
           leftIcon={<Calendar className="w-4 h-4" />}
-          hint="Facultatif"
           {...register('date_of_birth')}
         />
       )}
