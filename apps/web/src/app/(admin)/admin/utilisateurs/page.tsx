@@ -6,26 +6,26 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Utilisateurs — Admin Séné Wérr' }
 
-type StatusFilter = 'all' | 'pending' | 'verifie' | 'refuse'
+type StatusFilter = 'all' | 'pending' | 'verified' | 'refused'
 
 interface GenericAccount {
   id: string
-  status: string
+  profile_id: string
   created_at: string
   name?: string
   professional_type?: string
-  category?: string
-  profile: { first_name: string; last_name: string; phone: string | null } | null
+  org_type?: string
+  profiles: { first_name: string; last_name: string; phone: string | null; account_status: string } | null
 }
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; icon: typeof Clock }> = {
-  brouillon:   { label: 'Brouillon',    className: 'text-[var(--sw-ink-3)] bg-[var(--sw-surface-2)]',            icon: Clock },
-  pending:     { label: 'En attente',   className: 'text-[var(--sw-warning)] bg-[var(--sw-warning-bg)]',         icon: Clock },
-  a_completer: { label: 'À compléter',  className: 'text-[var(--sw-warning)] bg-[var(--sw-warning-bg)]',         icon: AlertCircle },
-  verifie:     { label: 'Vérifié',      className: 'text-[var(--sw-success)] bg-[var(--sw-success-bg)]',         icon: CheckCircle2 },
-  refuse:      { label: 'Refusé',       className: 'text-[var(--sw-danger)] bg-[var(--sw-danger-bg,#fef2f2)]',   icon: XCircle },
-  suspendu:    { label: 'Suspendu',     className: 'text-[var(--sw-danger)] bg-[var(--sw-danger-bg,#fef2f2)]',   icon: XCircle },
-  desactive:   { label: 'Désactivé',    className: 'text-[var(--sw-ink-3)] bg-[var(--sw-surface-2)]',            icon: XCircle },
+  draft:      { label: 'Brouillon',    className: 'text-[var(--sw-ink-3)] bg-[var(--sw-surface-2)]',            icon: Clock },
+  pending:    { label: 'En attente',   className: 'text-[var(--sw-warning)] bg-[var(--sw-warning-bg)]',         icon: Clock },
+  needs_info: { label: 'À compléter',  className: 'text-[var(--sw-warning)] bg-[var(--sw-warning-bg)]',         icon: AlertCircle },
+  verified:   { label: 'Vérifié',      className: 'text-[var(--sw-success)] bg-[var(--sw-success-bg)]',         icon: CheckCircle2 },
+  refused:    { label: 'Refusé',       className: 'text-[var(--sw-danger)] bg-[var(--sw-danger-bg,#fef2f2)]',   icon: XCircle },
+  suspended:  { label: 'Suspendu',     className: 'text-[var(--sw-danger)] bg-[var(--sw-danger-bg,#fef2f2)]',   icon: XCircle },
+  disabled:   { label: 'Désactivé',    className: 'text-[var(--sw-ink-3)] bg-[var(--sw-surface-2)]',            icon: XCircle },
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -58,9 +58,9 @@ export default async function AdminUtilisateursPage({ searchParams }: Props) {
 
   const STATUS_TABS: { value: string; label: string }[] = [
     { value: 'pending',    label: 'En attente' },
-    { value: 'a_completer', label: 'À compléter' },
-    { value: 'verifie',    label: 'Vérifiés' },
-    { value: 'refuse',     label: 'Refusés' },
+    { value: 'needs_info', label: 'À compléter' },
+    { value: 'verified',   label: 'Vérifiés' },
+    { value: 'refused',    label: 'Refusés' },
     { value: 'all',        label: 'Tous' },
   ]
 
@@ -68,11 +68,11 @@ export default async function AdminUtilisateursPage({ searchParams }: Props) {
   let pendingCount = 0
 
   // Requête principale selon le type
-  const selectQuery = `id, status, created_at, profile:profiles(first_name, last_name, phone)`
+  const selectQuery = `id, profile_id, created_at, profiles!inner(first_name, last_name, phone, account_status)`
   const extraFields = type === 'professionals'
     ? ', professional_type, specialty'
-    : type === 'establishments' || type === 'coverage_orgs'
-      ? ', name, category'
+    : type === 'coverage_orgs'
+      ? ', name, org_type'
       : ', name'
 
   let query = (supabase.from(type as 'professionals') as unknown as {
@@ -87,7 +87,7 @@ export default async function AdminUtilisateursPage({ searchParams }: Props) {
         .order('created_at', { ascending: false }).limit(50)
     : await (query as unknown as {
         eq: (col: string, val: string) => { order: (col: string, opts: object) => { limit: (n: number) => Promise<{ data: unknown[] | null }> } }
-      }).eq('status', status).order('created_at', { ascending: false }).limit(50)
+      }).eq('profiles.account_status', status).order('created_at', { ascending: false }).limit(50)
 
   accounts = (data ?? []) as unknown as GenericAccount[]
 
@@ -155,10 +155,10 @@ export default async function AdminUtilisateursPage({ searchParams }: Props) {
         ) : (
           <div className="space-y-2">
             {accounts.map(account => {
-              const proName = account.profile
-                ? `${account.profile.first_name} ${account.profile.last_name}`.trim()
+              const proName = account.profiles
+                ? `${account.profiles.first_name} ${account.profiles.last_name}`.trim()
                 : 'Inconnu'
-              const subLabel = account.name ?? account.professional_type?.replace(/_/g, ' ') ?? account.category ?? ''
+              const subLabel = account.name ?? account.professional_type?.replace(/_/g, ' ') ?? account.org_type?.replace(/_/g, ' ') ?? ''
               return (
                 <Link
                   key={account.id}
@@ -174,11 +174,11 @@ export default async function AdminUtilisateursPage({ searchParams }: Props) {
                     <p className="text-sm font-medium text-[var(--sw-ink)] truncate">{proName}</p>
                     <p className="text-xs text-[var(--sw-ink-2)]">
                       {subLabel}
-                      {account.profile?.phone ? ` · ${account.profile.phone}` : ''}
+                      {account.profiles?.phone ? ` · ${account.profiles.phone}` : ''}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <StatusBadge status={account.status} />
+                    <StatusBadge status={account.profiles?.account_status ?? 'pending'} />
                     <span className="text-xs text-[var(--sw-ink-3)]">
                       {new Date(account.created_at).toLocaleDateString('fr-FR')}
                     </span>

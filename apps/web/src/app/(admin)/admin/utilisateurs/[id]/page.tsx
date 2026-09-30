@@ -26,10 +26,10 @@ export default async function AdminUtilisateurDetailPage({ params, searchParams 
 
   // Requête générique selon la table
   const selectMap: Record<TableName, string> = {
-    professionals: 'id, status, created_at, professional_type, specialty, license_number, consultation_fee_fcfa, address_region, address_commune, refusal_reason, profile:profiles(first_name, last_name, phone, email)',
-    establishments: 'id, status, created_at, name, category, establishment_type, phone, email, address_region, responsible_name, refusal_reason, profile:profiles(first_name, last_name, phone)',
-    pharmacies: 'id, status, created_at, name, pharmacist_name, phone, email, address_region, address_text, refusal_reason, profile:profiles(first_name, last_name, phone)',
-    coverage_orgs: 'id, status, created_at, name, category, phone, email, address_region, refusal_reason, profile:profiles(first_name, last_name, phone)',
+    professionals: 'id, profile_id, created_at, professional_type, specialty, ordre_number, consultation_fee_fcfa, address_region, address_commune, profiles!profile_id(first_name, last_name, phone, email, account_status, verification_notes)',
+    establishments: 'id, profile_id, created_at, name, category, establishment_type, phone, email, address_region, profiles!profile_id(first_name, last_name, phone, account_status, verification_notes)',
+    pharmacies: 'id, profile_id, created_at, name, phone, email, address_region, address_details, profiles!profile_id(first_name, last_name, phone, account_status, verification_notes)',
+    coverage_orgs: 'id, profile_id, created_at, name, org_type, phone, email, address_region, profiles!profile_id(first_name, last_name, phone, account_status, verification_notes)',
   }
 
   const { data } = await supabase
@@ -41,13 +41,15 @@ export default async function AdminUtilisateurDetailPage({ params, searchParams 
   if (!data) notFound()
 
   const account = data as unknown as Record<string, unknown> & {
-    status: string
-    refusal_reason?: string | null
-    profile: { first_name: string; last_name: string; phone: string | null; email?: string | null } | null
+    profile_id: string
+    profiles: {
+      first_name: string; last_name: string; phone: string | null; email?: string | null
+      account_status: string; verification_notes: string | null
+    } | null
   }
 
-  const proName = account.profile
-    ? `${account.profile.first_name} ${account.profile.last_name}`.trim()
+  const proName = account.profiles
+    ? `${account.profiles.first_name} ${account.profiles.last_name}`.trim()
     : 'Inconnu'
 
   function Field({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string | null | undefined }) {
@@ -96,18 +98,20 @@ export default async function AdminUtilisateurDetailPage({ params, searchParams 
       </div>
 
       {/* Bannière de statut */}
-      <AccountStatusBanner
-        status={account.status as 'pending'}
-        motif={account.refusal_reason as string | null}
-      />
+      {account.profiles?.account_status && account.profiles.account_status !== 'verified' && (
+        <AccountStatusBanner
+          status={account.profiles.account_status as 'pending'}
+          motif={account.profiles.verification_notes}
+        />
+      )}
 
       {/* Informations du compte */}
       <div className="sw-card p-5 space-y-4">
         <h2 className="text-sm font-semibold text-[var(--sw-ink)]">Informations</h2>
         <div className="space-y-3">
           <Field icon={User}     label="Compte"   value={proName} />
-          <Field icon={Phone}    label="Téléphone" value={account.profile?.phone ?? (account.phone as string | null)} />
-          <Field icon={Mail}     label="E-mail"    value={(account.profile?.email ?? account.email) as string | null} />
+          <Field icon={Phone}    label="Téléphone" value={account.profiles?.phone ?? (account.phone as string | null)} />
+          <Field icon={Mail}     label="E-mail"    value={(account.profiles?.email ?? account.email) as string | null} />
           <Field icon={MapPin}   label="Région"    value={account.address_region as string | null} />
 
           {/* Champs spécifiques selon le type */}
@@ -115,7 +119,7 @@ export default async function AdminUtilisateurDetailPage({ params, searchParams 
             <>
               <Field icon={Hash}      label="Profession"   value={(account.professional_type as string | null)?.replace(/_/g, ' ')} />
               <Field icon={Hash}      label="Spécialité"   value={account.specialty as string | null} />
-              <Field icon={Hash}      label="N° identification" value={account.license_number as string | null} />
+              <Field icon={Hash}      label="N° identification" value={account.ordre_number as string | null} />
               <Field icon={MapPin}    label="Commune"      value={account.address_commune as string | null} />
               {(account.consultation_fee_fcfa as number | null) != null && (
                 <Field icon={Hash} label="Tarif consultation" value={`${(account.consultation_fee_fcfa as number).toLocaleString('fr-FR')} FCFA`} />
@@ -136,16 +140,15 @@ export default async function AdminUtilisateurDetailPage({ params, searchParams 
           {tableName === 'pharmacies' && (
             <>
               <Field icon={Building2} label="Pharmacie"     value={account.name as string | null} />
-              <Field icon={User}      label="Pharmacien(ne)" value={account.pharmacist_name as string | null} />
               <Field icon={Phone}     label="Téléphone"     value={account.phone as string | null} />
-              <Field icon={MapPin}    label="Adresse"       value={account.address_text as string | null} />
+              <Field icon={MapPin}    label="Adresse"       value={account.address_details as string | null} />
             </>
           )}
 
           {tableName === 'coverage_orgs' && (
             <>
               <Field icon={Building2} label="Organisme" value={account.name as string | null} />
-              <Field icon={Hash}      label="Catégorie" value={account.category as string | null} />
+              <Field icon={Hash}      label="Type"      value={(account.org_type as string | null)?.replace(/_/g, ' ')} />
               <Field icon={Phone}     label="Téléphone" value={account.phone as string | null} />
             </>
           )}
@@ -156,9 +159,8 @@ export default async function AdminUtilisateurDetailPage({ params, searchParams 
       <div className="sw-card p-5 space-y-3">
         <h2 className="text-sm font-semibold text-[var(--sw-ink)]">Décision</h2>
         <ValidationButtons
-          id={id}
-          table={tableName}
-          currentStatus={account.status}
+          profileId={account.profile_id}
+          currentStatus={account.profiles?.account_status ?? 'pending'}
         />
       </div>
     </div>
