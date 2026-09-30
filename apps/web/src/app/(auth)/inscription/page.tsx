@@ -114,9 +114,6 @@ function InscriptionPageInner() {
   const [email,     setEmail]     = useState('')  // obligatoire — identifiant Supabase Auth
   const [password,  setPassword]  = useState('')
 
-  // Patient spécifique
-  const [dateNaissance, setDateNaissance] = useState('')
-
   // Sante professionnel
   const [professionalType, setProfessionalType] = useState('')
   const [specialty,        setSpecialty]        = useState('')
@@ -161,15 +158,9 @@ function InscriptionPageInner() {
           options: { data: { first_name: firstName, last_name: lastName, actor_type: 'patient' } },
         })
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
-        if (dateNaissance) {
-          await (supabase.from('patients') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-            profile_id: data.user.id, date_of_birth: dateNaissance,
-          })
-        } else {
-          await (supabase.from('patients') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
-            profile_id: data.user.id,
-          })
-        }
+        await (supabase.from('patients') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
+          profile_id: data.user.id,
+        })
         router.push('/patient/accueil')
 
       } else if (actorType === 'sante') {
@@ -362,10 +353,6 @@ function InscriptionPageInner() {
               <div>
                 <Label>Adresse e-mail *</Label>
                 <input type="email" className="sw-input w-full" value={email} onChange={e => setEmail(e.target.value)} placeholder="fatou@email.com" required />
-              </div>
-              <div>
-                <Label>Date de naissance *</Label>
-                <input type="date" className="sw-input w-full" value={dateNaissance} onChange={e => setDateNaissance(e.target.value)} required max={new Date().toISOString().split('T')[0]} />
               </div>
               <div>
                 <Label>Mot de passe *</Label>

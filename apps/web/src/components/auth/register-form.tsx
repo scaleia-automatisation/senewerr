@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, User, Mail, Calendar } from 'lucide-react'
+import { Eye, EyeOff, User, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,7 +50,6 @@ const schema = z.object({
   first_name: z.string().min(2, 'Prénom requis'),
   last_name: z.string().min(2, 'Nom requis'),
   email: z.string().email('Email invalide'),
-  date_of_birth: z.string().optional(),
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
   confirm_password: z.string(),
   accept_terms: z.boolean().refine(v => v === true, 'Vous devez accepter les conditions'),
@@ -93,7 +92,6 @@ export function RegisterForm() {
           first_name: data.first_name,
           last_name: data.last_name,
           actor_type: actorType,
-          date_of_birth: data.date_of_birth ?? null,
         },
       },
     })
@@ -190,14 +188,6 @@ export function RegisterForm() {
         {...register('email')}
       />
 
-      {(actorType === 'patient' || actorType === 'sante') && (
-        <Input
-          label="Date de naissance"
-          type="date"
-          leftIcon={<Calendar className="w-4 h-4" />}
-          {...register('date_of_birth')}
-        />
-      )}
 
       <Input
         label="Mot de passe"
