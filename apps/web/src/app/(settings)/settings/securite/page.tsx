@@ -1,4 +1,3 @@
-'use server'
 // Spec 27.1 — Protection des comptes : sessions, appareils, mots de passe
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'

@@ -1,4 +1,3 @@
-'use server'
 // Spec 30 — Tests, déploiement et critères de validation
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'

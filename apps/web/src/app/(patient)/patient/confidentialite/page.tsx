@@ -1,4 +1,3 @@
-'use server'
 // Spec 27.3 — Consentement et partage : le patient comprend ce qu'il partage et avec qui
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'

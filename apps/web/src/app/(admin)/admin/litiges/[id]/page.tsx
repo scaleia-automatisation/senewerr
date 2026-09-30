@@ -1,4 +1,3 @@
-'use server'
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
