@@ -118,9 +118,7 @@ function InscriptionPageInner() {
   const [professionalType, setProfessionalType] = useState('')
   const [specialty,        setSpecialty]        = useState('')
   const [licenseNumber,    setLicenseNumber]    = useState('')
-  const [consultationFee,  setConsultationFee]  = useState('')
   const [region,           setRegion]           = useState('')
-  const [commune,          setCommune]          = useState('')
 
   // Sante établissement
   const [estName,     setEstName]     = useState('')
@@ -174,8 +172,8 @@ function InscriptionPageInner() {
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
           await (supabase.from('professionals') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
             profile_id: data.user.id, professional_type: professionalType || 'autre', specialty: specialty || null,
-            ordre_number: licenseNumber || null, consultation_fee_fcfa: consultationFee ? parseInt(consultationFee) : null,
-            address_region: region || null, address_commune: commune || null,
+            ordre_number: licenseNumber || null, consultation_fee_fcfa: null,
+            address_region: region || null, address_commune: null,
             plan: 'essentiel', teleconsultation_enabled: false, home_visit_enabled: false,
           })
           router.push('/sante/accueil')
@@ -395,22 +393,12 @@ function InscriptionPageInner() {
                 <Label>Numéro d&apos;identification professionnelle</Label>
                 <input className="sw-input w-full" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} placeholder="N° Ordre des médecins…" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Région d&apos;exercice</Label>
-                  <select className="sw-input w-full" value={region} onChange={e => setRegion(e.target.value)}>
-                    <option value="">— Région —</option>
-                    {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <Label>Commune</Label>
-                  <input className="sw-input w-full" value={commune} onChange={e => setCommune(e.target.value)} placeholder="Plateau, Almadies…" />
-                </div>
-              </div>
               <div>
-                <Label>Tarif de consultation (FCFA)</Label>
-                <input type="number" className="sw-input w-full" value={consultationFee} onChange={e => setConsultationFee(e.target.value)} placeholder="5000" min={0} />
+                <Label>Région d&apos;exercice</Label>
+                <select className="sw-input w-full" value={region} onChange={e => setRegion(e.target.value)}>
+                  <option value="">— Région —</option>
+                  {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
               </div>
               <div>
                 <Label>Mot de passe *</Label>
