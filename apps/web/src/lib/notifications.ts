@@ -115,8 +115,9 @@ export async function sendNotification(payload: NotifPayload): Promise<{ ok: boo
 
     const enabledChannels = await getEnabledChannels(supabase, payload.recipient_id, payload.type, channels)
 
+    const notifTable = supabase.from('notifications') as unknown as { insert: (v: unknown) => Promise<unknown> }
     const promises = enabledChannels.map(channel =>
-      supabase.from('notifications').insert({
+      notifTable.insert({
         recipient_id: payload.recipient_id,
         notification_type: payload.type,
         channel,

@@ -39,10 +39,9 @@ export default function ChoisirProfilPage() {
       return
     }
 
-    const { error: updateErr } = await supabase
-      .from('profiles')
-      .update({ actor_type: actorType })
-      .eq('id', user.id)
+    const { error: updateErr } = await (supabase.from('profiles') as unknown as {
+      update: (v: unknown) => { eq: (k: string, v: string) => Promise<{ error: Error | null }> }
+    }).update({ actor_type: actorType }).eq('id', user.id)
 
     if (updateErr) {
       setError('Erreur lors de la mise à jour du profil.')

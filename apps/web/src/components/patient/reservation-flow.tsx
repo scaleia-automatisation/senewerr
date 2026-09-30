@@ -78,7 +78,7 @@ export function ReservationFlow({ patientId, product, pharmacy, stock, prescript
     const reservationId = reservation!.id
 
     // 2. Ajouter l'article de réservation
-    const { error: itemErr } = await supabase.from('pharmacy_reservation_items').insert({
+    const { error: itemErr } = await (supabase.from('pharmacy_reservation_items') as unknown as { insert: (v: unknown) => Promise<{ error: Error | null }> }).insert({
       reservation_id: reservationId,
       product_id: product.id,
       medication_name: product.name,

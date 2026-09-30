@@ -82,7 +82,7 @@ export default async function NotificationsPage() {
           <form action={async () => {
             'use server'
             const sc = await createClient()
-            await sc.from('notifications')
+            await (sc.from('notifications') as unknown as { update: (v: unknown) => { eq: (...a: unknown[]) => unknown } })
               .update({ is_read: true, read_at: new Date().toISOString() })
               .eq('recipient_id', user.id)
               .eq('channel', 'in_app')
