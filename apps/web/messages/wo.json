@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "Séné Wérr",
+    "tagline": "Sa wér wi ci biir ak ci kanam"
+  },
+  "nav": {
+    "home": "Kër gi",
+    "login": "Dugël",
+    "register": "Bindël sa tuur",
+    "features": "Ci li très bien",
+    "pricing": "Njëg",
+    "about": "Ci nun",
+    "contact": "Jëfandikoo"
+  },
+  "auth": {
+    "login": "Dugël",
+    "logout": "Génnël",
+    "register": "Bindël sa tuur",
+    "phone": "Nimero telefon",
+    "password": "Xuux",
+    "fullName": "Tur bi",
+    "forgotPassword": "Waññi sa xuux ?",
+    "noAccount": "Amul sa kont ?",
+    "alreadyAccount": "Am nga kont ?"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Dalal"
+  },
+  "errors": {
+    "required": "Lii dafa war",
+    "invalidPhone": "Nimero telefon bi baax du",
+    "generic": "Am na foti"
+  }
+}

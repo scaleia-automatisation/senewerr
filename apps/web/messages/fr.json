@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "Séné Wérr",
+    "tagline": "Votre santé connectée et centralisée"
+  },
+  "nav": {
+    "home": "Accueil",
+    "login": "Connexion",
+    "register": "Inscription",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "register": "S'inscrire",
+    "phone": "Numéro de téléphone",
+    "password": "Mot de passe",
+    "fullName": "Nom complet",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "alreadyAccount": "Déjà un compte ?"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue"
+  },
+  "errors": {
+    "required": "Ce champ est requis",
+    "invalidPhone": "Numéro de téléphone invalide",
+    "generic": "Une erreur est survenue"
+  }
+}

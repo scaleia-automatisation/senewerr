@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "Séné Wérr",
+    "tagline": "Your connected and centralized health"
+  },
+  "nav": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "register": "Sign up",
+    "phone": "Phone number",
+    "password": "Password",
+    "fullName": "Full name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "No account yet?",
+    "alreadyAccount": "Already have an account?"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidPhone": "Invalid phone number",
+    "generic": "An error occurred"
+  }
+}
