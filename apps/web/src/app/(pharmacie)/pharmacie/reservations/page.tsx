@@ -34,7 +34,7 @@ const TABS: { key: string; label: string; statuses: string[] }[] = [
 ]
 
 type Reservation = {
-  id: string; status: string; created_at: string; expires_at: string | null; quantity: number | null
+  id: string; status: string; created_at: string; expiry_at: string | null; quantity: number | null
   patients: { profiles: { full_name: string | null } | null } | null
   pharmacy_reservation_items: { medication_name: string; pharmacy_products: { dosage: string | null } | null }[]
 }
@@ -62,7 +62,7 @@ export default async function PharmacieReservationsPage({ searchParams }: { sear
 
   const { data } = await supabase
     .from('pharmacy_reservations')
-    .select('id, status, created_at, expires_at, quantity, patients(profiles(full_name)), pharmacy_reservation_items(medication_name, pharmacy_products(dosage))')
+    .select('id, status, created_at, expiry_at, quantity, patients(profiles(full_name)), pharmacy_reservation_items(medication_name, pharmacy_products(dosage))')
     .eq('pharmacy_id', pharmacy.id)
     .in('status', activeTab.statuses)
     .order('created_at', { ascending: false })
@@ -104,7 +104,7 @@ export default async function PharmacieReservationsPage({ searchParams }: { sear
           {reservations.map(r => {
             const pat = (r.patients as unknown as { profiles: { full_name: string | null } | null } | null)
             const _item = r.pharmacy_reservation_items?.[0]; const med = _item ? { name: _item.medication_name, dosage: _item.pharmacy_products?.dosage ?? null } : null
-            const isExpiringSoon = r.expires_at && (new Date(r.expires_at).getTime() - Date.now()) < 24 * 3600 * 1000 * 2
+            const isExpiringSoon = r.expiry_at && (new Date(r.expiry_at).getTime() - Date.now()) < 24 * 3600 * 1000 * 2
             return (
               <Link key={r.id} href={`/pharmacie/reservations/${r.id}`}
                 className="sw-card p-4 flex items-start gap-3 hover:border-[var(--sw-primary)] transition-colors">

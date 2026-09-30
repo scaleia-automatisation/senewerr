@@ -49,13 +49,13 @@ export default async function PatientReservationDetailPage({ params }: { params:
 
   const { data: resaData } = await supabase
     .from('pharmacy_reservations')
-    .select('id, status, created_at, expires_at, pickup_code, has_coverage, quantity, notes, pharmacist_notes, pharmacies(name, address_commune, address_region, phone), pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), prescriptions(id)')
+    .select('id, status, created_at, expiry_at, pickup_code, has_coverage, quantity, notes, pharmacist_notes, pharmacies(name, address_commune, address_region, phone), pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), prescriptions(id)')
     .eq('id', id)
     .eq('patient_id', patient.id)
     .maybeSingle()
 
   const resa = resaData as unknown as {
-    id: string; status: string; created_at: string; expires_at: string | null; pickup_code: string | null
+    id: string; status: string; created_at: string; expiry_at: string | null; pickup_code: string | null
     has_coverage: boolean; quantity: number | null; notes: string | null; pharmacist_notes: string | null
     pharmacies: { name: string; address_commune: string | null; address_region: string | null; phone: string | null } | null
     pharmacy_reservation_items: { medication_name: string; pharmacy_products: { dosage: string | null; form: string | null; prescription_required: boolean } | null }[]
@@ -74,7 +74,7 @@ export default async function PatientReservationDetailPage({ params }: { params:
   }
 
   const canCancel = ['new', 'verifying'].includes(resa.status)
-  const isExpiringSoon = resa.expires_at && (new Date(resa.expires_at).getTime() - Date.now()) < 24 * 3600 * 1000 * 2 && !['collected', 'refused', 'cancelled', 'expired'].includes(resa.status)
+  const isExpiringSoon = resa.expiry_at && (new Date(resa.expiry_at).getTime() - Date.now()) < 24 * 3600 * 1000 * 2 && !['collected', 'refused', 'cancelled', 'expired'].includes(resa.status)
 
   return (
     <div className="p-4 lg:p-6 max-w-xl mx-auto space-y-5">
@@ -113,7 +113,7 @@ export default async function PatientReservationDetailPage({ params }: { params:
             </div>
           )}
           <Field label="Réservé le" value={fmtDateTime(resa.created_at)} />
-          {resa.expires_at && <Field label="Expire le" value={fmtDateTime(resa.expires_at)} />}
+          {resa.expiry_at && <Field label="Expire le" value={fmtDateTime(resa.expiry_at)} />}
           {resa.notes && <Field label="Votre note" value={resa.notes} />}
           {resa.pharmacist_notes && <Field label="Note du pharmacien" value={resa.pharmacist_notes} />}
           {resa.has_coverage && <Field label="Couverture" value="Prise en charge demandée" />}

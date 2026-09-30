@@ -28,7 +28,7 @@ const STATUS_CLASSES: Record<string, string> = {
 }
 
 type Reservation = {
-  id: string; status: string; created_at: string; pickup_code: string | null; has_coverage: boolean; expires_at: string | null
+  id: string; status: string; created_at: string; pickup_code: string | null; has_coverage: boolean; expiry_at: string | null
   pharmacies: { name: string } | null
   pharmacy_reservation_items: { medication_name: string; pharmacy_products: { dosage: string | null } | null }[]
 }
@@ -49,7 +49,7 @@ export default async function PatientPharmaciePage() {
   if (patient) {
     const { data } = await supabase
       .from('pharmacy_reservations')
-      .select('id, status, created_at, pickup_code, has_coverage, expires_at, pharmacies(name), pharmacy_reservation_items(medication_name, pharmacy_products(dosage))')
+      .select('id, status, created_at, pickup_code, has_coverage, expiry_at, pharmacies(name), pharmacy_reservation_items(medication_name, pharmacy_products(dosage))')
       .eq('patient_id', patient.id)
       .order('created_at', { ascending: false })
     if (data) reservations.push(...(data as unknown as Reservation[]))
@@ -77,7 +77,7 @@ export default async function PatientPharmaciePage() {
             const pharmName = (r.pharmacies as unknown as { name: string } | null)?.name
             const item = r.pharmacy_reservation_items?.[0]; const medName = item ? { name: item.medication_name, dosage: item.pharmacy_products?.dosage ?? null } : null
             const refCode = r.pickup_code ? `MED-${r.pickup_code}` : null
-            const isExpiringSoon = r.expires_at && (new Date(r.expires_at).getTime() - Date.now()) < 24 * 3600 * 1000 * 2
+            const isExpiringSoon = r.expiry_at && (new Date(r.expiry_at).getTime() - Date.now()) < 24 * 3600 * 1000 * 2
             return (
               <Link key={r.id} href={`/patient/pharmacie/reservations/${r.id}`}
                 className="sw-card p-4 flex items-start gap-3 hover:border-[var(--sw-primary)] transition-colors">
@@ -96,7 +96,7 @@ export default async function PatientPharmaciePage() {
                   <div className="flex items-center gap-3 text-xs text-[var(--sw-ink-3)]">
                     <span>{fmtDate(r.created_at)}</span>
                     {refCode && <span className="font-mono">{refCode}</span>}
-                    {isExpiringSoon && r.expires_at && (
+                    {isExpiringSoon && r.expiry_at && (
                       <span className="text-[var(--sw-warning)] font-medium flex items-center gap-1">
                         <Clock className="w-3 h-3" /> Expire bientôt
                       </span>
