@@ -44,7 +44,7 @@ export default async function CouverturePaiementsPage() {
   const { data } = await supabase
     .from('payments')
     .select('id, status, amount_fcfa, reference_code, created_at, reconciled_at, pharmacy_reservations(pharmacies(name), pharmacy_reservation_items(medication_name)), patients(profiles(full_name))')
-    .eq('organisme_id', org.id)
+    .eq('coverage_org_id', org.id)
     .order('created_at', { ascending: false })
     .limit(50)
 

@@ -28,7 +28,7 @@ export default async function SuperAdminPage() {
     supabase.from('patients').select('id', { count: 'exact', head: true }),
     supabase.from('professionals').select('id', { count: 'exact', head: true }),
     supabase.from('pharmacies').select('id', { count: 'exact', head: true }),
-    supabase.from('organismes_couverture').select('id', { count: 'exact', head: true }),
+    supabase.from('coverage_orgs').select('id', { count: 'exact', head: true }),
     supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'confirmed'),
     supabase.from('payments').select('amount_fcfa').eq('status', 'confirmed'),
     supabase.from('pharmacy_reservations').select('id', { count: 'exact', head: true }),

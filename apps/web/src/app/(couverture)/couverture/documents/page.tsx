@@ -73,7 +73,7 @@ export default async function CouvertureDocumentsPage({ searchParams }: { search
   if (!user) redirect('/connexion')
 
   const { data: orgData } = await supabase
-    .from('organismes_couverture')
+    .from('coverage_orgs')
     .select('id, name')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -85,13 +85,13 @@ export default async function CouvertureDocumentsPage({ searchParams }: { search
     supabase
       .from('coverage_requests')
       .select('id, status, created_at, amount_total, amount_covered, amount_patient, pharmacy_reservations(pharmacy_reservation_items(medication_name)), patients(profiles(full_name))')
-      .eq('organisme_id', organisme.id)
+      .eq('coverage_org_id', organisme.id)
       .order('created_at', { ascending: false })
       .limit(100),
     supabase
       .from('payments')
       .select('id, status, payment_type, amount_fcfa, reference_code, created_at')
-      .eq('organisme_id', organisme.id)
+      .eq('coverage_org_id', organisme.id)
       .order('created_at', { ascending: false })
       .limit(100),
   ])

@@ -57,13 +57,13 @@ export default async function DemandesCouverturePage({ searchParams }: { searchP
   const { data } = await supabase
     .from('coverage_requests')
     .select('id, status, created_at, amount_total, amount_covered, amount_patient, pharmacy_reservations(id, pharmacy_reservation_items(medication_name, pharmacy_products(dosage)), pharmacies(name)), patients(profiles(full_name))')
-    .eq('organisme_id', org.id)
+    .eq('coverage_org_id', org.id)
     .in('status', activeTab.statuses)
     .order('created_at', { ascending: false })
 
   const requests = (data ?? []) as unknown as CoverageRequest[]
 
-  const { data: counts } = await supabase.from('coverage_requests').select('status').eq('organisme_id', org.id)
+  const { data: counts } = await supabase.from('coverage_requests').select('status').eq('coverage_org_id', org.id)
   const tabCounts: Record<string, number> = { active: 0, done: 0 }
   for (const r of (counts ?? []) as unknown as { status: string }[]) {
     if (TABS[0].statuses.includes(r.status)) tabCounts.active++

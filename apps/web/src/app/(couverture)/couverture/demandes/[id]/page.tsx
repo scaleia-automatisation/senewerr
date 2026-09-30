@@ -50,7 +50,7 @@ export default async function DemandeCouvertureDetailPage({ params }: { params: 
     .from('coverage_requests')
     .select('id, status, created_at, decided_at, amount_total, amount_covered, amount_patient, exclusions_notes, decision_notes, required_documents, pharmacy_reservations(id, status, quantity, notes, pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), pharmacies(name, address_commune, phone)), patients(id, profiles(full_name, phone)), coverage_policies(id, plan_name)')
     .eq('id', id)
-    .eq('organisme_id', org.id)
+    .eq('coverage_org_id', org.id)
     .maybeSingle()
 
   const req = reqData as unknown as {

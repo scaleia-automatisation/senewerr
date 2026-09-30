@@ -36,7 +36,7 @@ export default async function AdminDashboardPage() {
     supabase.from('professionals').select('id', { count: 'exact', head: true }),
     supabase.from('establishments').select('id', { count: 'exact', head: true }),
     supabase.from('pharmacies').select('id', { count: 'exact', head: true }),
-    supabase.from('organismes_couverture').select('id', { count: 'exact', head: true }),
+    supabase.from('coverage_orgs').select('id', { count: 'exact', head: true }),
     // Comptes à vérifier : professionnels sans vérification
     supabase.from('profiles').select('id', { count: 'exact', head: true })
       .eq('status', 'pending_verification'),

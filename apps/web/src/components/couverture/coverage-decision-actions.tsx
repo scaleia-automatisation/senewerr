@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { sendNotificationAction } from '@/app/actions/notifications'
 import { Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react'
 
 type UpdateFn = {
@@ -96,6 +97,29 @@ export function CoverageDecisionActions({ requestId, reservationId, currentStatu
       await (supabase.from('pharmacy_reservations') as unknown as UpdateResaFn)
         .update({ status: 'refused' })
         .eq('id', reservationId)
+    }
+
+    // Notifier le patient de la décision de couverture
+    if (['approved', 'partial', 'refused'].includes(action.nextStatus)) {
+      supabase.from('coverage_requests').select('patient_id').eq('id', requestId).maybeSingle().then(({ data: reqRow }) => {
+        if (reqRow?.patient_id) {
+          supabase.from('patients').select('profile_id').eq('id', (reqRow as unknown as { patient_id: string }).patient_id).maybeSingle().then(({ data: patRow }) => {
+            if (patRow?.profile_id) {
+              const notifType = ['approved', 'partial'].includes(action.nextStatus) ? 'coverage_validated' : 'coverage_refused'
+              const notifBody = ['approved', 'partial'].includes(action.nextStatus)
+                ? 'Votre demande de prise en charge a été acceptée.'
+                : `Votre demande de prise en charge a été refusée.${notes ? ` ${notes}` : ''}`
+              sendNotificationAction({
+                recipient_id: (patRow as unknown as { profile_id: string }).profile_id,
+                type: notifType,
+                body: notifBody,
+                reference_type: 'coverage_request',
+                reference_id: requestId,
+              }).catch(() => {})
+            }
+          }).catch(() => {})
+        }
+      }).catch(() => {})
     }
 
     setDone(true); setLoading(null)

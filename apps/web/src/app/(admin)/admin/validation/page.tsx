@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 import { CheckCircle2, XCircle, MessageSquare, User, Stethoscope, Building2, Package, Shield } from 'lucide-react'
+import { sendNotificationAction } from '@/app/actions/notifications'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Validation des comptes — Admin' }
@@ -17,7 +18,7 @@ const ACTOR_META: Record<string, { label: string; icon: React.ReactNode }> = {
   professionals: { label: 'Professionnel de santé', icon: <Stethoscope className="w-4 h-4 text-purple-600" /> },
   establishments: { label: 'Établissement', icon: <Building2 className="w-4 h-4 text-blue-600" /> },
   pharmacies: { label: 'Pharmacie', icon: <Package className="w-4 h-4 text-orange-600" /> },
-  organismes_couverture: { label: 'Organisme de couverture', icon: <Shield className="w-4 h-4 text-[var(--sw-success)]" /> },
+  coverage_orgs: { label: 'Organisme de couverture', icon: <Shield className="w-4 h-4 text-[var(--sw-success)]" /> },
 }
 
 // Spec 21.4 — server actions : valider / refuser / demander un complément / suspendre
@@ -29,15 +30,36 @@ async function validateActor(formData: FormData) {
   const action = formData.get('action') as 'approve' | 'refuse' | 'info_required' | 'suspend'
   const motif = formData.get('motif') as string | null
 
-  const newStatus = action === 'approve' ? 'active'
-    : action === 'refuse' ? 'refused'
-    : action === 'suspend' ? 'suspended'
-    : 'info_required'
+  const newStatus = action === 'approve' ? 'verifie'
+    : action === 'refuse' ? 'refuse'
+    : action === 'suspend' ? 'suspendu'
+    : 'a_completer'
 
   type UpdateFn = { update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> } }
   await (supabase.from(table) as unknown as UpdateFn)
     .update({ status: newStatus, ...(motif ? { admin_notes: motif } : {}) })
     .eq('id', actorId)
+
+  // Spec 21.4 — notifier l'acteur de la décision
+  if (action === 'approve' || action === 'refuse' || action === 'info_required') {
+    // Récupérer le profile_id de l'acteur pour lui envoyer la notification
+    type SelectFn = { select: (q: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { profile_id: string } | null }> } } }
+    const { data: actorRow } = await (supabase.from(table) as unknown as SelectFn)
+      .select('profile_id').eq('id', actorId).maybeSingle()
+    if (actorRow?.profile_id) {
+      const notifType = action === 'approve' ? 'account_validated' : action === 'refuse' ? 'account_refused' : 'account_needs_info'
+      const notifBody = action === 'approve' ? 'Votre compte a été validé. Vous pouvez maintenant utiliser votre espace.'
+        : action === 'refuse' ? `Votre compte n'a pas été validé.${motif ? ` Motif : ${motif}` : ''}`
+        : `Complément d'information requis.${motif ? ` ${motif}` : ''}`
+      sendNotificationAction({
+        recipient_id: actorRow.profile_id,
+        type: notifType,
+        body: notifBody,
+        reference_type: 'account',
+        reference_id: actorId,
+      }).catch(() => {})
+    }
+  }
 
   // Spec 21.4 — chaque décision est historisée (logEvent stub)
   type InsertEventFn = { insert: (v: unknown) => Promise<{ error: unknown }> }

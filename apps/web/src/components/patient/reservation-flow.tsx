@@ -66,8 +66,9 @@ export function ReservationFlow({ patientId, product, pharmacy, stock, prescript
         pharmacy_id: pharmacy.id,
         prescription_id: prescriptionId || null,
         status: 'new',
-        expiry_at: expiresAt,
+        expires_at: expiresAt,
         total_amount_fcfa: total ?? 0,
+        has_coverage: hasCoverage,
         notes: notes || null,
       })
       .select('id')
@@ -91,13 +92,27 @@ export function ReservationFlow({ patientId, product, pharmacy, stock, prescript
       setError(itemErr.message); setSubmitting(false); return
     }
 
-    // 3. Notifier la pharmacie (fire-and-forget)
+    // 3. Notifier la pharmacie et le patient (fire-and-forget)
     sendNotificationAction({
       recipient_id: pharmacy.profile_id,
       type: 'reservation_confirmed',
       body: `Nouvelle réservation — ${product.name} × ${quantity}`,
       reference_type: 'reservation',
       reference_id: reservationId,
+    }).catch(() => {})
+
+    // Récupérer le profile_id du patient pour lui confirmer la réservation
+    const supabase2 = createClient()
+    supabase2.from('patients').select('profile_id').eq('id', patientId).maybeSingle().then(({ data }) => {
+      if (data?.profile_id) {
+        sendNotificationAction({
+          recipient_id: (data as unknown as { profile_id: string }).profile_id,
+          type: 'reservation_confirmed',
+          body: `Votre réservation de ${product.name} chez ${pharmacy.name} a bien été transmise.`,
+          reference_type: 'reservation',
+          reference_id: reservationId,
+        }).catch(() => {})
+      }
     }).catch(() => {})
 
     setSuccessId(reservationId)
