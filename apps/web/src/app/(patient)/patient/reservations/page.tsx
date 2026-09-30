@@ -118,7 +118,7 @@ export default async function ReservationsPage() {
     const itemCount = res.prescriptions?.prescription_items?.length ?? 0
 
     return (
-      <div className={cn('sw-card p-4 space-y-3', isReady && 'border-[var(--sw-success)]')}>
+      <Link href={`/patient/pharmacie/reservations/${res.id}`} className={cn('sw-card p-4 space-y-3 block hover:opacity-90 transition-opacity', isReady && 'border-[var(--sw-success)]')}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
             <ShoppingBag className={cn('w-4 h-4 flex-shrink-0', isReady ? 'text-[var(--sw-success)]' : 'text-[var(--sw-primary)]')} />
@@ -169,7 +169,7 @@ export default async function ReservationsPage() {
             Expire le {formatDateTime(res.expiry_at)}
           </div>
         )}
-      </div>
+      </Link>
     )
   }
 

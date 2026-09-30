@@ -131,7 +131,7 @@ export default async function MedicamentsPage() {
                 </div>
 
                 <Link
-                  href="/patient/reservations"
+                  href={`/patient/pharmacie/reserver?productId=${product.id}&pharmacyId=${product.pharmacies?.id}`}
                   className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-[var(--sw-primary-subtle)] text-[var(--sw-primary)] text-xs font-medium hover:bg-[var(--sw-primary)] hover:text-white transition-colors"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />

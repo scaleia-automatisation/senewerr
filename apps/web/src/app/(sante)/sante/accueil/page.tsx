@@ -33,15 +33,15 @@ export default async function SanteAccueilPage() {
 
   const { data: profileData } = await supabase
     .from('profiles')
-    .select('first_name, last_name')
+    .select('first_name, last_name, account_status, verification_notes')
     .eq('id', user.id)
     .single()
-  const profile = profileData as unknown as { first_name: string | null; last_name: string | null } | null
+  const profile = profileData as unknown as { first_name: string | null; last_name: string | null; account_status: string | null; verification_notes: string | null } | null
 
-  const { data: proData }  = await supabase.from('professionals').select('id, status, refusal_reason, title').eq('profile_id', user.id).maybeSingle()
-  const { data: estData }  = await supabase.from('establishments').select('id, status, refusal_reason').eq('profile_id', user.id).maybeSingle()
-  const pro = proData as unknown as { id: string; status: string; refusal_reason?: string | null; title?: string | null } | null
-  const accountStatus = ((pro ?? estData) as unknown as { status: string; refusal_reason?: string | null } | null)
+  const { data: proData }  = await supabase.from('professionals').select('id, title').eq('profile_id', user.id).maybeSingle()
+  const { data: estData }  = await supabase.from('establishments').select('id').eq('profile_id', user.id).maybeSingle()
+  const pro = proData as unknown as { id: string; title?: string | null } | null
+  const accountStatus = profile ? { status: profile.account_status, refusal_reason: profile.verification_notes } : null
 
   const today = new Date().toISOString().split('T')[0]
 

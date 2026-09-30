@@ -28,12 +28,12 @@ export default function ChoisirProfilPage() {
     // Vérifier que l'utilisateur n'a pas déjà un actor_type (protection contre double-visite)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('actor_type')
+      .select('actor_type, full_name')
       .eq('id', user.id)
       .single()
 
-    const existingType = (profile as unknown as { actor_type: string | null } | null)?.actor_type
-    if (existingType) {
+    const profileData = profile as unknown as { actor_type: string | null; full_name: string | null } | null
+    if (profileData?.actor_type) {
       // Déjà configuré → rediriger directement
       router.push('/tableau-de-bord')
       return
@@ -47,6 +47,19 @@ export default function ChoisirProfilPage() {
       setError('Erreur lors de la mise à jour du profil.')
       setLoading(null)
       return
+    }
+
+    // Créer la ligne dans la sous-table correspondante (obligatoire pour les dashboards)
+    const displayName = profileData?.full_name ?? user.email ?? 'Utilisateur'
+    type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
+    if (actorType === 'patient') {
+      await (supabase.from('patients') as unknown as InsertFn).insert({ profile_id: user.id, status: 'verifie' })
+    } else if (actorType === 'sante') {
+      await (supabase.from('professionals') as unknown as InsertFn).insert({ profile_id: user.id, status: 'pending', plan: 'essentiel' })
+    } else if (actorType === 'pharmacie') {
+      await (supabase.from('pharmacies') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, status: 'pending' })
+    } else if (actorType === 'couverture') {
+      await (supabase.from('coverage_orgs') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, status: 'pending' })
     }
 
     const routes: Record<string, string> = {
