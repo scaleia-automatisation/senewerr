@@ -1,39 +1,21 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/tableau-de-bord'
+  let next = searchParams.get('next') ?? '/tableau-de-bord'
+  if (!next.startsWith('/')) next = '/tableau-de-bord'
 
   if (code) {
-    const cookieStore = await cookies()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cookiesToApply: Array<{ name: string; value: string; options: any }> = []
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll() },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookiesToApply.push({ name, value, options })
-            })
-          },
-        },
-      }
-    )
-
+    const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      const response = NextResponse.redirect(`${origin}${next}`)
-      cookiesToApply.forEach(({ name, value, options }) => {
-        response.cookies.set(name, value, options)
-      })
-      return response
+      const forwardedHost = request.headers.get('x-forwarded-host')
+      const isLocal = process.env.NODE_ENV === 'development'
+      if (isLocal) return NextResponse.redirect(`${origin}${next}`)
+      if (forwardedHost) return NextResponse.redirect(`https://${forwardedHost}${next}`)
+      return NextResponse.redirect(`${origin}${next}`)
     }
   }
 
