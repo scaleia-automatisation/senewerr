@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -115,7 +115,7 @@ function PhoneField({ value, onChange }: { value: string; onChange: (v: string) 
 
 /* ─── Page principale ─── */
 
-export default function InscriptionPage() {
+function InscriptionPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultProfil = (searchParams.get('profil') ?? '') as ActorType | ''
@@ -644,5 +644,13 @@ export default function InscriptionPage() {
         </p>
       )}
     </div>
+  )
+}
+
+export default function InscriptionPage() {
+  return (
+    <Suspense fallback={null}>
+      <InscriptionPageInner />
+    </Suspense>
   )
 }

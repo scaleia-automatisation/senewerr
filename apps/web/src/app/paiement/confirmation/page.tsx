@@ -1,12 +1,12 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
 import { Logo } from '@/components/ui/logo'
 
 const COUNTDOWN = 5
 
-export default function PaiementConfirmationPage() {
+function PaiementConfirmationInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [seconds, setSeconds] = useState(COUNTDOWN)
@@ -93,5 +93,13 @@ export default function PaiementConfirmationPage() {
         </a>
       </p>
     </div>
+  )
+}
+
+export default function PaiementConfirmationPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaiementConfirmationInner />
+    </Suspense>
   )
 }

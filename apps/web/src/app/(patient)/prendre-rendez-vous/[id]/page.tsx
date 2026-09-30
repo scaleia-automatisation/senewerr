@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -44,7 +44,7 @@ function formatDateISO(d: Date) {
   return d.toISOString().split('T')[0]
 }
 
-export default function PrendreRendezVousPage({ params }: { params: Promise<{ id: string }> }) {
+function PrendreRendezVousInner({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isEtablissement = searchParams.get('type') === 'etablissement'
@@ -482,5 +482,13 @@ export default function PrendreRendezVousPage({ params }: { params: Promise<{ id
         )}
       </div>
     </div>
+  )
+}
+
+export default function PrendreRendezVousPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={null}>
+      <PrendreRendezVousInner params={params} />
+    </Suspense>
   )
 }

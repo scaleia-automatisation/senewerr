@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { LoginForm } from '@/components/auth/login-form'
 import { Logo } from '@/components/ui/logo'
@@ -22,7 +23,9 @@ export default function LoginPage() {
             <p className="text-sm text-[var(--sw-ink-2)]">Connectez-vous à votre espace Séné Wérr</p>
           </div>
           <div className="sw-card p-6">
-            <LoginForm />
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
           </div>
           <p className="text-center text-sm text-[var(--sw-ink-2)]">
             Pas encore de compte ?{' '}
