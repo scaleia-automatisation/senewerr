@@ -63,11 +63,48 @@ export function EditForm({ userId, initial }: { userId: string; initial: Patient
     return s.split(/[,;]/).map(t => t.trim()).filter(Boolean)
   }
 
+  function friendlyError(msg: string | undefined): string {
+    if (!msg) return 'Une erreur est survenue. Veuillez réessayer.'
+    if (msg.includes('infinite recursion')) return 'Erreur de configuration serveur. Contactez le support.'
+    if (msg.includes('violates') || msg.includes('unique')) return 'Ces informations sont déjà utilisées par un autre compte.'
+    if (msg.includes('not-null') || msg.includes('null value')) return 'Certains champs obligatoires sont manquants.'
+    if (msg.includes('network') || msg.includes('fetch')) return 'Problème de connexion. Vérifiez votre réseau.'
+    return 'Une erreur est survenue. Veuillez réessayer.'
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
     setError(null)
     const supabase = createClient()
+
+    const patientPayload = {
+      date_of_birth: form.date_of_birth || null,
+      gender: form.gender || null,
+      blood_group: form.blood_group || null,
+      nin: form.nin.trim() || null,
+      weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
+      height_cm: form.height_cm ? parseFloat(form.height_cm) : null,
+      allergies: toArray(form.allergies).length > 0 ? toArray(form.allergies) : null,
+      chronic_conditions: toArray(form.chronic_conditions).length > 0 ? toArray(form.chronic_conditions) : null,
+      emergency_contact_name: form.emergency_contact_name.trim() || null,
+      emergency_contact_phone: form.emergency_contact_phone.trim() || null,
+      address_region: form.address_region.trim() || null,
+      address_department: form.address_department.trim() || null,
+      address_commune: form.address_commune.trim() || null,
+      address_details: form.address_details.trim() || null,
+    }
+
+    // Vérifie si la ligne patient existe déjà
+    const { data: existing } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('profile_id', userId)
+      .single()
+
+    const patientQuery = existing
+      ? supabase.from('patients').update(patientPayload).eq('profile_id', userId)
+      : supabase.from('patients').insert({ ...patientPayload, profile_id: userId })
 
     const [profileRes, patientRes] = await Promise.all([
       supabase.from('profiles').update({
@@ -75,28 +112,13 @@ export function EditForm({ userId, initial }: { userId: string; initial: Patient
         last_name: form.last_name.trim(),
         phone: form.phone.trim() || null,
       }).eq('id', userId),
-      supabase.from('patients').upsert({
-        profile_id: userId,
-        date_of_birth: form.date_of_birth || null,
-        gender: form.gender || null,
-        blood_group: form.blood_group || null,
-        nin: form.nin.trim() || null,
-        weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
-        height_cm: form.height_cm ? parseFloat(form.height_cm) : null,
-        allergies: toArray(form.allergies).length > 0 ? toArray(form.allergies) : null,
-        chronic_conditions: toArray(form.chronic_conditions).length > 0 ? toArray(form.chronic_conditions) : null,
-        emergency_contact_name: form.emergency_contact_name.trim() || null,
-        emergency_contact_phone: form.emergency_contact_phone.trim() || null,
-        address_region: form.address_region.trim() || null,
-        address_department: form.address_department.trim() || null,
-        address_commune: form.address_commune.trim() || null,
-        address_details: form.address_details.trim() || null,
-      }, { onConflict: 'profile_id' }),
+      patientQuery,
     ])
 
     setSaving(false)
     if (profileRes.error || patientRes.error) {
-      setError(profileRes.error?.message ?? patientRes.error?.message ?? 'Erreur lors de la sauvegarde')
+      const raw = profileRes.error?.message ?? patientRes.error?.message
+      setError(friendlyError(raw))
       return
     }
     router.push('/patient/profil')
