@@ -206,7 +206,7 @@ export async function refuserAdherent(adherentId: string, motif?: string): Promi
 
   const { error } = await supabase
     .from('adherents_couverture')
-    .update({ is_active: false, statut: 'refuse' })
+    .update({ is_active: false, statut: 'refuse', motif_refus: motif ?? null } as never)
     .eq('id', adherentId)
 
   if (error) return { error: error.message }
@@ -229,6 +229,86 @@ export async function refuserAdherent(adherentId: string, motif?: string): Promi
       data: { redirect: '/patient/couverture' },
       is_read: false,
     })
+  }
+
+  return {}
+}
+
+/* ─── Renvoi après refus ───────────────────────────────────────────────────── */
+
+interface RenvoyerInput {
+  memberNumber: string | null
+  employerName: string | null
+  startDate: string
+  endDate: string | null
+}
+
+export async function renvoyerDeclaration(
+  adherentId: string,
+  input: RenvoyerInput,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non authentifié.' }
+
+  const { data: patientRow } = await supabase
+    .from('patients')
+    .select('id')
+    .eq('profile_id', user.id)
+    .single()
+  if (!patientRow) return { error: 'Profil patient introuvable.' }
+  const patientId = (patientRow as unknown as { id: string }).id
+
+  const { data: member } = await supabase
+    .from('adherents_couverture')
+    .select('id, statut, coverage_org_id')
+    .eq('id', adherentId)
+    .eq('patient_id', patientId)
+    .single()
+  if (!member) return { error: 'Déclaration introuvable.' }
+  const m = member as unknown as { id: string; statut: string; coverage_org_id: string }
+  if (m.statut !== 'refuse') return { error: 'Seules les déclarations refusées peuvent être renvoyées.' }
+
+  const { error: updErr } = await supabase
+    .from('adherents_couverture')
+    .update({
+      statut: 'en_attente',
+      is_active: false,
+      motif_refus: null,
+      member_number: input.memberNumber,
+      employer_name: input.employerName,
+      start_date: input.startDate,
+      end_date: input.endDate,
+    } as never)
+    .eq('id', adherentId)
+  if (updErr) return { error: updErr.message }
+
+  const { data: orgData } = await supabase
+    .from('organismes_couverture')
+    .select('name, profile_id')
+    .eq('id', m.coverage_org_id)
+    .single()
+  const org2 = orgData as unknown as { name: string; profile_id: string | null } | null
+
+  if (org2?.profile_id) {
+    const { data: profileRow } = await supabase
+      .from('profils')
+      .select('first_name, last_name')
+      .eq('id', user.id)
+      .single()
+    const profile = profileRow as unknown as { first_name: string | null; last_name: string | null } | null
+    const patientName = profile
+      ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() || 'Un patient'
+      : 'Un patient'
+
+    await supabase.from('notifications').insert({
+      recipient_id: org2.profile_id,
+      notification_type: 'coverage_info_requested',
+      title: "Déclaration d'adhésion modifiée",
+      body: `${patientName} a mis à jour sa déclaration et attend votre validation.`,
+      data: { adherent_id: adherentId, patient_id: patientId, redirect: '/couverture/adherents' },
+      is_read: false,
+    } as never)
   }
 
   return {}

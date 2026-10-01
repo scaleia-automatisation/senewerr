@@ -1,9 +1,10 @@
-import { Shield, CheckCircle, XCircle, Info, Calendar, Hash, Plus } from 'lucide-react'
+import { Shield, CheckCircle, XCircle, Info, Calendar, Hash, Plus, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { RenvoyerForm } from './renvoyer-form'
 
 export const metadata: Metadata = { title: 'Ma couverture' }
 
@@ -14,6 +15,8 @@ interface CoverageMember {
   end_date: string | null
   is_active: boolean
   statut: string
+  motif_refus: string | null
+  employer_name: string | null
   organismes_couverture: {
     name: string
     org_type: string | null
@@ -41,7 +44,7 @@ export default async function CouverturePage() {
     const { data } = await supabase
       .from('adherents_couverture')
       .select(`
-        id, member_number, start_date, end_date, is_active, statut,
+        id, member_number, employer_name, start_date, end_date, is_active, statut, motif_refus,
         organismes_couverture(name, org_type),
         formules_couverture(name, description)
       `)
@@ -271,10 +274,27 @@ function CoverageCard({ membership: m }: { membership: CoverageMember }) {
         </div>
       )}
       {m.statut === 'refuse' && (
-        <div className="pl-11">
-          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-[var(--sw-danger)]">
-            Adhésion non confirmée
-          </span>
+        <div className="pl-11 space-y-3">
+          {m.motif_refus ? (
+            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-red-50">
+              <AlertCircle className="w-3.5 h-3.5 text-[var(--sw-danger)] flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-[var(--sw-danger)] leading-relaxed">
+                <span className="font-semibold">Motif : </span>{m.motif_refus}
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-[var(--sw-danger)]">
+              Adhésion non confirmée. Contactez votre organisme pour plus d'informations.
+            </p>
+          )}
+          <RenvoyerForm
+            adherentId={m.id}
+            defaultMemberNumber={m.member_number}
+            defaultEmployerName={m.employer_name}
+            defaultStartDate={m.start_date}
+            defaultEndDate={m.end_date}
+            showEmployer={m.organismes_couverture?.org_type === 'ipm'}
+          />
         </div>
       )}
     </div>
