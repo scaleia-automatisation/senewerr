@@ -13,11 +13,12 @@ interface CoverageMember {
   start_date: string | null
   end_date: string | null
   is_active: boolean
-  coverage_orgs: {
+  statut: string
+  organismes_couverture: {
     name: string
     org_type: string | null
   } | null
-  coverage_plans: {
+  formules_couverture: {
     name: string
     description: string | null
   } | null
@@ -40,32 +41,34 @@ export default async function CouverturePage() {
     const { data } = await supabase
       .from('adherents_couverture')
       .select(`
-        id,
-        member_number,
-        start_date,
-        end_date,
-        is_active,
-        coverage_orgs(name, org_type),
-        coverage_plans(name, description)
+        id, member_number, start_date, end_date, is_active, statut,
+        organismes_couverture(name, org_type),
+        formules_couverture(name, description)
       `)
       .eq('patient_id', patient.id)
-      .order('is_active', { ascending: false })
+      .order('statut', { ascending: true })
 
     if (data) {
       memberships = data as unknown as CoverageMember[]
     }
   }
 
-  const activeCount = memberships.filter(m => m.is_active).length
+  const activeCount  = memberships.filter(m => m.statut === 'actif').length
+  const pendingCount = memberships.filter(m => m.statut === 'en_attente').length
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-2xl mx-auto">
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-[var(--sw-ink)]">Ma couverture santé</h1>
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <h1 className="text-xl font-bold text-[var(--sw-ink)] w-full">Ma couverture santé</h1>
           {activeCount > 0 && (
             <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--sw-success-bg)] text-[var(--sw-success)]">
               {activeCount} active{activeCount > 1 ? 's' : ''}
+            </span>
+          )}
+          {pendingCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+              {pendingCount} en attente
             </span>
           )}
         </div>
@@ -114,28 +117,43 @@ export default async function CouverturePage() {
         </div>
       ) : (
         <>
-          {/* Couvertures actives */}
-          {memberships.filter(m => m.is_active).length > 0 && (
+          {/* En attente */}
+          {memberships.filter(m => m.statut === 'en_attente').length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-[var(--sw-ink-2)] uppercase tracking-wide">
-                Couvertures actives
+              <h2 className="text-sm font-semibold text-amber-700 uppercase tracking-wide flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                En attente de validation
               </h2>
               <div className="space-y-3">
-                {memberships.filter(m => m.is_active).map(m => (
+                {memberships.filter(m => m.statut === 'en_attente').map(m => (
                   <CoverageCard key={m.id} membership={m} />
                 ))}
               </div>
             </section>
           )}
 
-          {/* Couvertures inactives */}
-          {memberships.filter(m => !m.is_active).length > 0 && (
+          {/* Couvertures actives */}
+          {memberships.filter(m => m.statut === 'actif').length > 0 && (
             <section className="space-y-3">
               <h2 className="text-sm font-semibold text-[var(--sw-ink-2)] uppercase tracking-wide">
-                Inactives / expirées
+                Couvertures actives
               </h2>
               <div className="space-y-3">
-                {memberships.filter(m => !m.is_active).map(m => (
+                {memberships.filter(m => m.statut === 'actif').map(m => (
+                  <CoverageCard key={m.id} membership={m} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Refusées / inactives */}
+          {memberships.filter(m => m.statut === 'refuse').length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold text-[var(--sw-ink-2)] uppercase tracking-wide">
+                Refusées
+              </h2>
+              <div className="space-y-3">
+                {memberships.filter(m => m.statut === 'refuse').map(m => (
                   <CoverageCard key={m.id} membership={m} />
                 ))}
               </div>
@@ -172,70 +190,90 @@ export default async function CouverturePage() {
   )
 }
 
-function CoverageCard({ membership }: { membership: CoverageMember }) {
-  const isActive = membership.is_active
+const ORG_TYPE_LABELS: Record<string, string> = {
+  mutuelle_communautaire:  'Mutuelle communautaire',
+  mutuelle_professionnelle:'Mutuelle professionnelle',
+  msae:                    'MSAE',
+  ipm:                     'IPM',
+  assurance_privee:        'Assurance privée',
+}
+
+function CoverageCard({ membership: m }: { membership: CoverageMember }) {
+  const isActif    = m.statut === 'actif'
+  const isAttente  = m.statut === 'en_attente'
 
   return (
     <div className={cn(
       'sw-card p-4 space-y-3',
-      isActive && 'border-[var(--sw-success)]'
+      isActif   && 'border-[var(--sw-success)]',
+      isAttente && 'border-amber-300'
     )}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className={cn(
             'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
-            isActive ? 'bg-[var(--sw-success-bg)]' : 'bg-[var(--sw-surface-2)]'
+            isActif   ? 'bg-[var(--sw-success-bg)]' :
+            isAttente ? 'bg-amber-50' : 'bg-[var(--sw-surface-2)]'
           )}>
-            <Shield className={cn('w-4 h-4', isActive ? 'text-[var(--sw-success)]' : 'text-[var(--sw-ink-3)]')} />
+            <Shield className={cn(
+              'w-4 h-4',
+              isActif   ? 'text-[var(--sw-success)]' :
+              isAttente ? 'text-amber-500' : 'text-[var(--sw-ink-3)]'
+            )} />
           </div>
           <div>
             <p className="text-sm font-semibold text-[var(--sw-ink)]">
-              {membership.coverage_orgs?.name ?? 'Organisme inconnu'}
+              {m.organismes_couverture?.name ?? 'Organisme inconnu'}
             </p>
-            {membership.coverage_orgs?.org_type && (
-              <p className="text-xs text-[var(--sw-ink-3)]">{membership.coverage_orgs.org_type}</p>
+            {m.organismes_couverture?.org_type && (
+              <p className="text-xs text-[var(--sw-ink-3)]">
+                {ORG_TYPE_LABELS[m.organismes_couverture.org_type] ?? m.organismes_couverture.org_type}
+              </p>
             )}
           </div>
         </div>
-        {isActive ? (
-          <CheckCircle className="w-4 h-4 text-[var(--sw-success)] flex-shrink-0" />
-        ) : (
-          <XCircle className="w-4 h-4 text-[var(--sw-danger)] flex-shrink-0" />
-        )}
+        {isActif   && <CheckCircle className="w-4 h-4 text-[var(--sw-success)] flex-shrink-0" />}
+        {isAttente && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">En attente</span>}
+        {m.statut === 'refuse' && <XCircle className="w-4 h-4 text-[var(--sw-danger)] flex-shrink-0" />}
       </div>
 
-      {membership.coverage_plans && (
+      {m.formules_couverture && (
         <div className="pl-11 space-y-0.5">
-          <p className="text-sm font-medium text-[var(--sw-ink)]">
-            {membership.coverage_plans.name}
-          </p>
-          {membership.coverage_plans.description && (
-            <p className="text-xs text-[var(--sw-ink-2)]">{membership.coverage_plans.description}</p>
+          <p className="text-sm font-medium text-[var(--sw-ink)]">{m.formules_couverture.name}</p>
+          {m.formules_couverture.description && (
+            <p className="text-xs text-[var(--sw-ink-2)]">{m.formules_couverture.description}</p>
           )}
         </div>
       )}
 
       <div className="pl-11 space-y-1.5">
-        {membership.member_number && (
+        {m.member_number && (
           <div className="flex items-center gap-1.5 text-xs text-[var(--sw-ink-2)]">
             <Hash className="w-3 h-3" />
-            N° adhérent : <span className="font-medium text-[var(--sw-ink)] ml-0.5">{membership.member_number}</span>
+            N° adhérent : <span className="font-medium text-[var(--sw-ink)] ml-0.5">{m.member_number}</span>
           </div>
         )}
-
-        {membership.start_date && (
+        {m.start_date && (
           <div className="flex items-center gap-1.5 text-xs text-[var(--sw-ink-2)]">
             <Calendar className="w-3 h-3" />
-            Du {formatDate(membership.start_date)}
-            {membership.end_date && <> au {formatDate(membership.end_date)}</>}
+            Du {formatDate(m.start_date)}
+            {m.end_date && <> au {formatDate(m.end_date)}</>}
           </div>
         )}
       </div>
 
-      {!isActive && (
+      {isAttente && (
+        <div className="pl-11">
+          <p className="text-xs text-amber-700 leading-relaxed">
+            Votre déclaration est en attente de validation par l'organisme.
+            Vous serez notifié(e) dès qu'elle sera traitée.
+          </p>
+        </div>
+      )}
+      {m.statut === 'refuse' && (
         <div className="pl-11">
           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-[var(--sw-danger)]">
-            Couverture inactive
+            Adhésion non confirmée
           </span>
         </div>
       )}
