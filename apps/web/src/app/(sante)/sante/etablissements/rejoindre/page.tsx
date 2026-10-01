@@ -55,7 +55,7 @@ export default function RejoindreEtablissementPage() {
     setResults([])
     const supabase = createClient()
     const { data } = await supabase
-      .from('establishments')
+      .from('etablissements')
       .select('id, name, establishment_type, address_region, address_commune')
       .ilike('name', `%${query.trim()}%`)
       .limit(10)
@@ -72,7 +72,7 @@ export default function RejoindreEtablissementPage() {
     if (!user) { setError('Session expirée.'); setSending(false); return }
 
     const { data: proData } = await supabase
-      .from('professionals')
+      .from('professionnels')
       .select('id')
       .eq('profile_id', user.id)
       .maybeSingle()

@@ -23,7 +23,7 @@ export default async function TeleconsultationPage() {
   if (!user) redirect('/connexion?redirect=/sante/teleconsultation')
 
   const { data: professionalData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, teleconsultation_enabled, teleconsultation_fee_fcfa')
     .eq('profile_id', user.id)
     .single()
@@ -40,7 +40,7 @@ export default async function TeleconsultationPage() {
   const today = new Date().toISOString().split('T')[0]
 
   const { data: sessions } = await supabase
-    .from('appointments')
+    .from('rendez_vous')
     .select(`
       id,
       status,

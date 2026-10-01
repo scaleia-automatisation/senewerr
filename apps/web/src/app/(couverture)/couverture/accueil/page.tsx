@@ -36,12 +36,12 @@ export default async function CouvertureAccueilPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id, name, org_type').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id, name, org_type').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string; name: string; org_type: string | null } | null
   if (!org) redirect('/connexion')
 
   const { data: coverageProfileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('account_status, verification_notes')
     .eq('id', user.id)
     .maybeSingle()
@@ -54,11 +54,11 @@ export default async function CouvertureAccueilPage() {
     { count: closedCount },
     { data: lastReqData },
   ] = await Promise.all([
-    supabase.from('coverage_members').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).eq('is_active', true),
-    supabase.from('coverage_requests').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).in('status', ['pending', 'needs_info']),
-    supabase.from('coverage_requests').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).eq('status', 'approved'),
-    supabase.from('coverage_requests').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).in('status', ['approved', 'refused', 'cancelled']),
-    supabase.from('coverage_requests')
+    supabase.from('adherents_couverture').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).eq('is_active', true),
+    supabase.from('demandes_couverture').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).in('status', ['pending', 'needs_info']),
+    supabase.from('demandes_couverture').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).eq('status', 'approved'),
+    supabase.from('demandes_couverture').select('*', { count: 'exact', head: true }).eq('coverage_org_id', org.id).in('status', ['approved', 'refused', 'cancelled']),
+    supabase.from('demandes_couverture')
       .select('id, status, request_type, created_at, patients(profiles(first_name, last_name)), pharmacies(name), establishments(name)')
       .eq('coverage_org_id', org.id)
       .in('status', ['pending', 'needs_info', 'approved'])

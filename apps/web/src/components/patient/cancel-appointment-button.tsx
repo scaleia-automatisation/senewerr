@@ -18,7 +18,7 @@ export function CancelAppointmentButton({ appointmentId, patientId }: { appointm
   async function handleCancel() {
     setLoading(true); setError('')
     const supabase = createClient()
-    const { error: err } = await (supabase.from('appointments') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('rendez_vous') as unknown as UpdateFn)
       .update({ status: 'cancelled', cancellation_reason: reason || null })
       .eq('id', appointmentId)
       .eq('patient_id', patientId)

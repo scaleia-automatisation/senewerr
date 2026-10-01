@@ -22,8 +22,8 @@ export default async function SanteProfilPage() {
   if (!user) redirect('/connexion')
 
   const [{ data: profileData }, { data: professionalData }] = await Promise.all([
-    supabase.from('profiles').select('first_name, last_name, phone, email, account_status').eq('id', user.id).single(),
-    supabase.from('professionals').select('professional_type, specialty, title, ordre_number, bio, consultation_fee_fcfa, teleconsultation_enabled, teleconsultation_fee_fcfa, address_region, address_department, address_commune, address_details, plan').eq('profile_id', user.id).single(),
+    supabase.from('profils').select('first_name, last_name, phone, email, account_status').eq('id', user.id).single(),
+    supabase.from('professionnels').select('professional_type, specialty, title, ordre_number, bio, consultation_fee_fcfa, teleconsultation_enabled, teleconsultation_fee_fcfa, address_region, address_department, address_commune, address_details, plan').eq('profile_id', user.id).single(),
   ])
   const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; email: string | null; account_status: string | null } | null
   const professional = professionalData as unknown as { professional_type: string | null; specialty: string | null; title: string | null; ordre_number: string | null; bio: string | null; consultation_fee_fcfa: number | null; teleconsultation_enabled: boolean | null; teleconsultation_fee_fcfa: number | null; address_region: string | null; address_department: string | null; address_commune: string | null; address_details: string | null; plan: string | null } | null

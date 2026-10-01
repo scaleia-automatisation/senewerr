@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "senewerr-dev",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["apps/web/node_modules/.bin/next", "dev", "--port", "3000"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/web"],
       "port": 3000
     }
   ]

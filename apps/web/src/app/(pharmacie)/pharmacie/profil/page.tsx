@@ -28,7 +28,7 @@ export default async function PharmacieProfilPage() {
   if (!user) redirect('/connexion')
 
   const [{ data: profileData }, { data: pharmacyData }] = await Promise.all([
-    supabase.from('profiles').select('first_name, last_name, phone, email, account_status').eq('id', user.id).single(),
+    supabase.from('profils').select('first_name, last_name, phone, email, account_status').eq('id', user.id).single(),
     supabase.from('pharmacies').select('name, ordre_number, description, phone, email, address_region, address_department, address_commune, address_details, delivery_available, delivery_radius_km, delivery_fee_fcfa, opening_hours, plan, commission_rate_percent').eq('profile_id', user.id).single(),
   ])
   const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; email: string | null; account_status: string | null } | null

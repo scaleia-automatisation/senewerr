@@ -12,7 +12,7 @@ export default async function NouvelleConsultationPage({ searchParams }: { searc
   if (!user) redirect('/connexion')
 
   const { data: proData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, establishment_professionals(establishments(id, name))')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -34,7 +34,7 @@ export default async function NouvelleConsultationPage({ searchParams }: { searc
 
   if (appointmentId) {
     const { data: apptData } = await supabase
-      .from('appointments')
+      .from('rendez_vous')
       .select('patient_id, establishment_id, reason, patients(profiles(first_name, last_name))')
       .eq('id', appointmentId)
       .eq('professional_id', pro.id)

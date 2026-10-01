@@ -52,7 +52,7 @@ export default async function PatientPaiementsPage() {
   const payments: Payment[] = []
   if (patient) {
     const { data } = await supabase
-      .from('payments')
+      .from('paiements')
       .select('id, payment_type, amount_fcfa, status, method, reference_code, created_at, confirmed_at, pharmacy_reservations(pharmacy_reservation_items(medication_name)), appointments(professionals(profiles(full_name)))')
       .eq('patient_id', patient.id)
       .order('created_at', { ascending: false })

@@ -60,7 +60,7 @@ export default async function DemandesCouverturePage() {
       }
     }
   }
-  const { data: requestsData } = await (supabase.from('coverage_requests') as unknown as FetchFn)
+  const { data: requestsData } = await (supabase.from('demandes_couverture') as unknown as FetchFn)
     .select(`
       id, status, request_type,
       total_amount_fcfa, coverage_amount_fcfa, patient_amount_fcfa, coverage_percent,

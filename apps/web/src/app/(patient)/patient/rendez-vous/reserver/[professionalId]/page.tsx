@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BookingFlow } from '@/components/patient/booking-flow'
 import type { Metadata } from 'next'
@@ -16,7 +16,7 @@ export default async function ReserverRDVPage({ params }: { params: Promise<{ pr
   if (!patient) redirect('/connexion')
 
   const { data: proData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, specialty, professional_type, title, consultation_fee_fcfa, profiles!inner(first_name, last_name, account_status), establishment_professionals(establishments(id, name, address_commune))')
     .eq('id', professionalId)
     .eq('profiles.account_status', 'verified')

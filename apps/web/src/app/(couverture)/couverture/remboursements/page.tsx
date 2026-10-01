@@ -26,12 +26,12 @@ export default async function RemboursementsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string } | null
   if (!org) redirect('/connexion')
 
   const { data: reqsData } = await supabase
-    .from('coverage_requests')
+    .from('demandes_couverture')
     .select('id, status, coverage_amount_fcfa, approved_at, patients(profiles(first_name, last_name)), pharmacies(name), establishments(name)')
     .eq('coverage_org_id', org.id)
     .eq('status', 'approved')

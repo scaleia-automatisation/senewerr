@@ -9,7 +9,7 @@ export default async function SallesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
-  const { data: estRaw } = await supabase.from('establishments').select('id').eq('profile_id', user.id).single()
+  const { data: estRaw } = await supabase.from('etablissements').select('id').eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
 
   return (

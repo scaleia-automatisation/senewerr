@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, FilePlus } from 'lucide-react'
@@ -14,7 +14,7 @@ export default async function ConsultationDetailPage({ params }: { params: Promi
   if (!user) redirect('/connexion')
 
   const { data: proData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, establishment_professionals(establishments(id, name))')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -49,7 +49,7 @@ export default async function ConsultationDetailPage({ params }: { params: Promi
 
   // Ordonnances liées
   const { data: prescsData } = await supabase
-    .from('prescriptions')
+    .from('ordonnances')
     .select('id, status, created_at, item_count')
     .eq('consultation_id', id)
     .order('created_at', { ascending: false })

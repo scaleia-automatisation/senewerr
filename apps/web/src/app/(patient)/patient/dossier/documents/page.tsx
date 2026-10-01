@@ -73,7 +73,7 @@ export default async function PatientDocumentsPage({ searchParams }: { searchPar
   await Promise.allSettled([
     // Ordonnances
     (filterType === 'all' || filterType === 'ordonnance') ? (async () => {
-      const { data } = await supabase.from('prescriptions').select('id, status, issued_at, created_at, professionals(profiles(full_name))').eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(20)
+      const { data } = await supabase.from('ordonnances').select('id, status, issued_at, created_at, professionals(profiles(full_name))').eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(20)
       for (const r of (data ?? []) as unknown as { id: string; status: string; issued_at: string | null; created_at: string; professionals: { profiles: { full_name: string | null } | null } | null }[]) {
         const proName = (r.professionals as unknown as { profiles: { full_name: string | null } | null } | null)?.profiles?.full_name
         docs.push({
@@ -105,7 +105,7 @@ export default async function PatientDocumentsPage({ searchParams }: { searchPar
 
     // Réservations pharmacie
     (filterType === 'all' || filterType === 'reservation') ? (async () => {
-      const { data } = await supabase.from('pharmacy_reservations').select('id, status, created_at, pharmacy_reservation_items(medication_name), pharmacies(name)').eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(20)
+      const { data } = await supabase.from('reservations_pharmacie').select('id, status, created_at, pharmacy_reservation_items(medication_name), pharmacies(name)').eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(20)
       for (const r of (data ?? []) as unknown as { id: string; status: string; created_at: string; pharmacy_reservation_items: { medication_name: string }[]; pharmacies: { name: string } | null }[]) {
         const medName = (r.pharmacy_reservation_items as { medication_name: string }[] | undefined)?.[0]?.medication_name ?? null
         const phName = (r.pharmacies as unknown as { name: string } | null)?.name
@@ -122,7 +122,7 @@ export default async function PatientDocumentsPage({ searchParams }: { searchPar
 
     // Paiements
     (filterType === 'all' || filterType === 'paiement') ? (async () => {
-      const { data } = await supabase.from('payments').select('id, status, amount_fcfa, payment_type, created_at').eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(20)
+      const { data } = await supabase.from('paiements').select('id, status, amount_fcfa, payment_type, created_at').eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(20)
       for (const r of (data ?? []) as unknown as { id: string; status: string; amount_fcfa: number; payment_type: string; created_at: string }[]) {
         const amtStr = new Intl.NumberFormat('fr-SN').format(r.amount_fcfa) + ' F CFA'
         const typeLabel = r.payment_type === 'refund' ? 'Remboursement' : 'Paiement'

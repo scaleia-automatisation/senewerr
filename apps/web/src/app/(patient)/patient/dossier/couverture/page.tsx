@@ -32,7 +32,7 @@ export default async function DossierCouverturePage() {
   const memberships: Member[] = []
   if (patient) {
     const { data } = await supabase
-      .from('coverage_members')
+      .from('adherents_couverture')
       .select('id, member_number, start_date, end_date, is_active, coverage_orgs(name, org_type), coverage_plans(name)')
       .eq('patient_id', patient.id)
       .order('is_active', { ascending: false })

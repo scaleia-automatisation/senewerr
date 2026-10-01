@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Package, MapPin, FileText } from 'lucide-react'
@@ -51,7 +51,7 @@ export default async function PharmacieReservationDetailPage({ params }: { param
   if (!pharmacy) redirect('/connexion')
 
   const { data: resaData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, status, created_at, expiry_at, quantity, notes, pharmacist_notes, has_coverage, pickup_code, patients(id, profiles(full_name, phone)), pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), prescriptions(id, issued_at)')
     .eq('id', id)
     .eq('pharmacy_id', pharmacy.id)
@@ -69,11 +69,11 @@ export default async function PharmacieReservationDetailPage({ params }: { param
 
   // Spec 17.4 — fetch conditions data in parallel
   const [covRes, payRes] = await Promise.all([
-    supabase.from('coverage_requests')
+    supabase.from('demandes_couverture')
       .select('id, status, amount_patient')
       .eq('reservation_id', id)
       .maybeSingle(),
-    supabase.from('payments')
+    supabase.from('paiements')
       .select('id, status')
       .eq('reservation_id', id)
       .eq('payment_type', 'patient_charge')

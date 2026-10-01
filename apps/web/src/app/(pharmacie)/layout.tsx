@@ -7,7 +7,7 @@ export default async function PharmacieLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion?redirect=/pharmacie/accueil')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).single()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).single()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'pharmacie') redirect('/tableau-de-bord')
 

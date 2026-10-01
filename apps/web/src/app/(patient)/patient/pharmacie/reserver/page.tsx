@@ -20,7 +20,7 @@ export default async function ReserverPage({ searchParams }: { searchParams: Pro
 
   const [prodRes, pharmRes, stockRes, prescsRes] = await Promise.all([
     supabase
-      .from('pharmacy_products')
+      .from('produits_pharmacie')
       .select('id, name, dosage, prescription_required, unit_price_fcfa')
       .eq('id', productId)
       .eq('pharmacy_id', pharmacyId)
@@ -31,13 +31,13 @@ export default async function ReserverPage({ searchParams }: { searchParams: Pro
       .eq('id', pharmacyId)
       .maybeSingle(),
     supabase
-      .from('pharmacy_stock')
+      .from('stock_pharmacie')
       .select('id, quantity_available')
       .eq('product_id', productId)
       .eq('pharmacy_id', pharmacyId)
       .maybeSingle(),
     supabase
-      .from('prescriptions')
+      .from('ordonnances')
       .select('id, status, created_at')
       .eq('patient_id', patient.id)
       .in('status', ['issued', 'shared'])

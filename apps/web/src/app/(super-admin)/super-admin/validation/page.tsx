@@ -126,7 +126,7 @@ async function toggleLaunchItem(formData: FormData) {
       eq: (c: string, v: string) => Promise<{ data: unknown[] | null }>
     }
   }
-  const { data: existing } = await (supabase.from('platform_settings') as unknown as QueryFn)
+  const { data: existing } = await (supabase.from('parametres_plateforme') as unknown as QueryFn)
     .select('key, value')
     .eq('key', 'launch_checklist_v1')
 
@@ -135,7 +135,7 @@ async function toggleLaunchItem(formData: FormData) {
   current[itemId] = !currentDone
 
   type UpsertFn = { upsert: (v: unknown, opts: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('platform_settings') as unknown as UpsertFn).upsert(
+  await (supabase.from('parametres_plateforme') as unknown as UpsertFn).upsert(
     { key: 'launch_checklist_v1', value: current, category: 'deploiement', updated_by: user.id, updated_at: new Date().toISOString() },
     { onConflict: 'key' }
   )
@@ -156,7 +156,7 @@ export default async function ValidationPage() {
   if (!user) redirect('/connexion')
 
   const { data: profileData } = await supabase
-    .from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+    .from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin')
     redirect('/connexion')
@@ -168,7 +168,7 @@ export default async function ValidationPage() {
       eq: (c: string, v: string) => Promise<{ data: unknown[] | null }>
     }
   }
-  const { data: settingsData } = await (supabase.from('platform_settings') as unknown as QueryFn)
+  const { data: settingsData } = await (supabase.from('parametres_plateforme') as unknown as QueryFn)
     .select('value')
     .eq('key', 'launch_checklist_v1')
 

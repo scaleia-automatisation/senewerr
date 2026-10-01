@@ -107,7 +107,7 @@ export function EditForm({ userId, initial }: { userId: string; initial: Patient
       : supabase.from('patients').insert({ ...patientPayload, profile_id: userId })
 
     const [profileRes, patientRes] = await Promise.all([
-      supabase.from('profiles').update({
+      supabase.from('profils').update({
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         phone: form.phone.trim() || null,

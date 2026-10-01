@@ -50,7 +50,7 @@ export function DemandeActions({ requestId, currentStatus, orgId, totalAmount, p
     const supabase = createClient()
     const covAmt = computedCoverageAmount()
     const patAmt = computedPatientShare()
-    const { error: err } = await (supabase.from('coverage_requests') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('demandes_couverture') as unknown as UpdateFn)
       .update({
         status: 'approved',
         coverage_amount_fcfa: covAmt,
@@ -76,7 +76,7 @@ export function DemandeActions({ requestId, currentStatus, orgId, totalAmount, p
     if (!refusalReason.trim()) { setError('Veuillez saisir un motif.'); return }
     setLoading('refused'); setError('')
     const supabase = createClient()
-    const { error: err } = await (supabase.from('coverage_requests') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('demandes_couverture') as unknown as UpdateFn)
       .update({ status: 'refused', admin_notes: refusalReason, reviewed_at: new Date().toISOString() })
       .eq('id', requestId)
       .eq('coverage_org_id', orgId)
@@ -96,7 +96,7 @@ export function DemandeActions({ requestId, currentStatus, orgId, totalAmount, p
     if (!infoRequest.trim()) { setError('Veuillez saisir votre demande.'); return }
     setLoading('info'); setError('')
     const supabase = createClient()
-    const { error: err } = await (supabase.from('coverage_requests') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('demandes_couverture') as unknown as UpdateFn)
       .update({ status: 'needs_info', additional_docs_requested: infoRequest })
       .eq('id', requestId)
       .eq('coverage_org_id', orgId)

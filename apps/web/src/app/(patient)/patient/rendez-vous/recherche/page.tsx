@@ -29,7 +29,7 @@ export default function RechercheRDVPage() {
     startTransition(async () => {
       const supabase = createClient()
       let query = supabase
-        .from('professionals')
+        .from('professionnels')
         .select('id, specialty, professional_type, title, consultation_fee_fcfa, languages, profiles!inner(first_name, last_name, account_status), establishment_professionals(establishments(id, name, address_commune, address_region))')
         .eq('profiles.account_status', 'verified')
 

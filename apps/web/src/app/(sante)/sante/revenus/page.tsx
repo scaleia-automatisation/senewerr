@@ -29,7 +29,7 @@ export default async function RevenusPage() {
   if (!user) redirect('/connexion')
 
   const { data: proData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, consultation_fee')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -48,14 +48,14 @@ export default async function RevenusPage() {
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
 
   const [{ data: allCompleted }, { data: thisMonthData }] = await Promise.all([
-    supabase.from('appointments')
+    supabase.from('rendez_vous')
       .select(`id, appointment_date, start_time, consultation_fee,
         patients!inner(profiles!inner(first_name, last_name))`)
       .eq('professional_id', pro.id)
       .eq('status', 'completed')
       .order('appointment_date', { ascending: false })
       .limit(50),
-    supabase.from('appointments')
+    supabase.from('rendez_vous')
       .select('consultation_fee')
       .eq('professional_id', pro.id)
       .eq('status', 'completed')

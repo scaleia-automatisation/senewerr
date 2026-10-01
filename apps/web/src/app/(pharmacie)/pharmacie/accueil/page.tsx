@@ -39,7 +39,7 @@ export default async function PharmacieAccueilPage() {
   if (!pharmacy) redirect('/connexion')
 
   const { data: profileStatusData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('account_status, verification_notes')
     .eq('id', user.id)
     .maybeSingle()
@@ -52,11 +52,11 @@ export default async function PharmacieAccueilPage() {
     { count: preparingCount },
     { data: lastResData },
   ] = await Promise.all([
-    supabase.from('pharmacy_reservations').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'new'),
-    supabase.from('pharmacy_reservations').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'verifying'),
-    supabase.from('pharmacy_reservations').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'to_prepare'),
-    supabase.from('pharmacy_reservations').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'preparing'),
-    supabase.from('pharmacy_reservations').select('id, pickup_code, status, patients(profiles(first_name, last_name)), pharmacy_reservation_items(id)').eq('pharmacy_id', pharmacy.id).in('status', ['new', 'verifying', 'to_prepare', 'preparing', 'ready']).order('created_at', { ascending: false }).limit(5),
+    supabase.from('reservations_pharmacie').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'new'),
+    supabase.from('reservations_pharmacie').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'verifying'),
+    supabase.from('reservations_pharmacie').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'to_prepare'),
+    supabase.from('reservations_pharmacie').select('*', { count: 'exact', head: true }).eq('pharmacy_id', pharmacy.id).eq('status', 'preparing'),
+    supabase.from('reservations_pharmacie').select('id, pickup_code, status, patients(profiles(first_name, last_name)), pharmacy_reservation_items(id)').eq('pharmacy_id', pharmacy.id).in('status', ['new', 'verifying', 'to_prepare', 'preparing', 'ready']).order('created_at', { ascending: false }).limit(5),
   ])
 
   const lastRes = (lastResData ?? []) as unknown as Res[]

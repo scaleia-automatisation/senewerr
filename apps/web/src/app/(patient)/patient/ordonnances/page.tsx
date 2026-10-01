@@ -74,7 +74,7 @@ export default async function OrdonnancesPage() {
 
   if (patient) {
     const { data } = await supabase
-      .from('prescriptions')
+      .from('ordonnances')
       .select(`
         id,
         issued_at,

@@ -20,7 +20,7 @@ export default async function EtablissementFinancesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: estRaw } = await supabase.from('establishments').select('id').eq('profile_id', user.id).single()
+  const { data: estRaw } = await supabase.from('etablissements').select('id').eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
   const est = estRaw as unknown as { id: string }
 
@@ -40,7 +40,7 @@ export default async function EtablissementFinancesPage() {
 
   const [{ data: allData }, { data: monthData }] = await Promise.all([
     proIds.length > 0
-      ? supabase.from('appointments')
+      ? supabase.from('rendez_vous')
           .select(`id, appointment_date, start_time, consultation_fee,
             patients!inner(profiles!inner(first_name, last_name)),
             professional:professionals!inner(title, profiles!inner(first_name, last_name))`)
@@ -48,7 +48,7 @@ export default async function EtablissementFinancesPage() {
           .order('appointment_date', { ascending: false }).limit(100)
       : Promise.resolve({ data: [] }),
     proIds.length > 0
-      ? supabase.from('appointments').select('consultation_fee, professional_id')
+      ? supabase.from('rendez_vous').select('consultation_fee, professional_id')
           .in('professional_id', proIds).eq('status', 'completed')
           .gte('appointment_date', firstOfMonth)
       : Promise.resolve({ data: [] }),

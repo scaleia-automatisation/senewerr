@@ -33,7 +33,7 @@ export default function PatientNotificationPrefsPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase
-        .from('notification_preferences')
+        .from('preferences_notifications')
         .select('in_app_enabled, email_enabled')
         .eq('profile_id', user.id)
         .maybeSingle()
@@ -55,7 +55,7 @@ export default function PatientNotificationPrefsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setError('Non authentifié'); return }
 
-      const { error: err } = await (supabase.from('notification_preferences') as unknown as {
+      const { error: err } = await (supabase.from('preferences_notifications') as unknown as {
         upsert: (v: unknown, opts: { onConflict: string }) => Promise<{ error: { message: string } | null }>
       }).upsert({ profile_id: user.id, in_app_enabled: inApp, email_enabled: email }, { onConflict: 'profile_id' })
 

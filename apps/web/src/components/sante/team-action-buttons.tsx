@@ -166,7 +166,7 @@ export function InviteMemberForm({
     const supabase = createClient()
     const email = `+221${digits}@phone.senewerr.internal`
     const { data: profiles } = await supabase
-      .from('profiles')
+      .from('profils')
       .select('id')
       .eq('phone', `+221${digits}`)
       .maybeSingle()

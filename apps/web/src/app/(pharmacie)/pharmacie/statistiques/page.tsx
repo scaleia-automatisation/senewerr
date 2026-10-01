@@ -24,7 +24,7 @@ export default async function PharmacieStatistiquesPage() {
 
   // Fetch all reservations for stats
   const { data: reservationsData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('status, total_amount_fcfa')
     .eq('pharmacy_id', pharmacy.id)
 
@@ -40,7 +40,7 @@ export default async function PharmacieStatistiquesPage() {
 
   // Fetch active products count
   const { count: activeProductsCount } = await supabase
-    .from('pharmacy_products')
+    .from('produits_pharmacie')
     .select('id', { count: 'exact', head: true })
     .eq('pharmacy_id', pharmacy.id)
     .eq('is_available', true)

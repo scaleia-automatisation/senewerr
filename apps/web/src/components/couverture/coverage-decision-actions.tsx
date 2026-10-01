@@ -87,7 +87,7 @@ export function CoverageDecisionActions({ requestId, reservationId, currentStatu
       updatePayload.patient_amount_fcfa = 0
     }
 
-    const { error: err } = await (supabase.from('coverage_requests') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('demandes_couverture') as unknown as UpdateFn)
       .update(updatePayload)
       .eq('id', requestId)
 
@@ -95,19 +95,19 @@ export function CoverageDecisionActions({ requestId, reservationId, currentStatu
 
     // Sync reservation status
     if (reservationId && ['approved', 'partial'].includes(action.nextStatus)) {
-      await (supabase.from('pharmacy_reservations') as unknown as UpdateResaFn)
+      await (supabase.from('reservations_pharmacie') as unknown as UpdateResaFn)
         .update({ status: 'funded' })
         .eq('id', reservationId)
     }
     if (reservationId && action.nextStatus === 'refused') {
-      await (supabase.from('pharmacy_reservations') as unknown as UpdateResaFn)
+      await (supabase.from('reservations_pharmacie') as unknown as UpdateResaFn)
         .update({ status: 'refused' })
         .eq('id', reservationId)
     }
 
     // Notifier le patient de la décision de couverture
     if (['approved', 'partial', 'refused'].includes(action.nextStatus)) {
-      supabase.from('coverage_requests').select('patient_id').eq('id', requestId).maybeSingle().then(({ data: reqRow }) => {
+      supabase.from('demandes_couverture').select('patient_id').eq('id', requestId).maybeSingle().then(({ data: reqRow }) => {
         if (reqRow?.patient_id) {
           supabase.from('patients').select('profile_id').eq('id', (reqRow as unknown as { patient_id: string }).patient_id).maybeSingle().then(({ data: patRow }) => {
             if (patRow?.profile_id) {

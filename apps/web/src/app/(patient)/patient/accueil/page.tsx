@@ -57,7 +57,7 @@ export default async function PatientAccueilPage() {
   if (!user) redirect('/connexion')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('first_name, last_name')
     .eq('id', user.id)
     .single()
@@ -79,7 +79,7 @@ export default async function PatientAccueilPage() {
   ] = await Promise.all([
     patient
       ? supabase
-          .from('appointments')
+          .from('rendez_vous')
           .select(`
             id, appointment_date, start_time, status,
             professional:professionals(title, profiles!inner(first_name, last_name))
@@ -94,7 +94,7 @@ export default async function PatientAccueilPage() {
       : Promise.resolve({ data: null }),
     patient
       ? supabase
-          .from('pharmacy_reservations')
+          .from('reservations_pharmacie')
           .select('id, status, pharmacy:pharmacies(name)')
           .eq('patient_id', patient.id)
           .in('status', ['new', 'verifying', 'to_prepare', 'preparing', 'ready'])

@@ -16,7 +16,7 @@ export default async function ServicesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: estRaw } = await supabase.from('establishments').select('id, name').eq('profile_id', user.id).single()
+  const { data: estRaw } = await supabase.from('etablissements').select('id, name').eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
   const est = estRaw as unknown as { id: string; name: string }
 

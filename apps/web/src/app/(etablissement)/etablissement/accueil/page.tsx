@@ -33,7 +33,7 @@ export default async function EtablissementAccueilPage() {
   if (!user) redirect('/connexion')
 
   const { data: estRaw } = await supabase
-    .from('establishments')
+    .from('etablissements')
     .select('id, name')
     .eq('profile_id', user.id)
     .single()
@@ -42,7 +42,7 @@ export default async function EtablissementAccueilPage() {
   const est = estRaw as unknown as { id: string; name: string }
 
   const { data: estProfileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('account_status, verification_notes')
     .eq('id', user.id)
     .maybeSingle()
@@ -75,17 +75,17 @@ export default async function EtablissementAccueilPage() {
   // RDV d'aujourd'hui + patients attendus
   const [{ count: rdvCount }, { count: patientsCount }, { data: aptData }] = await Promise.all([
     proIds.length > 0
-      ? supabase.from('appointments').select('*', { count: 'exact', head: true })
+      ? supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
           .in('professional_id', proIds).eq('appointment_date', today)
           .not('status', 'in', '("cancelled","no_show")')
       : Promise.resolve({ count: 0 }),
     proIds.length > 0
-      ? supabase.from('appointments').select('*', { count: 'exact', head: true })
+      ? supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
           .in('professional_id', proIds).eq('appointment_date', today)
           .in('status', ['confirmed', 'arrived'])
       : Promise.resolve({ count: 0 }),
     proIds.length > 0
-      ? supabase.from('appointments')
+      ? supabase.from('rendez_vous')
           .select('id, start_time, end_time, status, professional_id')
           .in('professional_id', proIds)
           .eq('appointment_date', today)

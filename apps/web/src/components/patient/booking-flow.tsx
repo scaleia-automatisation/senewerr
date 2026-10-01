@@ -77,7 +77,7 @@ export function BookingFlow({ professional, patientId, patientProfileId }: {
   async function loadSchedule() {
     const supabase = createClient()
     const { data } = await supabase
-      .from('schedules')
+      .from('plannings')
       .select('id')
       .eq('professional_id', professional.id)
       .eq('is_active', true)
@@ -89,7 +89,7 @@ export function BookingFlow({ professional, patientId, patientProfileId }: {
   async function loadBeneficiaries() {
     const supabase = createClient()
     const { data } = await supabase
-      .from('patient_beneficiaries')
+      .from('beneficiaires')
       .select('id, first_name, last_name, relationship')
       .eq('patient_id', patientId)
     setBeneficiaries((data ?? []) as unknown as Beneficiary[])
@@ -114,14 +114,14 @@ export function BookingFlow({ professional, patientId, patientProfileId }: {
 
     const [slotsRes, bookedRes] = await Promise.all([
       supabase
-        .from('schedule_slots')
+        .from('creneaux_planning')
         .select('id, start_time, end_time')
         .eq('schedule_id', scheduleId)
         .eq('day_of_week', dayOfWeek)
         .eq('is_active', true)
         .order('start_time'),
       supabase
-        .from('appointments')
+        .from('rendez_vous')
         .select('start_time')
         .eq('professional_id', professional.id)
         .eq('appointment_date', dateStr)
@@ -151,7 +151,7 @@ export function BookingFlow({ professional, patientId, patientProfileId }: {
       }
     }
 
-    const { data: appt, error: apptErr } = await (supabase.from('appointments') as unknown as InsertFn)
+    const { data: appt, error: apptErr } = await (supabase.from('rendez_vous') as unknown as InsertFn)
       .insert({
         patient_id: patientId,
         professional_id: professional.id,

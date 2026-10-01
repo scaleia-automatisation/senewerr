@@ -9,7 +9,7 @@ export default async function DossierLayout({ children }: { children: React.Reac
   if (!user) redirect('/connexion')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('first_name, last_name, actor_type')
     .eq('id', user.id)
     .single()

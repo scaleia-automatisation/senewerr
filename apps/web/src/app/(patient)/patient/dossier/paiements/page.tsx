@@ -40,7 +40,7 @@ export default async function DossierPaiementsPage() {
   if (patient) {
     const [paymentsRes, racsRes] = await Promise.all([
       supabase.from('patient_payments').select('id, amount_fcfa, status, created_at, payment_method, reference, pharmacies(name), establishments(name)').eq('patient_id', patient.id).order('created_at', { ascending: false }),
-      supabase.from('coverage_requests').select('id, patient_amount_fcfa, approved_at, pharmacies(name), establishments(name)').eq('patient_id', patient.id).eq('status', 'approved').not('patient_amount_fcfa', 'is', null).order('approved_at', { ascending: false }),
+      supabase.from('demandes_couverture').select('id, patient_amount_fcfa, approved_at, pharmacies(name), establishments(name)').eq('patient_id', patient.id).eq('status', 'approved').not('patient_amount_fcfa', 'is', null).order('approved_at', { ascending: false }),
     ])
     if (paymentsRes.data) payments.push(...(paymentsRes.data as unknown as Payment[]))
     if (racsRes.data) racs.push(...(racsRes.data as unknown as CoverageReq[]))

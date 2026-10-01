@@ -49,12 +49,12 @@ async function toggleFeature(formData: FormData) {
   const enabled = formData.get('enabled') === 'true'
 
   type UpsertFn = { upsert: (v: unknown, opts: { onConflict: string }) => Promise<{ error: unknown }> }
-  await (supabase.from('feature_flags') as unknown as UpsertFn)
+  await (supabase.from('drapeaux_fonctionnalites') as unknown as UpsertFn)
     .upsert({ key, enabled, updated_at: new Date().toISOString(), updated_by: user.id }, { onConflict: 'key' })
 
   // Spec 22.5 — historisation
   type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('system_events') as unknown as InsertFn).insert({
+  await (supabase.from('evenements_systeme') as unknown as InsertFn).insert({
     event_type: 'feature_flag.changed',
     actor_type: 'super_admin',
     object_type: 'feature_flag',
@@ -72,12 +72,12 @@ export default async function SuperAdminFonctionnalitesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin') redirect('/connexion')
 
   type FetchFn = { select: (q: string) => Promise<{ data: unknown[] | null }> }
-  const { data: rawFlags } = await (supabase.from('feature_flags') as unknown as FetchFn)
+  const { data: rawFlags } = await (supabase.from('drapeaux_fonctionnalites') as unknown as FetchFn)
     .select('key, enabled, updated_at')
 
   type DbFlag = { key: string; enabled: boolean; updated_at: string | null }

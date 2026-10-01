@@ -8,7 +8,7 @@ export default async function ModifierProfilPage() {
   if (!user) redirect('/connexion')
 
   const [{ data: profileData }, { data: patientData }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('profils').select('*').eq('id', user.id).single(),
     supabase.from('patients').select('*').eq('profile_id', user.id).single(),
   ])
 

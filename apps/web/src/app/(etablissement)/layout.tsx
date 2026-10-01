@@ -8,7 +8,7 @@ export default async function EtablissementLayout({ children }: { children: Reac
   if (!user) redirect('/connexion?redirect=/etablissement/accueil')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('actor_type')
     .eq('id', user.id)
     .single()
@@ -16,7 +16,7 @@ export default async function EtablissementLayout({ children }: { children: Reac
   if (!profile || profile.actor_type !== 'sante') redirect('/tableau-de-bord')
 
   const { data: estData } = await supabase
-    .from('establishments')
+    .from('etablissements')
     .select('id, name')
     .eq('profile_id', user.id)
     .maybeSingle()

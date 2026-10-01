@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Shield, Package, MapPin, User } from 'lucide-react'
@@ -42,12 +42,12 @@ export default async function DemandeCouvertureDetailPage({ params }: { params: 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string } | null
   if (!org) redirect('/connexion')
 
   const { data: reqData } = await supabase
-    .from('coverage_requests')
+    .from('demandes_couverture')
     .select('id, status, created_at, decided_at, amount_total, amount_covered, amount_patient, exclusions_notes, decision_notes, required_documents, pharmacy_reservations(id, status, quantity, notes, pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), pharmacies(name, address_commune, phone)), patients(id, profiles(full_name, phone)), coverage_policies(id, plan_name)')
     .eq('id', id)
     .eq('coverage_org_id', org.id)

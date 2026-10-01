@@ -24,7 +24,7 @@ export default async function DossierIdentitePage() {
   if (!user) redirect('/connexion')
 
   const [profileResult, patientResult] = await Promise.all([
-    supabase.from('profiles').select('first_name, last_name, phone, email, date_of_birth, gender, address_region, address_commune, address_details').eq('id', user.id).single(),
+    supabase.from('profils').select('first_name, last_name, phone, email, date_of_birth, gender, address_region, address_commune, address_details').eq('id', user.id).single(),
     supabase.from('patients').select('id, blood_type, emergency_contact_name, emergency_contact_phone').eq('profile_id', user.id).maybeSingle(),
   ])
 

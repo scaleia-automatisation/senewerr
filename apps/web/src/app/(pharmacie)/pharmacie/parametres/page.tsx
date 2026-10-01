@@ -34,7 +34,7 @@ export default async function PharmacieParametresPage() {
   } | null
   if (!pharmacy) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('first_name, last_name, phone, account_status').eq('id', user.id).single()
+  const { data: profileData } = await supabase.from('profils').select('first_name, last_name, phone, account_status').eq('id', user.id).single()
   const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; account_status: string | null } | null
 
   return (

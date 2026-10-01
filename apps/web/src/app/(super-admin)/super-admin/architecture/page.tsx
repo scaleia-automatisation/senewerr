@@ -108,7 +108,7 @@ export default async function ArchitecturePage() {
   if (!user) redirect('/connexion')
 
   const { data: profileData } = await supabase
-    .from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+    .from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin')
     redirect('/connexion')

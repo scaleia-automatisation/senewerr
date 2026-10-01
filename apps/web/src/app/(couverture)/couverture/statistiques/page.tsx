@@ -8,7 +8,7 @@ export default async function CouvertureStatistiquesPage() {
   if (!user) redirect('/connexion')
 
   const { data: orgData } = await supabase
-    .from('coverage_orgs')
+    .from('organismes_couverture')
     .select('id, name')
     .eq('profile_id', user.id)
     .single()
@@ -24,7 +24,7 @@ export default async function CouvertureStatistiquesPage() {
 
   // Fetch members stats
   const { data: membersData } = await supabase
-    .from('coverage_members')
+    .from('adherents_couverture')
     .select('is_active')
     .eq('coverage_org_id', org.id)
 
@@ -34,7 +34,7 @@ export default async function CouvertureStatistiquesPage() {
 
   // Fetch requests stats
   const { data: requestsData } = await supabase
-    .from('coverage_requests')
+    .from('demandes_couverture')
     .select('status, coverage_amount_fcfa, total_amount_fcfa')
     .eq('coverage_org_id', org.id)
 

@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { AlertTriangle, User, Package, Building2, Shield, MessageSquare, CheckCircle2, Clock } from 'lucide-react'
@@ -52,7 +52,7 @@ async function updateLitigeStatus(formData: FormData) {
     .eq('id', id)
 
   type InsertEventFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('system_events') as unknown as InsertEventFn).insert({
+  await (supabase.from('evenements_systeme') as unknown as InsertEventFn).insert({
     event_type: 'litige.status_changed',
     actor_type: 'admin',
     object_type: 'litige',
@@ -73,7 +73,7 @@ async function addLitigeMessage(formData: FormData) {
   if (!content.trim()) return
 
   type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('litige_messages') as unknown as InsertFn)
+  await (supabase.from('messages_litige') as unknown as InsertFn)
     .insert({ litige_id: litigeId, author_type: 'admin', author_name: 'Administrateur', content: content.trim() })
 
   revalidatePath(`/admin/litiges/${litigeId}`)
@@ -85,7 +85,7 @@ export default async function AdminLitigeDetailPage({ params }: { params: Promis
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
@@ -97,7 +97,7 @@ export default async function AdminLitigeDetailPage({ params }: { params: Promis
       .select('id, reference, actor_type, declarant_id, declarant_name, motif, description, status, resolution, created_at, updated_at, operation_reference, operation_type')
       .eq('id', id)
       .single(),
-    (supabase.from('litige_messages') as unknown as MsgFn)
+    (supabase.from('messages_litige') as unknown as MsgFn)
       .select('id, author_type, author_name, content, created_at')
       .eq('litige_id', id)
       .order('created_at', { ascending: true }),

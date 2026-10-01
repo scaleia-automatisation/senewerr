@@ -7,11 +7,11 @@ export default async function CouvertureLayout({ children }: { children: React.R
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion?redirect=/couverture/accueil')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).single()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).single()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'couverture') redirect('/tableau-de-bord')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('name').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('name').eq('profile_id', user.id).maybeSingle()
   const orgName = (orgData as unknown as { name: string } | null)?.name
 
   return (

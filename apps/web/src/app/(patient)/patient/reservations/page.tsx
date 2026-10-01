@@ -90,7 +90,7 @@ export default async function ReservationsPage() {
 
   if (patient) {
     const { data } = await supabase
-      .from('pharmacy_reservations')
+      .from('reservations_pharmacie')
       .select(`
         id,
         status,

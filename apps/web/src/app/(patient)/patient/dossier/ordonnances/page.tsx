@@ -32,7 +32,7 @@ export default async function DossierOrdonnancesPage() {
   const prescriptions: Prescription[] = []
   if (patient) {
     const { data } = await supabase
-      .from('prescriptions')
+      .from('ordonnances')
       .select('id, status, created_at, valid_until, notes, item_count, professionals(profiles(first_name, last_name))')
       .eq('patient_id', patient.id)
       .order('created_at', { ascending: false })

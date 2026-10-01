@@ -73,7 +73,7 @@ export default async function CouvertureDocumentsPage({ searchParams }: { search
   if (!user) redirect('/connexion')
 
   const { data: orgData } = await supabase
-    .from('coverage_orgs')
+    .from('organismes_couverture')
     .select('id, name')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -83,13 +83,13 @@ export default async function CouvertureDocumentsPage({ searchParams }: { search
   // Spec 20.2 — parallel fetch
   const [coverageRes, paymentsRes] = await Promise.allSettled([
     supabase
-      .from('coverage_requests')
+      .from('demandes_couverture')
       .select('id, status, created_at, amount_total, amount_covered, amount_patient, pharmacy_reservations(pharmacy_reservation_items(medication_name)), patients(profiles(full_name))')
       .eq('coverage_org_id', organisme.id)
       .order('created_at', { ascending: false })
       .limit(100),
     supabase
-      .from('payments')
+      .from('paiements')
       .select('id, status, payment_type, amount_fcfa, reference_code, created_at')
       .eq('payer_id', organisme.id)
       .order('created_at', { ascending: false })

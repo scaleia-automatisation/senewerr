@@ -54,7 +54,7 @@ async function saveSetting(formData: FormData) {
 
   // Récupérer la valeur actuelle pour historique
   type FetchFn = { select: (q: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> } } }
-  const { data: existing } = await (supabase.from('platform_settings') as unknown as FetchFn)
+  const { data: existing } = await (supabase.from('parametres_plateforme') as unknown as FetchFn)
     .select('value')
     .eq('key', key)
     .maybeSingle()
@@ -64,7 +64,7 @@ async function saveSetting(formData: FormData) {
   type UpsertFn = {
     upsert: (v: unknown, opts: { onConflict: string }) => Promise<{ error: unknown }>
   }
-  await (supabase.from('platform_settings') as unknown as UpsertFn)
+  await (supabase.from('parametres_plateforme') as unknown as UpsertFn)
     .upsert({
       key, value: newValue, category, description,
       previous_value: previousValue,
@@ -74,7 +74,7 @@ async function saveSetting(formData: FormData) {
 
   // Spec 22.5 — historisation
   type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('system_events') as unknown as InsertFn).insert({
+  await (supabase.from('evenements_systeme') as unknown as InsertFn).insert({
     event_type: 'platform_setting.changed',
     actor_type: 'super_admin',
     object_type: 'platform_setting',
@@ -93,13 +93,13 @@ export default async function SuperAdminParametresPage({ searchParams }: { searc
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin') redirect('/connexion')
 
   // Charger les valeurs persistées
   type FetchFn = { select: (q: string) => Promise<{ data: unknown[] | null }> }
-  const { data: rawSettings } = await (supabase.from('platform_settings') as unknown as FetchFn)
+  const { data: rawSettings } = await (supabase.from('parametres_plateforme') as unknown as FetchFn)
     .select('key, value, category, description, updated_at, updated_by, previous_value')
 
   const dbSettings = (rawSettings ?? []) as unknown as SettingRow[]

@@ -44,18 +44,18 @@ export default async function DemandesCouverturePage({ searchParams }: { searchP
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('id, actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('id, actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { id: string; actor_type: string } | null
   if (!profile || profile.actor_type !== 'couverture') redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string } | null
   if (!org) redirect('/connexion')
 
   const activeTab = TABS.find(t => t.key === tabKey) ?? TABS[0]
 
   const { data } = await supabase
-    .from('coverage_requests')
+    .from('demandes_couverture')
     .select('id, status, created_at, amount_total, amount_covered, amount_patient, pharmacy_reservations(id, pharmacy_reservation_items(medication_name, pharmacy_products(dosage)), pharmacies(name)), patients(profiles(full_name))')
     .eq('coverage_org_id', org.id)
     .in('status', activeTab.statuses)
@@ -63,7 +63,7 @@ export default async function DemandesCouverturePage({ searchParams }: { searchP
 
   const requests = (data ?? []) as unknown as CoverageRequest[]
 
-  const { data: counts } = await supabase.from('coverage_requests').select('status').eq('coverage_org_id', org.id)
+  const { data: counts } = await supabase.from('demandes_couverture').select('status').eq('coverage_org_id', org.id)
   const tabCounts: Record<string, number> = { active: 0, done: 0 }
   for (const r of (counts ?? []) as unknown as { status: string }[]) {
     if (TABS[0].statuses.includes(r.status)) tabCounts.active++

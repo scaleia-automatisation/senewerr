@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Package, MapPin, Clock, AlertTriangle } from 'lucide-react'
@@ -48,7 +48,7 @@ export default async function PatientReservationDetailPage({ params }: { params:
   if (!patient) redirect('/connexion')
 
   const { data: resaData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, status, created_at, expiry_at, pickup_code, has_coverage, quantity, notes, pharmacist_notes, pharmacies(name, address_commune, address_region, phone), pharmacy_reservation_items(medication_name, pharmacy_products(dosage, form, prescription_required)), prescriptions(id)')
     .eq('id', id)
     .eq('patient_id', patient.id)

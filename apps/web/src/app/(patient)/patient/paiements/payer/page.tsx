@@ -19,17 +19,17 @@ export default async function PayerPage({ searchParams }: { searchParams: Promis
 
   // Fetch reservation + related data
   const [resaRes, covRes, payRes] = await Promise.all([
-    supabase.from('pharmacy_reservations')
+    supabase.from('reservations_pharmacie')
       .select('id, status, quantity, pickup_code, pharmacy_reservation_items(medication_name, pharmacy_products(dosage)), pharmacies(id, name)')
       .eq('id', reservationId)
       .eq('patient_id', patient.id)
       .maybeSingle(),
-    supabase.from('coverage_requests')
+    supabase.from('demandes_couverture')
       .select('id, status, amount_total, amount_covered, amount_patient')
       .eq('reservation_id', reservationId)
       .in('status', ['approved', 'partial'])
       .maybeSingle(),
-    supabase.from('payments')
+    supabase.from('paiements')
       .select('id, status, amount_fcfa, method, reference_code, confirmed_at')
       .eq('reservation_id', reservationId)
       .eq('payment_type', 'patient_charge')

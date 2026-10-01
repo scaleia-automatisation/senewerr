@@ -66,7 +66,7 @@ export function OrdonnanceEditor({ professionalId, patientId, patientName, consu
 
     const supabase = createClient()
 
-    const { data: presc, error: prescErr } = await (supabase.from('prescriptions') as unknown as InsertFn)
+    const { data: presc, error: prescErr } = await (supabase.from('ordonnances') as unknown as InsertFn)
       .insert({
         professional_id: professionalId,
         patient_id: patientId,
@@ -92,7 +92,7 @@ export function OrdonnanceEditor({ professionalId, patientId, patientName, consu
         quantite: it.quantite || null,
         renouvellements: it.renouvellements || 0,
       }))
-      const { error: itemsErr } = await (supabase.from('prescription_items') as unknown as InsertManyFn).insert(rows)
+      const { error: itemsErr } = await (supabase.from('articles_ordonnance') as unknown as InsertManyFn).insert(rows)
       if (itemsErr) { setError(itemsErr.message); setSaving(null); return }
     }
 

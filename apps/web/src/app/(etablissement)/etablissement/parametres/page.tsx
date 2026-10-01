@@ -32,7 +32,7 @@ export default async function EtablissementParametresPage() {
   if (!user) redirect('/connexion')
 
   const { data: estRaw } = await supabase
-    .from('establishments')
+    .from('etablissements')
     .select('id, name, establishment_type, phone, email, address_region, address_commune')
     .eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
@@ -41,7 +41,7 @@ export default async function EtablissementParametresPage() {
     email: string | null; address_region: string | null; address_commune: string | null
   }
 
-  const { data: profileData } = await supabase.from('profiles').select('first_name, last_name, phone, account_status').eq('id', user.id).single()
+  const { data: profileData } = await supabase.from('profils').select('first_name, last_name, phone, account_status').eq('id', user.id).single()
   const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; account_status: string | null } | null
 
   return (

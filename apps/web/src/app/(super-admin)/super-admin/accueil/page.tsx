@@ -14,8 +14,8 @@ export default async function SuperAdminAccueilPage() {
     { count: usersTotal },
     { count: orgCount },
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('coverage_orgs').select('*', { count: 'exact', head: true }),
+    supabase.from('profils').select('*', { count: 'exact', head: true }),
+    supabase.from('organismes_couverture').select('*', { count: 'exact', head: true }),
   ])
 
   const sections = [

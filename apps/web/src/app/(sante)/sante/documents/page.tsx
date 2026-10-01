@@ -62,7 +62,7 @@ export default async function SanteDocumentsPage({ searchParams }: { searchParam
   if (!user) redirect('/connexion')
 
   const { data: profData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, specialty, profiles(full_name)')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -78,7 +78,7 @@ export default async function SanteDocumentsPage({ searchParams }: { searchParam
       .order('created_at', { ascending: false })
       .limit(100),
     supabase
-      .from('prescriptions')
+      .from('ordonnances')
       .select('id, status, issued_at, patients(profiles(full_name))')
       .eq('professional_id', prof.id)
       .order('issued_at', { ascending: false })

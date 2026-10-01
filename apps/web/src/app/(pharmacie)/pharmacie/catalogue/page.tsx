@@ -49,7 +49,7 @@ export default async function CataloguePage() {
   }
 
   const { data: productsData } = await supabase
-    .from('pharmacy_products')
+    .from('produits_pharmacie')
     .select('id, name, generic_name, dci, category, unit_price_fcfa, prescription_required, is_available, created_at')
     .eq('pharmacy_id', pharmacy.id)
     .order('created_at', { ascending: false })

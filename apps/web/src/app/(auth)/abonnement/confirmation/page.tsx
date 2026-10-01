@@ -32,7 +32,7 @@ export default async function AbonnementConfirmationPage({ searchParams }: Props
   const planInfo = plan ? PLAN_LABELS[plan] : null
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('actor_type, first_name')
     .eq('id', user?.id ?? '')
     .single()

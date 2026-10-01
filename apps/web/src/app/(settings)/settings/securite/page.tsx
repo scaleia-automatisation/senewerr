@@ -31,7 +31,7 @@ export default async function SecuritePage() {
   const { data: { session } } = await supabase.auth.getSession()
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('actor_type, phone, email, account_status, created_at')
     .eq('id', user.id)
     .maybeSingle()

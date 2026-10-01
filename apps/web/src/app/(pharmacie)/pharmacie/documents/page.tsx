@@ -75,14 +75,14 @@ export default async function PharmacieDocumentsPage({ searchParams }: { searchP
   // Spec 20.2 — fetch all doc sources in parallel
   const [resasRes, paysRes] = await Promise.allSettled([
     supabase
-      .from('pharmacy_reservations')
+      .from('reservations_pharmacie')
       .select('id, status, created_at, pickup_code, pharmacy_reservation_items(medication_name), patients(profiles(full_name))')
       .eq('pharmacy_id', pharmacy.id)
       .in('status', ['ready', 'collected', 'funded'])
       .order('created_at', { ascending: false })
       .limit(100),
     supabase
-      .from('payments')
+      .from('paiements')
       .select('id, payment_type, status, amount_fcfa, reference_code, created_at')
       .eq('pharmacy_id', pharmacy.id)
       .in('status', ['confirmed', 'received', 'reconciled'])

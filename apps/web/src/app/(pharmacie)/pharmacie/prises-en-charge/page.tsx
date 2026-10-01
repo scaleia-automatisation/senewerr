@@ -21,7 +21,7 @@ export default async function PrisesEnChargePage() {
 
   // Réservations avec prise en charge active
   const { data: resData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, pickup_code, status, total_amount_fcfa, created_at, patients(profiles(first_name, last_name))')
     .eq('pharmacy_id', pharmacy.id)
     .eq('has_coverage', true)

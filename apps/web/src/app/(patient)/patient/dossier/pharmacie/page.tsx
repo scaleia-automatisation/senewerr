@@ -38,7 +38,7 @@ export default async function DossierPharmaciePage() {
   const reservations: Reservation[] = []
   if (patient) {
     const { data } = await supabase
-      .from('pharmacy_reservations')
+      .from('reservations_pharmacie')
       .select('id, status, pickup_code, total_amount_fcfa, has_coverage, created_at, collected_at, pharmacies(name)')
       .eq('patient_id', patient.id)
       .order('created_at', { ascending: false })

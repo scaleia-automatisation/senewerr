@@ -31,12 +31,39 @@ export function LoginForm() {
   async function onSubmit(data: FormData) {
     setServerError(null)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password })
-    if (error) {
+    const { data: auth, error } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password })
+    if (error || !auth.user) {
       setServerError('Email ou mot de passe incorrect.')
       return
     }
-    router.push(redirect)
+
+    // Redirection explicite demandée (ex: retour depuis une page protégée)
+    if (redirect.startsWith('/') && redirect !== '/') {
+      router.push(redirect)
+      router.refresh()
+      return
+    }
+
+    // Sinon, tableau de bord selon le type d'acteur
+    const { data: profile } = await supabase
+      .from('profils')
+      .select('actor_type')
+      .eq('id', auth.user.id)
+      .single()
+
+    const destination = (() => {
+      switch (profile?.actor_type) {
+        case 'patient':    return '/patient/accueil'
+        case 'sante':      return '/sante/accueil'
+        case 'pharmacie':  return '/pharmacie/accueil'
+        case 'couverture': return '/couverture/accueil'
+        case 'admin':
+        case 'super_admin': return '/admin/accueil'
+        default:           return '/patient/accueil'
+      }
+    })()
+
+    router.push(destination)
     router.refresh()
   }
 

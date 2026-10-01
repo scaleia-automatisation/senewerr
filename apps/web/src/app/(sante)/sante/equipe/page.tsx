@@ -32,7 +32,7 @@ export default async function SanteEquipePage() {
   if (!user) redirect('/connexion?redirect=/sante/equipe')
 
   const { data: estData } = await supabase
-    .from('establishments')
+    .from('etablissements')
     .select('id, name')
     .eq('profile_id', user.id)
     .maybeSingle()

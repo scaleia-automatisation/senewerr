@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+﻿import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CheckCircle2, Calendar, Clock, MapPin, Video, User, ArrowRight } from 'lucide-react'
@@ -34,7 +34,7 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ i
   const supabase = await createClient()
 
   const { data } = await supabase
-    .from('appointments')
+    .from('rendez_vous')
     .select(`
       id,
       appointment_date,

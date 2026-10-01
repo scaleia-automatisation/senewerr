@@ -15,7 +15,7 @@ export default async function SuperAdminPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin') redirect('/connexion')
 
@@ -26,16 +26,16 @@ export default async function SuperAdminPage() {
     incidentsRes, activeRes,
   ] = await Promise.allSettled([
     supabase.from('patients').select('id', { count: 'exact', head: true }),
-    supabase.from('professionals').select('id', { count: 'exact', head: true }),
+    supabase.from('professionnels').select('id', { count: 'exact', head: true }),
     supabase.from('pharmacies').select('id', { count: 'exact', head: true }),
-    supabase.from('coverage_orgs').select('id', { count: 'exact', head: true }),
-    supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'confirmed'),
-    supabase.from('payments').select('amount_fcfa').eq('status', 'confirmed'),
-    supabase.from('pharmacy_reservations').select('id', { count: 'exact', head: true }),
-    supabase.from('coverage_requests').select('id', { count: 'exact', head: true }),
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('organismes_couverture').select('id', { count: 'exact', head: true }),
+    supabase.from('paiements').select('id', { count: 'exact', head: true }).eq('status', 'confirmed'),
+    supabase.from('paiements').select('amount_fcfa').eq('status', 'confirmed'),
+    supabase.from('reservations_pharmacie').select('id', { count: 'exact', head: true }),
+    supabase.from('demandes_couverture').select('id', { count: 'exact', head: true }),
+    supabase.from('profils').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     // Incidents : system_events de type failure dans les dernières 24h
-    supabase.from('system_events').select('id', { count: 'exact', head: true }).eq('result', 'failure'),
+    supabase.from('evenements_systeme').select('id', { count: 'exact', head: true }).eq('result', 'failure'),
   ])
 
   function cnt(res: PromiseSettledResult<{ count: number | null }>): number {

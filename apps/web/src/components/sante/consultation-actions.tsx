@@ -53,7 +53,7 @@ export function ConsultationActions({
     if (err1) { setError(err1.message); setLoading(false); return }
 
     // Mettre à jour le statut du RDV
-    await (supabase.from('appointments') as unknown as {
+    await (supabase.from('rendez_vous') as unknown as {
       update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: unknown }> }
     }).update({ status: 'in_consultation' }).eq('id', appointmentId)
 
@@ -83,7 +83,7 @@ export function ConsultationActions({
       }).update({ notes, diagnosis, treatment, status: 'completed' }).eq('id', consultId)
     }
 
-    await (supabase.from('appointments') as unknown as {
+    await (supabase.from('rendez_vous') as unknown as {
       update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: unknown }> }
     }).update({ status: 'completed' }).eq('id', appointmentId)
 

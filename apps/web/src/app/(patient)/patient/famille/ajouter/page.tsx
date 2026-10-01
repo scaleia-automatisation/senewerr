@@ -55,7 +55,7 @@ export default function AjouterBeneficiairePage() {
       return
     }
 
-    const { error: err } = await (supabase.from('patient_beneficiaries') as unknown as {
+    const { error: err } = await (supabase.from('beneficiaires') as unknown as {
       insert: (v: unknown) => Promise<{ error: { message: string } | null }>
     }).insert({
       patient_id: patient.id,

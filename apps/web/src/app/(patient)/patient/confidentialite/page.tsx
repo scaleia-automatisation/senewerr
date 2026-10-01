@@ -58,7 +58,7 @@ async function withdrawConsent(formData: FormData) {
   type UpdateFn = {
     update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: unknown }> }
   }
-  await (supabase.from('patient_consents') as unknown as UpdateFn)
+  await (supabase.from('consentements') as unknown as UpdateFn)
     .update({ accepted: false })
     .eq('id', consentId)
 
@@ -89,7 +89,7 @@ export default async function ConfidentialitePage() {
       eq: (c: string, v: string) => Promise<{ data: unknown[] | null }>
     }
   }
-  const { data: consentsData } = await (supabase.from('patient_consents') as unknown as FetchFn)
+  const { data: consentsData } = await (supabase.from('consentements') as unknown as FetchFn)
     .select('id, consent_type, accepted, accepted_at')
     .eq('patient_id', patient.id)
 

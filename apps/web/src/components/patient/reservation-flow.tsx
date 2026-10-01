@@ -60,7 +60,7 @@ export function ReservationFlow({ patientId, product, pharmacy, stock, prescript
     const expiresAt = new Date(Date.now() + DEFAULT_EXPIRY_HOURS * 3600 * 1000).toISOString()
 
     // 1. Créer la réservation
-    const { data: reservation, error: reservErr } = await (supabase.from('pharmacy_reservations') as unknown as InsertFn)
+    const { data: reservation, error: reservErr } = await (supabase.from('reservations_pharmacie') as unknown as InsertFn)
       .insert({
         patient_id: patientId,
         pharmacy_id: pharmacy.id,
@@ -79,7 +79,7 @@ export function ReservationFlow({ patientId, product, pharmacy, stock, prescript
     const reservationId = reservation!.id
 
     // 2. Ajouter l'article de réservation
-    const { error: itemErr } = await (supabase.from('pharmacy_reservation_items') as unknown as { insert: (v: unknown) => Promise<{ error: Error | null }> }).insert({
+    const { error: itemErr } = await (supabase.from('articles_reservation') as unknown as { insert: (v: unknown) => Promise<{ error: Error | null }> }).insert({
       reservation_id: reservationId,
       product_id: product.id,
       medication_name: product.name,

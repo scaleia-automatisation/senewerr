@@ -42,7 +42,7 @@ export default async function DossiersPage() {
   if (!user) redirect('/connexion')
 
   const { data: orgData } = await supabase
-    .from('coverage_orgs')
+    .from('organismes_couverture')
     .select('id, name')
     .eq('profile_id', user.id)
     .single()
@@ -57,7 +57,7 @@ export default async function DossiersPage() {
   }
 
   const { data: requestsData } = await supabase
-    .from('coverage_requests')
+    .from('demandes_couverture')
     .select('id, request_type, status, total_amount_fcfa, coverage_amount_fcfa, patient_amount_fcfa, created_at')
     .eq('coverage_org_id', org.id)
     .order('created_at', { ascending: false })

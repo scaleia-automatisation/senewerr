@@ -9,7 +9,7 @@ export default async function PatientsPage() {
   if (!user) redirect('/connexion?redirect=/sante/patients')
 
   const { data: professionalData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id')
     .eq('profile_id', user.id)
     .single()
@@ -25,7 +25,7 @@ export default async function PatientsPage() {
 
   // Get all appointments for this professional with patient info
   const { data: appointments } = await supabase
-    .from('appointments')
+    .from('rendez_vous')
     .select(`
       id,
       patient_id,

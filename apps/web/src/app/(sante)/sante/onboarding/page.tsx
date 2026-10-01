@@ -99,7 +99,7 @@ export default function SanteOnboardingPage() {
     if (!user) { setError('Session expirée. Reconnectez-vous.'); setLoading(false); return }
 
     if (santeType === 'professionnel') {
-      const { error: err } = await (supabase.from('professionals') as unknown as {
+      const { error: err } = await (supabase.from('professionnels') as unknown as {
         insert: (v: unknown) => Promise<{ error: { message: string } | null }>
       }).insert({
         profile_id: user.id,
@@ -114,7 +114,7 @@ export default function SanteOnboardingPage() {
       })
       if (err) { setError(err.message); setLoading(false); return }
     } else {
-      const { error: err } = await (supabase.from('establishments') as unknown as {
+      const { error: err } = await (supabase.from('etablissements') as unknown as {
         insert: (v: unknown) => Promise<{ error: { message: string } | null }>
       }).insert({
         profile_id: user.id,

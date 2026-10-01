@@ -39,7 +39,7 @@ export default async function EtablissementAgendaPage({ searchParams }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: estRaw } = await supabase.from('establishments').select('id, name').eq('profile_id', user.id).single()
+  const { data: estRaw } = await supabase.from('etablissements').select('id, name').eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
   const est = estRaw as unknown as { id: string; name: string }
 
@@ -61,7 +61,7 @@ export default async function EtablissementAgendaPage({ searchParams }: Props) {
   const proIds  = members.map(m => m.professional?.id).filter(Boolean) as string[]
 
   const { data: aptsData } = proIds.length > 0
-    ? await supabase.from('appointments')
+    ? await supabase.from('rendez_vous')
         .select(`id, start_time, end_time, status, professional_id,
           patients!inner(profiles!inner(first_name, last_name))`)
         .in('professional_id', proIds)

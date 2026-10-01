@@ -37,7 +37,7 @@ export default async function CouverturePage() {
 
   if (patient) {
     const { data } = await supabase
-      .from('coverage_members')
+      .from('adherents_couverture')
       .select(`
         id,
         member_number,

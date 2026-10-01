@@ -45,8 +45,8 @@ export default async function ParametresPage() {
   if (!user) redirect('/connexion')
 
   const [orgResult, profileResult] = await Promise.all([
-    supabase.from('coverage_orgs').select('id, name, org_type, registration_number, address_region, address_details').eq('profile_id', user.id).maybeSingle(),
-    supabase.from('profiles').select('first_name, last_name, phone, email, account_status, verification_notes').eq('id', user.id).single(),
+    supabase.from('organismes_couverture').select('id, name, org_type, registration_number, address_region, address_details').eq('profile_id', user.id).maybeSingle(),
+    supabase.from('profils').select('first_name, last_name, phone, email, account_status, verification_notes').eq('id', user.id).single(),
   ])
 
   const org = orgResult.data as unknown as {

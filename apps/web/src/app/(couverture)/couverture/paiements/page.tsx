@@ -37,12 +37,12 @@ export default async function CouverturePaiementsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string } | null
   if (!org) redirect('/connexion')
 
   const { data } = await supabase
-    .from('payments')
+    .from('paiements')
     .select('id, status, amount_fcfa, reference_code, created_at, reconciled_at, pharmacy_reservations(pharmacies(name), pharmacy_reservation_items(medication_name)), patients(profiles(full_name))')
     .eq('payer_id', org.id)
     .order('created_at', { ascending: false })

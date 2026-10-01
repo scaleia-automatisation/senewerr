@@ -15,12 +15,12 @@ export default async function ContratsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string } | null
   if (!org) redirect('/connexion')
 
   const { data: plansData } = await supabase
-    .from('coverage_plans')
+    .from('formules_couverture')
     .select('id, name, description, monthly_fee_fcfa, max_members, is_active')
     .eq('coverage_org_id', org.id)
     .order('name')

@@ -43,7 +43,7 @@ export default async function RendezVousPage() {
   const appointments: Appointment[] = []
   if (patient) {
     const { data } = await supabase
-      .from('appointments')
+      .from('rendez_vous')
       .select('id, status, scheduled_at, reason, professionals(title, specialty, profiles(first_name, last_name)), establishments(name)')
       .eq('patient_id', patient.id)
       .order('scheduled_at', { ascending: false })

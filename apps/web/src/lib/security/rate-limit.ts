@@ -40,7 +40,7 @@ export async function checkRateLimit(
     const supabase = await createClient()
 
     // Récupérer les tentatives récentes
-    const { data } = await (supabase.from('login_attempts') as unknown as AttemptQuery)
+    const { data } = await (supabase.from('tentatives_connexion') as unknown as AttemptQuery)
       .select('id, created_at, blocked_until')
       .eq('identifier', identifier)
       .gte('created_at', windowStart.toISOString())
@@ -70,7 +70,7 @@ export async function checkRateLimit(
       ? new Date(Date.now() + limit.block_sec * 1000).toISOString()
       : null
 
-    await (supabase.from('login_attempts') as unknown as AttemptInsert).insert({
+    await (supabase.from('tentatives_connexion') as unknown as AttemptInsert).insert({
       identifier,
       action,
       blocked_until: blockedUntil,
@@ -105,7 +105,7 @@ export async function purgeExpiredAttempts(): Promise<void> {
       delete: () => { lt: (c: string, v: string) => Promise<{ error: unknown }> }
     }
     const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-    await (supabase.from('login_attempts') as unknown as DeleteFn)
+    await (supabase.from('tentatives_connexion') as unknown as DeleteFn)
       .delete().lt('created_at', cutoff)
   } catch { /* silencieux */ }
 }

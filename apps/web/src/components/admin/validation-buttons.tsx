@@ -25,7 +25,7 @@ export function ValidationButtons({ profileId, currentStatus }: Props) {
     if (newStatus === 'refused' && motif) payload.verification_notes = motif
 
     const { error: err } = await supabase
-      .from('profiles')
+      .from('profils')
       .update(payload)
       .eq('id', profileId)
 

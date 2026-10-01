@@ -49,7 +49,7 @@ export default function RetraitsPage() {
     if (!pharmacy) { setError('Pharmacie introuvable.'); setLoading(false); return }
 
     const { data: resData } = await supabase
-      .from('pharmacy_reservations')
+      .from('reservations_pharmacie')
       .select('id, pickup_code, status, total_amount_fcfa, pharmacy_id, patients!inner(profiles!inner(first_name, last_name)), pharmacy_reservation_items(medication_name, quantity)')
       .eq('pickup_code', trimmed)
       .eq('pharmacy_id', pharmacy.id)
@@ -94,7 +94,7 @@ export default function RetraitsPage() {
     if (!res) return
     setConfirming(true); setError('')
     const supabase = createClient()
-    const { error: err } = await (supabase.from('pharmacy_reservations') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('reservations_pharmacie') as unknown as UpdateFn)
       .update({ status: 'collected', collected_at: new Date().toISOString() })
       .eq('id', res.id)
       .eq('pharmacy_id', res.pharmacyId)

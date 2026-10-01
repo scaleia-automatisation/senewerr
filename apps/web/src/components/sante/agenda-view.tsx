@@ -68,7 +68,7 @@ export function AgendaView({ professionalId, establishments }: { professionalId:
     setLoading(true)
     const supabase = createClient()
     let q = supabase
-      .from('appointments')
+      .from('rendez_vous')
       .select('id, status, scheduled_at, duration_minutes, reason, patients(profiles(first_name, last_name)), establishments(id, name)')
       .eq('professional_id', professionalId)
       .gte('scheduled_at', from.toISOString())

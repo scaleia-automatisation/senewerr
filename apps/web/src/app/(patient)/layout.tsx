@@ -9,7 +9,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
   if (!user) redirect('/connexion?redirect=/patient/accueil')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('actor_type')
     .eq('id', user.id)
     .single()

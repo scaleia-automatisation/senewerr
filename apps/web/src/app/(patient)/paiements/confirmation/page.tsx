@@ -32,7 +32,7 @@ export default async function PaymentConfirmationPage({ searchParams }: Props) {
 
   if (ref) {
     const { data } = await supabase
-      .from('payments')
+      .from('paiements')
       .select('*, reservation:pharmacy_reservations(pickup_code, pharmacy_id)')
       .eq('reference', ref)
       .single()

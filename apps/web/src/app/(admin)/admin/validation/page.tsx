@@ -27,7 +27,7 @@ async function validateActor(formData: FormData) {
     : action === 'suspend'      ? 'suspended'
     : 'needs_info'
 
-  await supabase.from('profiles')
+  await supabase.from('profils')
     .update({
       account_status: newStatus,
       ...(motif ? { verification_notes: motif } : {}),
@@ -53,7 +53,7 @@ async function validateActor(formData: FormData) {
   }
 
   type InsertEventFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('system_events') as unknown as InsertEventFn).insert({
+  await (supabase.from('evenements_systeme') as unknown as InsertEventFn).insert({
     event_type: `account.${action}`,
     actor_type: 'admin',
     object_type: actorType,
@@ -76,7 +76,7 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type, account_status').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type, account_status').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string; account_status: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
@@ -86,7 +86,7 @@ export default async function AdminValidationPage({ searchParams }: { searchPara
   }
 
   const { data: rawProfiles } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('id, actor_type, full_name, email, account_status, verification_notes, created_at')
     .in('account_status', ['pending', 'needs_info', 'draft'])
     .in('actor_type', ['sante', 'pharmacie', 'couverture'])

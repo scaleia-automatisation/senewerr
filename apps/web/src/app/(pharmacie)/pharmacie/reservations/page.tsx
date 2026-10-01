@@ -50,7 +50,7 @@ export default async function PharmacieReservationsPage({ searchParams }: { sear
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('id, actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('id, actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { id: string; actor_type: string } | null
   if (!profile || profile.actor_type !== 'pharmacie') redirect('/connexion')
 
@@ -61,7 +61,7 @@ export default async function PharmacieReservationsPage({ searchParams }: { sear
   const activeTab = TABS.find(t => t.key === tabKey) ?? TABS[0]
 
   const { data } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, status, created_at, expiry_at, quantity, patients(profiles(full_name)), pharmacy_reservation_items(medication_name, pharmacy_products(dosage))')
     .eq('pharmacy_id', pharmacy.id)
     .in('status', activeTab.statuses)
@@ -70,7 +70,7 @@ export default async function PharmacieReservationsPage({ searchParams }: { sear
   const reservations = (data ?? []) as unknown as Reservation[]
   const counts: Record<string, number> = {}
   for (const t of TABS) counts[t.key] = 0
-  const { data: allStatuses } = await supabase.from('pharmacy_reservations').select('status').eq('pharmacy_id', pharmacy.id)
+  const { data: allStatuses } = await supabase.from('reservations_pharmacie').select('status').eq('pharmacy_id', pharmacy.id)
   for (const row of (allStatuses ?? []) as unknown as { status: string }[]) {
     for (const t of TABS) { if (t.statuses.includes(row.status)) counts[t.key]++ }
   }

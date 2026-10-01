@@ -18,7 +18,7 @@ export default async function SuperAdminAbonnementsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin') redirect('/connexion')
 
@@ -32,10 +32,10 @@ export default async function SuperAdminAbonnementsPage() {
 
   // Comptages par statut
   const [actifRes, attRes, suspRes, resilRes] = await Promise.allSettled([
-    (supabase.from('subscriptions') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'actif'),
-    (supabase.from('subscriptions') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'paiement_en_attente'),
-    (supabase.from('subscriptions') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'suspendu'),
-    (supabase.from('subscriptions') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'resilie'),
+    (supabase.from('abonnements') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'actif'),
+    (supabase.from('abonnements') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'paiement_en_attente'),
+    (supabase.from('abonnements') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'suspendu'),
+    (supabase.from('abonnements') as unknown as CountQuery).select('id', { count: 'exact', head: true }).eq('status', 'resilie'),
   ])
   function cnt(r: PromiseSettledResult<{ count: number | null }>): number {
     return r.status === 'fulfilled' ? (r.value.count ?? 0) : 0
@@ -46,7 +46,7 @@ export default async function SuperAdminAbonnementsPage() {
   const cancelledCount = cnt(resilRes)
 
   // Revenus MRR estimés — toutes les souscriptions actives
-  const { data: activeSubs } = await (supabase.from('subscriptions') as unknown as RawQuery)
+  const { data: activeSubs } = await (supabase.from('abonnements') as unknown as RawQuery)
     .select('plan_key, actor_type, status')
     .eq('status', 'actif')
     .range(0, 999)

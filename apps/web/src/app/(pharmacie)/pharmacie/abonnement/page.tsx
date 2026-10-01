@@ -32,7 +32,7 @@ export default async function PharmacieAbonnementPage() {
       }
     }
   }
-  const { data: subData } = await (supabase.from('subscriptions') as unknown as FetchFn)
+  const { data: subData } = await (supabase.from('abonnements') as unknown as FetchFn)
     .select('id, plan_key, status, started_at, renewal_at, commission_cap_fcfa')
     .eq('actor_type', 'pharmacie')
     .eq('actor_id', pharmacy.id)

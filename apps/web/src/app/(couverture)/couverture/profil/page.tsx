@@ -28,8 +28,8 @@ export default async function CouvertureProfilPage() {
   if (!user) redirect('/connexion')
 
   const [{ data: profileData }, { data: orgData }] = await Promise.all([
-    supabase.from('profiles').select('first_name, last_name, phone, email, account_status').eq('id', user.id).single(),
-    supabase.from('coverage_orgs').select('name, org_type, registration_number, description, phone, email, website, address_region, address_details').eq('profile_id', user.id).single(),
+    supabase.from('profils').select('first_name, last_name, phone, email, account_status').eq('id', user.id).single(),
+    supabase.from('organismes_couverture').select('name, org_type, registration_number, description, phone, email, website, address_region, address_details').eq('profile_id', user.id).single(),
   ])
   const profile = profileData as unknown as { first_name: string | null; last_name: string | null; phone: string | null; email: string | null; account_status: string | null } | null
   const org = orgData as unknown as { name: string | null; org_type: string | null; registration_number: string | null; description: string | null; phone: string | null; email: string | null; website: string | null; address_region: string | null; address_details: string | null } | null

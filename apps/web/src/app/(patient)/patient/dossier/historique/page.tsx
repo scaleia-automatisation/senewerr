@@ -67,16 +67,16 @@ export default async function DossierHistoriquePage() {
     supabase.from('consultations')
       .select('id, status, created_at, consultation_date, professionals(profiles(first_name, last_name)), establishments(name)')
       .eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(30),
-    supabase.from('prescriptions')
+    supabase.from('ordonnances')
       .select('id, status, created_at, item_count, professionals(profiles(first_name, last_name))')
       .eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(30),
-    supabase.from('pharmacy_reservations')
+    supabase.from('reservations_pharmacie')
       .select('id, status, pickup_code, created_at, collected_at, pharmacies(name)')
       .eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(30),
-    supabase.from('coverage_requests')
+    supabase.from('demandes_couverture')
       .select('id, status, request_type, created_at, approved_at, coverage_orgs(name)')
       .eq('patient_id', patient.id).order('created_at', { ascending: false }).limit(30),
-    supabase.from('appointments')
+    supabase.from('rendez_vous')
       .select('id, status, scheduled_at, reason, professionals(profiles(first_name, last_name))')
       .eq('patient_id', patient.id).order('scheduled_at', { ascending: false }).limit(30),
   ])

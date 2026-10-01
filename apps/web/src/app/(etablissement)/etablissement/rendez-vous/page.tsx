@@ -32,7 +32,7 @@ export default async function EtablissementRendezVousPage({ searchParams }: Prop
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: estRaw } = await supabase.from('establishments').select('id').eq('profile_id', user.id).single()
+  const { data: estRaw } = await supabase.from('etablissements').select('id').eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
   const est = estRaw as unknown as { id: string }
 
@@ -46,7 +46,7 @@ export default async function EtablissementRendezVousPage({ searchParams }: Prop
 
   let apts: Apt[] = []
   if (proIds.length > 0) {
-    let q = supabase.from('appointments')
+    let q = supabase.from('rendez_vous')
       .select(`id, appointment_date, start_time, status, reason,
         patients!inner(profiles!inner(first_name, last_name)),
         professional:professionals!inner(title, profiles!inner(first_name, last_name))`)

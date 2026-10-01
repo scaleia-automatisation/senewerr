@@ -42,7 +42,7 @@ export default async function HistoriquePage() {
   if (!pharmacy) redirect('/connexion')
 
   const { data: resData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, pickup_code, status, total_amount_fcfa, created_at, collected_at, patients(profiles(first_name, last_name)), pharmacy_reservation_items(id)')
     .eq('pharmacy_id', pharmacy.id)
     .in('status', ['collected', 'refused', 'cancelled', 'expired'])

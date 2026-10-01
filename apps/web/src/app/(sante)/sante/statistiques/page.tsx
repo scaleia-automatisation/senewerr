@@ -12,7 +12,7 @@ export default async function SanteStatistiquesPage() {
   if (!user) redirect('/connexion')
 
   const { data: professionalData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, consultation_fee_fcfa')
     .eq('profile_id', user.id)
     .single()
@@ -35,19 +35,19 @@ export default async function SanteStatistiquesPage() {
     { count: totalOrdonnances },
     { count: ordonActives },
   ] = await Promise.all([
-    supabase.from('appointments').select('*', { count: 'exact', head: true })
+    supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id),
-    supabase.from('appointments').select('*', { count: 'exact', head: true })
+    supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id).eq('status', 'confirmed'),
-    supabase.from('appointments').select('*', { count: 'exact', head: true })
+    supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id).eq('status', 'completed'),
-    supabase.from('appointments').select('*', { count: 'exact', head: true })
+    supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id).eq('status', 'cancelled'),
-    supabase.from('appointments').select('*', { count: 'exact', head: true })
+    supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id).eq('status', 'no_show'),
-    supabase.from('prescriptions').select('*', { count: 'exact', head: true })
+    supabase.from('ordonnances').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id),
-    supabase.from('prescriptions').select('*', { count: 'exact', head: true })
+    supabase.from('ordonnances').select('*', { count: 'exact', head: true })
       .eq('professional_id', professional.id).in('status', ['issued', 'shared', 'validated']),
   ])
 

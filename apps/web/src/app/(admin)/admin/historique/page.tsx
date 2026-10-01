@@ -109,7 +109,7 @@ export default async function AdminHistoriquePage({ searchParams }: { searchPara
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
@@ -122,7 +122,7 @@ export default async function AdminHistoriquePage({ searchParams }: { searchPara
   }
   type RawQuery = { select: (q: string, opts?: { count?: string }) => Chain }
 
-  let q = (supabase.from('system_events') as unknown as RawQuery)
+  let q = (supabase.from('evenements_systeme') as unknown as RawQuery)
     .select('id, event_type, actor_type, actor_id, object_type, object_id, result, metadata, correlation_id, category, created_at', { count: 'exact' })
     .in('event_type', Object.keys(AUDIT_EVENT_LABELS))
     .order('created_at', { ascending: false })

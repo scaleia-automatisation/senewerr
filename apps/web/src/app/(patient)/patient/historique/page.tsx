@@ -131,7 +131,7 @@ export default async function PatientHistoriquePage({ searchParams }: { searchPa
   }
   type RawQuery = { select: (q: string, opts?: { count?: string }) => Chain }
 
-  let q = (supabase.from('system_events') as unknown as RawQuery)
+  let q = (supabase.from('evenements_systeme') as unknown as RawQuery)
     .select('id, event_type, actor_type, object_type, object_id, result, metadata, correlation_id, category, created_at', { count: 'exact' })
     .eq('actor_id', patient.id)
     .in('event_type', Object.keys(PATIENT_EVENT_LABELS))

@@ -16,12 +16,12 @@ export default async function AdherentsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: orgData } = await supabase.from('coverage_orgs').select('id, name').eq('profile_id', user.id).maybeSingle()
+  const { data: orgData } = await supabase.from('organismes_couverture').select('id, name').eq('profile_id', user.id).maybeSingle()
   const org = orgData as unknown as { id: string; name: string } | null
   if (!org) redirect('/connexion')
 
   const { data: membersData } = await supabase
-    .from('coverage_members')
+    .from('adherents_couverture')
     .select('id, member_number, start_date, end_date, is_active, patients!inner(id, profiles!inner(first_name, last_name, phone)), coverage_plans(name)')
     .eq('coverage_org_id', org.id)
     .order('is_active', { ascending: false })

@@ -57,7 +57,7 @@ export default async function PharmaciePaiementsPage({ searchParams }: { searchP
 
   const activeTab = TABS.find(t => t.key === tab) ?? TABS[2]
   let query = supabase
-    .from('payments')
+    .from('paiements')
     .select('id, payment_type, amount_fcfa, status, method, reference_code, created_at, confirmed_at, pharmacy_reservations(pharmacy_reservation_items(medication_name)), coverage_requests(id)')
     .eq('pharmacy_id', pharmacy.id)
     .order('created_at', { ascending: false })

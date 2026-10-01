@@ -37,12 +37,12 @@ async function updateAdminPermissions(formData: FormData) {
   const permissions = formData.getAll('permissions') as string[]
 
   type UpdateFn = { update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: unknown }> } }
-  await (supabase.from('profiles') as unknown as UpdateFn)
+  await (supabase.from('profils') as unknown as UpdateFn)
     .update({ admin_permissions: permissions })
     .eq('id', targetId)
 
   type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('system_events') as unknown as InsertFn).insert({
+  await (supabase.from('evenements_systeme') as unknown as InsertFn).insert({
     event_type: 'admin.permissions_updated',
     actor_type: 'super_admin',
     object_type: 'profile',
@@ -63,17 +63,17 @@ async function createAdmin(formData: FormData) {
   const permissions = formData.getAll('new_permissions') as string[]
   if (!profileId) return
 
-  const { data: existing } = await supabase.from('profiles').select('actor_type').eq('id', profileId).maybeSingle()
+  const { data: existing } = await supabase.from('profils').select('actor_type').eq('id', profileId).maybeSingle()
   const existingTypes = (existing as unknown as { actor_type: string[] } | null)?.actor_type ?? []
   const updatedTypes = Array.from(new Set([...existingTypes, 'admin']))
 
   type UpdateFn = { update: (v: unknown) => { eq: (c: string, v: string) => Promise<{ error: unknown }> } }
-  await (supabase.from('profiles') as unknown as UpdateFn)
+  await (supabase.from('profils') as unknown as UpdateFn)
     .update({ actor_type: updatedTypes, admin_permissions: permissions, status: 'active' })
     .eq('id', profileId)
 
   type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-  await (supabase.from('system_events') as unknown as InsertFn).insert({
+  await (supabase.from('evenements_systeme') as unknown as InsertFn).insert({
     event_type: 'admin.created',
     actor_type: 'super_admin',
     object_type: 'profile',
@@ -91,7 +91,7 @@ export default async function SuperAdminAdminsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin') redirect('/connexion')
 
@@ -100,7 +100,7 @@ export default async function SuperAdminAdminsPage() {
       in: (c: string, v: string[]) => Promise<{ data: unknown[] | null }>
     }
   }
-  const { data: rawAdmins } = await (supabase.from('profiles') as unknown as FetchFn)
+  const { data: rawAdmins } = await (supabase.from('profils') as unknown as FetchFn)
     .select('id, email, full_name, actor_type, admin_permissions, status, created_at')
     .in('actor_type', ['admin', 'super_admin'])
 

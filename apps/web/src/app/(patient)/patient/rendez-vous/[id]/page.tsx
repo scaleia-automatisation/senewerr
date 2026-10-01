@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Clock, User, MapPin, FileText } from 'lucide-react'
@@ -47,7 +47,7 @@ export default async function RDVDetailPage({ params }: { params: Promise<{ id: 
   if (!patient) redirect('/connexion')
 
   const { data: apptData } = await supabase
-    .from('appointments')
+    .from('rendez_vous')
     .select('id, status, scheduled_at, duration_minutes, reason, notes, cancellation_reason, created_at, professionals(title, specialty, profiles(first_name, last_name, phone)), establishments(name, address_commune, address_region)')
     .eq('id', id)
     .eq('patient_id', patient.id)

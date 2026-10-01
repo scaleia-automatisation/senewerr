@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
@@ -33,18 +33,18 @@ export default async function AdminDashboardPage() {
     pendingProfsRes, pendingPaymentsRes, blockedRes,
   ] = await Promise.allSettled([
     supabase.from('patients').select('id', { count: 'exact', head: true }),
-    supabase.from('professionals').select('id', { count: 'exact', head: true }),
-    supabase.from('establishments').select('id', { count: 'exact', head: true }),
+    supabase.from('professionnels').select('id', { count: 'exact', head: true }),
+    supabase.from('etablissements').select('id', { count: 'exact', head: true }),
     supabase.from('pharmacies').select('id', { count: 'exact', head: true }),
-    supabase.from('coverage_orgs').select('id', { count: 'exact', head: true }),
+    supabase.from('organismes_couverture').select('id', { count: 'exact', head: true }),
     // Comptes à vérifier : professionnels sans vérification
-    supabase.from('profiles').select('id', { count: 'exact', head: true })
+    supabase.from('profils').select('id', { count: 'exact', head: true })
       .eq('status', 'pending_verification'),
     // Paiements en attente
-    supabase.from('payments').select('id', { count: 'exact', head: true })
+    supabase.from('paiements').select('id', { count: 'exact', head: true })
       .eq('status', 'pending'),
     // Dossiers bloqués : réservations bloquées depuis longtemps
-    supabase.from('pharmacy_reservations').select('id', { count: 'exact', head: true })
+    supabase.from('reservations_pharmacie').select('id', { count: 'exact', head: true })
       .in('status', ['verifying', 'awaiting_coverage', 'awaiting_payment']),
   ])
 

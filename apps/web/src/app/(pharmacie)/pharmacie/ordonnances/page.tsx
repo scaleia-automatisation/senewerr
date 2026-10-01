@@ -31,7 +31,7 @@ export default async function OrdonnancesPage() {
 
   // Réservations avec prescription_id (ordonnance obligatoire) qui sont actives
   const { data: resData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, pickup_code, status, prescription_id, created_at, patients(profiles(first_name, last_name)), pharmacy_reservation_items(medication_name, quantity)')
     .eq('pharmacy_id', pharmacy.id)
     .not('prescription_id', 'is', null)
@@ -42,7 +42,7 @@ export default async function OrdonnancesPage() {
 
   // Ordonnances déjà vérifiées (ready/collected)
   const { data: doneData } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select('id, pickup_code, status, prescription_id, created_at, patients(profiles(first_name, last_name)), pharmacy_reservation_items(medication_name, quantity)')
     .eq('pharmacy_id', pharmacy.id)
     .not('prescription_id', 'is', null)

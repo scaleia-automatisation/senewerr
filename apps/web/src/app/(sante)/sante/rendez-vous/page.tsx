@@ -47,13 +47,13 @@ export default async function RendezVousPage({ searchParams }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: proData } = await supabase.from('professionals').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: proData } = await supabase.from('professionnels').select('id').eq('profile_id', user.id).maybeSingle()
   const pro = proData as unknown as { id: string } | null
 
   const today = new Date().toISOString().split('T')[0]
 
   let query = supabase
-    .from('appointments')
+    .from('rendez_vous')
     .select(`id, appointment_date, start_time, status, appointment_type, reason,
       patients!inner(profiles!inner(first_name, last_name))`)
 

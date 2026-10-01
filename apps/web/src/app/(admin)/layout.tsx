@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/connexion')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('actor_type')
     .eq('id', user.id)
     .single()

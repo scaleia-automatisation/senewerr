@@ -86,7 +86,7 @@ async function getEnabledChannels(
 ): Promise<NotifChannel[]> {
   try {
     const { data } = await supabase
-      .from('notification_preferences')
+      .from('preferences_notifications')
       .select('in_app_enabled, email_enabled, disabled_types')
       .eq('profile_id', recipientId)
       .maybeSingle() as { data: PrefRow | null }

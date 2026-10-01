@@ -37,7 +37,7 @@ export default async function AdminAbonnementsPage({ searchParams }: { searchPar
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
@@ -48,7 +48,7 @@ export default async function AdminAbonnementsPage({ searchParams }: { searchPar
   }
   type RawQuery = { select: (q: string, opts?: { count?: string }) => Chain }
 
-  let q = (supabase.from('subscriptions') as unknown as RawQuery)
+  let q = (supabase.from('abonnements') as unknown as RawQuery)
     .select('id, actor_type, actor_id, actor_name, plan_key, status, renewal_at, started_at, commission_pct', { count: 'exact' })
     .order('renewal_at', { ascending: true })
 
@@ -63,7 +63,7 @@ export default async function AdminAbonnementsPage({ searchParams }: { searchPar
   type CountQuery = { select: (q: string, opts: { count: string; head: boolean }) => { eq: (c: string, v: string) => Promise<{ count: number | null }> } }
   const statCounts = await Promise.all(
     ['actif', 'paiement_en_attente', 'suspendu', 'expire'].map(async s => {
-      const { count: c } = await (supabase.from('subscriptions') as unknown as CountQuery)
+      const { count: c } = await (supabase.from('abonnements') as unknown as CountQuery)
         .select('id', { count: 'exact', head: true })
         .eq('status', s)
       return [s, c ?? 0] as [string, number]

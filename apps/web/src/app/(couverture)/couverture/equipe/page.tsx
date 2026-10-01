@@ -20,7 +20,7 @@ export default async function CouvertureEquipePage() {
   if (!user) redirect('/connexion?redirect=/couverture/equipe')
 
   const { data: coverageData } = await supabase
-    .from('coverage_orgs')
+    .from('organismes_couverture')
     .select('id, name')
     .eq('profile_id', user.id)
     .maybeSingle()

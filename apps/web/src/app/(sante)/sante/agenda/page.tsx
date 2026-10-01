@@ -10,12 +10,12 @@ export default async function AgendaPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profile } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profile } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const actorType = (profile as unknown as { actor_type: string } | null)?.actor_type
   if (!actorType || !['sante', 'professionnel'].includes(actorType)) redirect('/connexion')
 
   const { data: proData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, establishment_professionals(establishments(id, name))')
     .eq('profile_id', user.id)
     .maybeSingle()

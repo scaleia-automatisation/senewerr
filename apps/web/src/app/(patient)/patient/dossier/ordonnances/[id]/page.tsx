@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, FileText, AlertTriangle } from 'lucide-react'
@@ -37,13 +37,13 @@ export default async function PatientOrdonnancePage({ params }: { params: Promis
 
   const [prescRes, itemsRes] = await Promise.all([
     supabase
-      .from('prescriptions')
+      .from('ordonnances')
       .select('id, status, created_at, issued_at, valid_until, notes, professionals(title, specialty, profiles(first_name, last_name))')
       .eq('id', id)
       .eq('patient_id', patient.id)
       .maybeSingle(),
     supabase
-      .from('prescription_items')
+      .from('articles_ordonnance')
       .select('id, medication_name, dosage, posologie, duree, quantite, renouvellements')
       .eq('prescription_id', id)
       .order('created_at'),

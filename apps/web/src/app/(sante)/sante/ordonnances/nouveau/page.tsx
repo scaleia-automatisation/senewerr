@@ -11,7 +11,7 @@ export default async function NouvelleOrdonnancePage({ searchParams }: { searchP
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: proData } = await supabase.from('professionals').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: proData } = await supabase.from('professionnels').select('id').eq('profile_id', user.id).maybeSingle()
   const pro = proData as unknown as { id: string } | null
   if (!pro) redirect('/connexion')
 

@@ -35,7 +35,7 @@ export default function InviterProfessionnelPage() {
     const isPhone = /^\+?[0-9]{7,}$/.test(phone)
 
     const { data: prosData } = await (supabase
-      .from('professionals')
+      .from('professionnels')
       .select('id, professional_type, specialty, title, profiles!inner(id, first_name, last_name, phone)') as unknown as Promise<{ data: unknown[] | null }>)
 
     const pros = (prosData ?? []) as unknown as {
@@ -75,7 +75,7 @@ export default function InviterProfessionnelPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data: estData } = await supabase.from('establishments').select('id').eq('profile_id', user.id).maybeSingle()
+    const { data: estData } = await supabase.from('etablissements').select('id').eq('profile_id', user.id).maybeSingle()
     const est = estData as unknown as { id: string } | null
     if (!est) { setError('Établissement introuvable.'); setLoading(null); return }
 

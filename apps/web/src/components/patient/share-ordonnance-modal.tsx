@@ -46,7 +46,7 @@ export function ShareOrdonnanceModal({ prescriptionId, patientId }: { prescripti
     const supabase = createClient()
 
     // Créer une réservation pharmacie liée à l'ordonnance
-    const { data: resaData, error: resaErr } = await (supabase.from('pharmacy_reservations') as unknown as InsertFn)
+    const { data: resaData, error: resaErr } = await (supabase.from('reservations_pharmacie') as unknown as InsertFn)
       .insert({
         patient_id: patientId,
         pharmacy_id: selectedPharmacy,
@@ -60,7 +60,7 @@ export function ShareOrdonnanceModal({ prescriptionId, patientId }: { prescripti
     if (resaErr) { setError(resaErr.message); setSharing(false); return }
 
     // Mettre à jour le statut de l'ordonnance → 'shared'
-    await (supabase.from('prescriptions') as unknown as UpdateFn)
+    await (supabase.from('ordonnances') as unknown as UpdateFn)
       .update({ status: 'shared' })
       .eq('id', prescriptionId)
 

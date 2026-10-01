@@ -86,7 +86,7 @@ export function ReservationStatusActions({ reservationId, currentStatus, pharmac
   async function handleTransition(to: string) {
     setError(''); setLoading(to)
     const supabase = createClient()
-    const { error: err } = await (supabase.from('pharmacy_reservations') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('reservations_pharmacie') as unknown as UpdateFn)
       .update({ status: to, pharmacist_notes: notes || null, updated_at: new Date().toISOString() })
       .eq('id', reservationId)
 

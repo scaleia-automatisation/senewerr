@@ -64,7 +64,7 @@ export function PaymentForm({
     const supabase = createClient()
     const ref = `PAY-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
 
-    const { data, error: err } = await (supabase.from('payments') as unknown as InsertFn)
+    const { data, error: err } = await (supabase.from('paiements') as unknown as InsertFn)
       .insert({
         patient_id: patientId,
         pharmacy_id: pharmacyId,
@@ -91,14 +91,14 @@ export function PaymentForm({
     if (!paymentId) return
     setLoading(true)
     const supabase = createClient()
-    const { error: err } = await (supabase.from('payments') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('paiements') as unknown as UpdateFn)
       .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
       .eq('id', paymentId)
 
     if (err) { setErrorMsg(err.message); setLoading(false); return }
 
     // Update reservation to funded / pending_payment resolved
-    await (supabase.from('pharmacy_reservations') as unknown as UpdateFn)
+    await (supabase.from('reservations_pharmacie') as unknown as UpdateFn)
       .update({ status: 'funded', updated_at: new Date().toISOString() })
       .eq('id', reservationId)
 

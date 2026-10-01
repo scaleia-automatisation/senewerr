@@ -170,7 +170,7 @@ function InscriptionPageInner() {
             options: { data: { first_name: firstName, last_name: lastName, actor_type: 'sante', sante_type: 'professionnel' } },
           })
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
-          await (supabase.from('professionals') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
+          await (supabase.from('professionnels') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
             profile_id: data.user.id, professional_type: professionalType || 'autre', specialty: specialty || null,
             ordre_number: licenseNumber || null, consultation_fee_fcfa: null,
             address_region: region || null, address_commune: null,
@@ -185,7 +185,7 @@ function InscriptionPageInner() {
             options: { data: { first_name: respNom, last_name: '', actor_type: 'sante', sante_type: 'etablissement' } },
           })
           if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
-          await (supabase.from('establishments') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
+          await (supabase.from('etablissements') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
             profile_id: data.user.id, name: estName, category: estCategory || 'prive', establishment_type: estType || 'autre_specialise',
             address_region: estRegion || 'À renseigner', phone: null, email: estEmail || null,
           })
@@ -213,7 +213,7 @@ function InscriptionPageInner() {
           options: { data: { first_name: covName, last_name: '', actor_type: 'couverture' } },
         })
         if (signUpErr || !data.user) { setError(signUpErr?.message ?? 'Erreur inscription.'); return }
-        await (supabase.from('coverage_orgs') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
+        await (supabase.from('organismes_couverture') as unknown as { insert: (v: unknown) => Promise<unknown> }).insert({
           profile_id: data.user.id, name: covName, org_type: covCategory || 'mutuelle_communautaire',
           phone: null, email: covEmail || null,
           address_region: covRegion || null,

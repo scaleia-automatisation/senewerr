@@ -43,7 +43,7 @@ export default function RecherchePharmaciesPage() {
     startTransition(async () => {
       const supabase = createClient()
       const { data } = await supabase
-        .from('pharmacy_products')
+        .from('produits_pharmacie')
         .select('id, name, dosage, form, prescription_required, description, unit_price_fcfa, pharmacy_id, pharmacies(id, name, address_commune, address_region), pharmacy_stock(quantity_available)')
         .ilike('name', `%${q.trim()}%`)
         .eq('is_available', true)

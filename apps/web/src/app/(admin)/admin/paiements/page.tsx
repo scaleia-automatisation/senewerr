@@ -67,13 +67,13 @@ export default async function AdminPaiementsPage({ searchParams }: { searchParam
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('id, actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('id, actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { id: string; actor_type: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
   // Fetch all payments for consolidated view (spec 17.5)
   let query = supabase
-    .from('payments')
+    .from('paiements')
     .select('id, payment_type, amount_fcfa, status, method, reference_code, created_at, patients(profiles(full_name)), pharmacies(name)')
     .order('created_at', { ascending: false })
     .limit(100)

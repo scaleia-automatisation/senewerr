@@ -118,21 +118,21 @@ export default async function SchemaPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || profile.actor_type !== 'super_admin') redirect('/connexion')
 
   // Comptages représentatifs (spec 26 — vérification cohérence)
   type CountQuery = { select: (q: string, opts: { count: string; head: boolean }) => Promise<{ count: number | null }> }
   const counts = await Promise.allSettled([
-    (supabase.from('profiles') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
+    (supabase.from('profils') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
     (supabase.from('patients') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
-    (supabase.from('professionals') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
+    (supabase.from('professionnels') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
     (supabase.from('pharmacies') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
-    (supabase.from('appointments') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
-    (supabase.from('prescriptions') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
-    (supabase.from('pharmacy_reservations') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
-    (supabase.from('payments') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
+    (supabase.from('rendez_vous') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
+    (supabase.from('ordonnances') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
+    (supabase.from('reservations_pharmacie') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
+    (supabase.from('paiements') as unknown as CountQuery).select('id', { count: 'exact', head: true }),
   ])
   function cnt(r: PromiseSettledResult<{ count: number | null }>): number {
     return r.status === 'fulfilled' ? (r.value.count ?? 0) : 0

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -84,7 +84,7 @@ function PrendreRendezVousInner({ params }: { params: Promise<{ id: string }> })
       const { data: { user } } = await supabase.auth.getUser()
 
       const { data: proData } = await supabase
-        .from('professionals')
+        .from('professionnels')
         .select(`
           id, professional_type, specialty, title,
           consultation_fee_fcfa, teleconsultation_fee_fcfa,
@@ -104,7 +104,7 @@ function PrendreRendezVousInner({ params }: { params: Promise<{ id: string }> })
         const patient = patientData as unknown as { id: string } | null
         if (patient) {
           const { data: bData } = await supabase
-            .from('patient_beneficiaries')
+            .from('beneficiaires')
             .select('id, first_name, last_name, relationship')
             .eq('patient_id', patient.id)
           setBeneficiaries((bData ?? []) as unknown as Beneficiary[])
@@ -120,7 +120,7 @@ function PrendreRendezVousInner({ params }: { params: Promise<{ id: string }> })
     const load = async () => {
       const supabase = createClient()
       const { data } = await supabase
-        .from('appointments')
+        .from('rendez_vous')
         .select('start_time')
         .eq('professional_id', professionalId)
         .eq('appointment_date', formatDateISO(selectedDate))
@@ -153,7 +153,7 @@ function PrendreRendezVousInner({ params }: { params: Promise<{ id: string }> })
     const endMin    = startMin + 30
     const endTime   = `${endHour(startHour, endMin)}:${String(endMin % 60).padStart(2, '0')}`
 
-    const { data: appointment, error: err } = await (supabase.from('appointments') as unknown as {
+    const { data: appointment, error: err } = await (supabase.from('rendez_vous') as unknown as {
       insert: (v: unknown) => { select: (s: string) => { single: () => Promise<{ data: { id: string } | null; error: { message: string } | null }> } }
     }).insert({
       professional_id: professionalId,

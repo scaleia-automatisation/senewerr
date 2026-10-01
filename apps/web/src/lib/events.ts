@@ -66,7 +66,7 @@ export async function logEvent(payload: EventPayload): Promise<{ eventId: string
     // Idempotency check for sensitive events
     if (IDEMPOTENT_EVENT_TYPES.includes(payload.event_type)) {
       const since = new Date(Date.now() - IDEMPOTENCY_WINDOW_SECONDS * 1000).toISOString()
-      const { data: existing } = await (supabase.from('system_events') as unknown as SelectEventFn)
+      const { data: existing } = await (supabase.from('evenements_systeme') as unknown as SelectEventFn)
         .select('id')
         .eq('event_type', payload.event_type)
         .eq('object_id', payload.object_id)
@@ -75,7 +75,7 @@ export async function logEvent(payload: EventPayload): Promise<{ eventId: string
 
       if (existing && existing.length > 0) {
         // Duplicate within window — log the block but do not insert original
-        await (supabase.from('system_events') as unknown as InsertEventFn)
+        await (supabase.from('evenements_systeme') as unknown as InsertEventFn)
           .insert({
             event_type: 'system.idempotency_block' as EventType,
             actor_id: payload.actor_id,
@@ -93,7 +93,7 @@ export async function logEvent(payload: EventPayload): Promise<{ eventId: string
       }
     }
 
-    const { data, error } = await (supabase.from('system_events') as unknown as InsertEventFn)
+    const { data, error } = await (supabase.from('evenements_systeme') as unknown as InsertEventFn)
       .insert({
         event_type: payload.event_type,
         actor_id: payload.actor_id,

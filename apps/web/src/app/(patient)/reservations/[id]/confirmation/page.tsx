@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+﻿import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -23,7 +23,7 @@ export default async function ReservationConfirmationPage({ params, searchParams
   const supabase = await createClient()
 
   const { data: reservationData, error } = await supabase
-    .from('pharmacy_reservations')
+    .from('reservations_pharmacie')
     .select(`
       *,
       pharmacy:pharmacies (

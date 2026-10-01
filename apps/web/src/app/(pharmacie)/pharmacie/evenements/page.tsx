@@ -87,7 +87,7 @@ export default async function PharmacieEvenementsPage({ searchParams }: { search
   }
   type RawQuery = { select: (q: string, opts?: { count?: string }) => Chain }
 
-  let q = (supabase.from('system_events') as unknown as RawQuery)
+  let q = (supabase.from('evenements_systeme') as unknown as RawQuery)
     .select('id, event_type, actor_type, object_type, object_id, result, metadata, correlation_id, category, created_at', { count: 'exact' })
     .eq('actor_id', pharmacy.id)
     .in('event_type', Object.keys(PHARMACIE_EVENT_LABELS))

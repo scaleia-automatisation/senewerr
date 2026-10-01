@@ -38,7 +38,7 @@ export default async function StockPage() {
   }
 
   const { data: stockData } = await supabase
-    .from('pharmacy_stock')
+    .from('stock_pharmacie')
     .select(`
       id, quantity_available, quantity_total, quantity_reserved, reorder_threshold, expiry_date,
       pharmacy_products ( name, generic_name, dci, category )

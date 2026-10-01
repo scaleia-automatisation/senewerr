@@ -32,14 +32,14 @@ export default async function SanteAccueilPage() {
   if (!user) redirect('/connexion')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('first_name, last_name, account_status, verification_notes')
     .eq('id', user.id)
     .single()
   const profile = profileData as unknown as { first_name: string | null; last_name: string | null; account_status: string | null; verification_notes: string | null } | null
 
-  const { data: proData }  = await supabase.from('professionals').select('id, title').eq('profile_id', user.id).maybeSingle()
-  const { data: estData }  = await supabase.from('establishments').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: proData }  = await supabase.from('professionnels').select('id, title').eq('profile_id', user.id).maybeSingle()
+  const { data: estData }  = await supabase.from('etablissements').select('id').eq('profile_id', user.id).maybeSingle()
   const pro = proData as unknown as { id: string; title?: string | null } | null
   const accountStatus = profile ? { status: profile.account_status, refusal_reason: profile.verification_notes } : null
 
@@ -53,12 +53,12 @@ export default async function SanteAccueilPage() {
     { data: upcomingData },
   ] = await Promise.all([
     pro
-      ? supabase.from('appointments').select('*', { count: 'exact', head: true })
+      ? supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
           .eq('professional_id', pro.id).eq('appointment_date', today)
           .not('status', 'in', '("cancelled","no_show")')
       : Promise.resolve({ count: 0 }),
     pro
-      ? supabase.from('appointments').select('*', { count: 'exact', head: true })
+      ? supabase.from('rendez_vous').select('*', { count: 'exact', head: true })
           .eq('professional_id', pro.id).eq('appointment_date', today)
           .in('status', ['confirmed', 'arrived'])
       : Promise.resolve({ count: 0 }),
@@ -69,13 +69,13 @@ export default async function SanteAccueilPage() {
             .eq('professional_id', pro.id).eq('status', 'in_progress')
       : Promise.resolve({ count: 0 }),
     pro
-      ? (supabase.from('prescriptions') as unknown as {
+      ? (supabase.from('ordonnances') as unknown as {
           select: (s: string, o: object) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => Promise<{ count: number | null }> } }
         }).select('*', { count: 'exact', head: true })
             .eq('professional_id', pro.id).eq('status', 'draft')
       : Promise.resolve({ count: 0 }),
     pro
-      ? supabase.from('appointments')
+      ? supabase.from('rendez_vous')
           .select(`id, start_time, status, appointment_type, reason,
             patients!inner(profiles!inner(first_name, last_name))`)
           .eq('professional_id', pro.id)

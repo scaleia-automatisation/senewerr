@@ -9,7 +9,7 @@ export default async function SanteLayout({ children }: { children: React.ReactN
   if (!user) redirect('/connexion?redirect=/sante/accueil')
 
   const { data: profileData } = await supabase
-    .from('profiles')
+    .from('profils')
     .select('actor_type')
     .eq('id', user.id)
     .single()
@@ -18,8 +18,8 @@ export default async function SanteLayout({ children }: { children: React.ReactN
   if (!profile || profile.actor_type !== 'sante') redirect('/tableau-de-bord')
 
   const [{ data: professionalData }, { data: establishmentData }] = await Promise.all([
-    supabase.from('professionals').select('id').eq('profile_id', user.id).maybeSingle(),
-    supabase.from('establishments').select('id').eq('profile_id', user.id).maybeSingle(),
+    supabase.from('professionnels').select('id').eq('profile_id', user.id).maybeSingle(),
+    supabase.from('etablissements').select('id').eq('profile_id', user.id).maybeSingle(),
   ])
   const hasProfile = !!(professionalData || establishmentData)
 

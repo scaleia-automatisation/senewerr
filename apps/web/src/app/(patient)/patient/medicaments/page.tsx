@@ -27,7 +27,7 @@ export default async function MedicamentsPage() {
 
   // Fetch available products (in stock at at least one pharmacy)
   const { data: products, count } = await supabase
-    .from('pharmacy_products')
+    .from('produits_pharmacie')
     .select(`
       id,
       name,

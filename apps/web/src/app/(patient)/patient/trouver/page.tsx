@@ -66,7 +66,7 @@ export default async function TrouverPage({ searchParams }: Props) {
 
   if (type === 'professionnels' || !type) {
     let query = supabase
-      .from('professionals')
+      .from('professionnels')
       .select(`
         id,
         professional_type,
@@ -91,7 +91,7 @@ export default async function TrouverPage({ searchParams }: Props) {
     professionals = (data ?? []) as unknown as ProfessionalResult[]
   } else {
     let query = supabase
-      .from('establishments')
+      .from('etablissements')
       .select(`
         id,
         name,

@@ -15,8 +15,8 @@ export default async function AdminAccueilPage() {
     { count: pendingCount },
     { count: litiges },
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_status', 'pending'),
+    supabase.from('profils').select('*', { count: 'exact', head: true }),
+    supabase.from('profils').select('*', { count: 'exact', head: true }).eq('account_status', 'pending'),
     supabase.from('litiges').select('*', { count: 'exact', head: true }).eq('status', 'open'),
   ])
 

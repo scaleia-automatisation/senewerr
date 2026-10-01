@@ -37,7 +37,7 @@ export default async function FamillePage() {
   const patient = patientData as unknown as { id: string } | null
 
   const { data: benData } = patient
-    ? await (supabase.from('patient_beneficiaries') as unknown as {
+    ? await (supabase.from('beneficiaires') as unknown as {
         select: (s: string) => {
           eq: (col: string, val: string) => {
             order: (col: string, opts: object) => Promise<{ data: unknown[] | null }>

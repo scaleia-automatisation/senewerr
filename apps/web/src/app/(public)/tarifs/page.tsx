@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function TarifsPage() {
   const supabase = await createClient()
   const { data: plansData } = await supabase
-    .from('pricing_plans')
+    .from('grilles_tarifs')
     .select('*')
     .eq('is_active', true)
     .order('actor_type')

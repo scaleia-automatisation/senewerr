@@ -67,7 +67,7 @@ export function AppointmentStatusActions({
   async function handleUpdate(newStatus: string) {
     setLoading(newStatus); setError('')
     const supabase = createClient()
-    const { error: err } = await (supabase.from('appointments') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('rendez_vous') as unknown as UpdateFn)
       .update({ status: newStatus, notes: notes || null })
       .eq('id', appointmentId)
       .eq('professional_id', professionalId)

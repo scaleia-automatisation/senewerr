@@ -20,7 +20,7 @@ export default async function SanteAbonnementPage() {
   if (!user) redirect('/connexion')
 
   const { data: profData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id, profiles(full_name)')
     .eq('profile_id', user.id)
     .maybeSingle()
@@ -36,7 +36,7 @@ export default async function SanteAbonnementPage() {
       }
     }
   }
-  const { data: subData } = await (supabase.from('subscriptions') as unknown as FetchFn)
+  const { data: subData } = await (supabase.from('abonnements') as unknown as FetchFn)
     .select('id, plan_key, status, started_at, renewal_at, trial_ends_at')
     .eq('actor_type', 'sante')
     .eq('actor_id', prof.id)

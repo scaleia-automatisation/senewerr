@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, CreditCard, CheckCircle2, Clock, XCircle, Download } from 'lucide-react'
@@ -54,7 +54,7 @@ export default async function PaiementDetailPage({ params }: { params: Promise<{
   if (!patient) redirect('/connexion')
 
   const { data: payData } = await supabase
-    .from('payments')
+    .from('paiements')
     .select('id, payment_type, amount_fcfa, status, method, reference_code, notes, receipt_url, created_at, confirmed_at, pharmacy_reservations(id, pharmacy_reservation_items(medication_name, pharmacy_products(dosage)), pharmacies(name)), coverage_requests(id, amount_covered, amount_patient)')
     .eq('id', id)
     .eq('patient_id', patient.id)

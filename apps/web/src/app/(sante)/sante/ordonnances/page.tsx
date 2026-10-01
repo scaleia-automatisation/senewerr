@@ -34,7 +34,7 @@ export default async function OrdonnancesPage({
   if (!user) redirect('/connexion?redirect=/sante/ordonnances')
 
   const { data: professionalData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id')
     .eq('profile_id', user.id)
     .single()
@@ -49,7 +49,7 @@ export default async function OrdonnancesPage({
   }
 
   const { data: prescriptions } = await supabase
-    .from('prescriptions')
+    .from('ordonnances')
     .select(`
       id,
       status,

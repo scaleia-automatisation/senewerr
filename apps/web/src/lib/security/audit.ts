@@ -42,7 +42,7 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser()
 
     type InsertFn = { insert: (v: unknown) => Promise<{ error: unknown }> }
-    await (supabase.from('system_events') as unknown as InsertFn).insert({
+    await (supabase.from('evenements_systeme') as unknown as InsertFn).insert({
       event_type: entry.action,
       actor_id: user?.id ?? null,
       actor_type: entry.actor_role ?? null,

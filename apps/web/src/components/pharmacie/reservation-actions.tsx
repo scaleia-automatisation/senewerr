@@ -38,7 +38,7 @@ export function ReservationActions({ reservationId, currentStatus, pharmacyId, p
   async function updateStatus(newStatus: string, extra?: Record<string, unknown>) {
     setLoading(newStatus); setError('')
     const supabase = createClient()
-    const { error: err } = await (supabase.from('pharmacy_reservations') as unknown as UpdateFn)
+    const { error: err } = await (supabase.from('reservations_pharmacie') as unknown as UpdateFn)
       .update({ status: newStatus, ...extra })
       .eq('id', reservationId)
       .eq('pharmacy_id', pharmacyId)

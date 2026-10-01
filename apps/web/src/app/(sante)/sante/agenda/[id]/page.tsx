@@ -1,4 +1,4 @@
-import { redirect, notFound } from 'next/navigation'
+﻿import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, Clock, User, MapPin, FileText } from 'lucide-react'
@@ -42,12 +42,12 @@ export default async function AgendaDetailPage({ params }: { params: Promise<{ i
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: proData } = await supabase.from('professionals').select('id').eq('profile_id', user.id).maybeSingle()
+  const { data: proData } = await supabase.from('professionnels').select('id').eq('profile_id', user.id).maybeSingle()
   const pro = proData as unknown as { id: string } | null
   if (!pro) redirect('/connexion')
 
   const { data: apptData } = await supabase
-    .from('appointments')
+    .from('rendez_vous')
     .select('id, status, scheduled_at, duration_minutes, reason, notes, cancellation_reason, created_at, patients(profiles(first_name, last_name, phone, date_of_birth)), establishments(name, address_commune)')
     .eq('id', id)
     .eq('professional_id', pro.id)

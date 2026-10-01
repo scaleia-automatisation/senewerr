@@ -53,14 +53,14 @@ export default async function EtablissementsPage() {
   if (!user) redirect('/connexion?redirect=/sante/etablissements')
 
   const { data: professionalData } = await supabase
-    .from('professionals')
+    .from('professionnels')
     .select('id')
     .eq('profile_id', user.id)
     .maybeSingle()
   const professional = professionalData as unknown as { id: string } | null
 
   const { data: establishmentData } = await supabase
-    .from('establishments')
+    .from('etablissements')
     .select('id, name, establishment_type, address_region, address_commune')
     .eq('profile_id', user.id)
     .maybeSingle()

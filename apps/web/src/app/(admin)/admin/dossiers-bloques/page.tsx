@@ -45,35 +45,35 @@ export default async function AdminDossiersBloques({ searchParams }: { searchPar
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: profileData } = await supabase.from('profiles').select('actor_type').eq('id', user.id).maybeSingle()
+  const { data: profileData } = await supabase.from('profils').select('actor_type').eq('id', user.id).maybeSingle()
   const profile = profileData as unknown as { actor_type: string } | null
   if (!profile || (profile.actor_type !== 'admin' && profile.actor_type !== 'super_admin')) redirect('/connexion')
 
   // Spec 21.5 — fetch par catégorie en parallèle
   const [resasRes, paymentsRes, coverageRes, prescsRes] = await Promise.allSettled([
     // Réservations bloquées (verifying, pending_coverage, pending_payment depuis > 12h)
-    supabase.from('pharmacy_reservations')
+    supabase.from('reservations_pharmacie')
       .select('id, status, created_at, pickup_code, patients(profiles(full_name)), pharmacy_reservation_items(medication_name)')
       .in('status', ['verifying', 'awaiting_coverage', 'awaiting_payment'])
       .order('created_at', { ascending: true })
       .limit(50),
 
     // Paiements non confirmés
-    supabase.from('payments')
+    supabase.from('paiements')
       .select('id, status, created_at, reference_code, amount_fcfa, patients(profiles(full_name))')
       .in('status', ['pending', 'failed'])
       .order('created_at', { ascending: true })
       .limit(50),
 
     // Prises en charge en attente trop longtemps
-    supabase.from('coverage_requests')
+    supabase.from('demandes_couverture')
       .select('id, status, created_at, patients(profiles(full_name))')
       .in('status', ['pending', 'reviewing', 'info_required'])
       .order('created_at', { ascending: true })
       .limit(50),
 
     // Ordonnances signalées
-    supabase.from('prescriptions')
+    supabase.from('ordonnances')
       .select('id, status, created_at, patients(profiles(full_name))')
       .eq('status', 'flagged')
       .order('created_at', { ascending: true })

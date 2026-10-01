@@ -27,7 +27,7 @@ export default function ChoisirProfilPage() {
 
     // Vérifier que l'utilisateur n'a pas déjà un actor_type (protection contre double-visite)
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('profils')
       .select('actor_type, full_name')
       .eq('id', user.id)
       .single()
@@ -39,7 +39,7 @@ export default function ChoisirProfilPage() {
       return
     }
 
-    const { error: updateErr } = await (supabase.from('profiles') as unknown as {
+    const { error: updateErr } = await (supabase.from('profils') as unknown as {
       update: (v: unknown) => { eq: (k: string, v: string) => Promise<{ error: Error | null }> }
     }).update({ actor_type: actorType }).eq('id', user.id)
 
@@ -55,11 +55,11 @@ export default function ChoisirProfilPage() {
     if (actorType === 'patient') {
       await (supabase.from('patients') as unknown as InsertFn).insert({ profile_id: user.id })
     } else if (actorType === 'sante') {
-      await (supabase.from('professionals') as unknown as InsertFn).insert({ profile_id: user.id, professional_type: 'autre', plan: 'essentiel' })
+      await (supabase.from('professionnels') as unknown as InsertFn).insert({ profile_id: user.id, professional_type: 'autre', plan: 'essentiel' })
     } else if (actorType === 'pharmacie') {
       await (supabase.from('pharmacies') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, address_region: 'À renseigner' })
     } else if (actorType === 'couverture') {
-      await (supabase.from('coverage_orgs') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, org_type: 'mutuelle_communautaire' })
+      await (supabase.from('organismes_couverture') as unknown as InsertFn).insert({ profile_id: user.id, name: displayName, org_type: 'mutuelle_communautaire' })
     }
 
     const routes: Record<string, string> = {

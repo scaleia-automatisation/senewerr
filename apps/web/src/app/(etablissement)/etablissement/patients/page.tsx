@@ -19,7 +19,7 @@ export default async function EtablissementPatientsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/connexion')
 
-  const { data: estRaw } = await supabase.from('establishments').select('id').eq('profile_id', user.id).single()
+  const { data: estRaw } = await supabase.from('etablissements').select('id').eq('profile_id', user.id).single()
   if (!estRaw) redirect('/etablissement/accueil')
   const est = estRaw as unknown as { id: string }
 
@@ -32,7 +32,7 @@ export default async function EtablissementPatientsPage() {
   let patients: { id: string; fullName: string; lastDate: string; totalVisits: number }[] = []
 
   if (proIds.length > 0) {
-    const { data } = await supabase.from('appointments')
+    const { data } = await supabase.from('rendez_vous')
       .select('patient_id, appointment_date, patients!inner(profiles!inner(first_name, last_name))')
       .in('professional_id', proIds)
       .order('appointment_date', { ascending: false })
