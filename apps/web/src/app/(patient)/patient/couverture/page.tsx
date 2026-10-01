@@ -1,7 +1,8 @@
-import { Shield, CheckCircle, XCircle, Info, Calendar, Hash } from 'lucide-react'
+import { Shield, CheckCircle, XCircle, Info, Calendar, Hash, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Ma couverture' }
@@ -60,12 +61,21 @@ export default async function CouverturePage() {
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-2xl mx-auto">
       <div className="flex items-start justify-between">
-        <h1 className="text-xl font-bold text-[var(--sw-ink)]">Ma couverture santé</h1>
-        {activeCount > 0 && (
-          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--sw-success-bg)] text-[var(--sw-success)]">
-            {activeCount} active{activeCount > 1 ? 's' : ''}
-          </span>
-        )}
+        <div>
+          <h1 className="text-xl font-bold text-[var(--sw-ink)]">Ma couverture santé</h1>
+          {activeCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--sw-success-bg)] text-[var(--sw-success)]">
+              {activeCount} active{activeCount > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        <Link
+          href="/patient/couverture/declarer"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--sw-primary)] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Déclarer
+        </Link>
       </div>
 
       {memberships.length === 0 ? (
@@ -74,13 +84,19 @@ export default async function CouverturePage() {
             <Shield className="w-12 h-12 text-[var(--sw-ink-3)]" />
             <div>
               <p className="text-sm font-medium text-[var(--sw-ink)]">
-                Vous n'avez pas encore déclaré de mutuelle
+                Vous n'avez pas encore déclaré de couverture
               </p>
               <p className="text-xs text-[var(--sw-ink-2)] mt-1">
-                Si vous avez une assurance maladie ou une mutuelle,
-                votre organisme peut vous enregistrer sur la plateforme.
+                Déclarez votre mutuelle, IPM ou assurance pour bénéficier du tiers payant.
               </p>
             </div>
+            <Link
+              href="/patient/couverture/declarer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--sw-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              <Plus className="w-4 h-4" />
+              Déclarer ma couverture
+            </Link>
           </div>
 
           {/* Info tiers payant */}
