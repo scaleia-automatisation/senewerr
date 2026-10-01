@@ -122,12 +122,14 @@ export async function declarerCouverture(input: DeclarationInput): Promise<{ err
 
 /* ─── Validation / Refus par l'organisme ──────────────────────────────────── */
 
-export async function validerAdherent(adherentId: string): Promise<{ error?: string }> {
+export async function validerAdherent(
+  adherentId: string,
+  dates?: { startDate: string; endDate: string | null },
+): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Non authentifié.' }
 
-  // Vérifier que l'adhérent appartient bien à l'org de cet utilisateur
   const { data: orgData } = await supabase
     .from('organismes_couverture')
     .select('id')
@@ -146,9 +148,13 @@ export async function validerAdherent(adherentId: string): Promise<{ error?: str
 
   const m = member as unknown as { id: string; patient_id: string; coverage_org_id: string }
 
+  const updatePayload: Record<string, unknown> = { is_active: true, statut: 'actif' }
+  if (dates?.startDate) updatePayload.start_date = dates.startDate
+  if (dates?.endDate !== undefined) updatePayload.end_date = dates.endDate
+
   const { error } = await supabase
     .from('adherents_couverture')
-    .update({ is_active: true, statut: 'actif' })
+    .update(updatePayload as never)
     .eq('id', adherentId)
 
   if (error) return { error: error.message }

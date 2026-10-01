@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, FilePlus } from 'lucide-react'
 import { ConsultationEditor } from '@/components/sante/consultation-editor'
+import { CouvertureBadge } from '@/components/shared/couverture-badge'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Consultation' }
@@ -85,6 +86,12 @@ export default async function ConsultationDetailPage({ params }: { params: Promi
             <FilePlus className="w-4 h-4" /> Ordonnance
           </Link>
         )}
+      </div>
+
+      {/* Couverture santé du patient */}
+      <div className="sw-card p-3 space-y-1.5">
+        <p className="text-xs font-medium text-[var(--sw-ink-2)]">Couverture santé</p>
+        <CouvertureBadge patientId={consult.patient_id} />
       </div>
 
       <ConsultationEditor

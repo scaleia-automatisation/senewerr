@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/utils'
 import { Users, Calendar } from 'lucide-react'
+import { CouvertureBadge } from '@/components/shared/couverture-badge'
 
 export default async function PatientsPage() {
   const supabase = await createClient()
@@ -103,9 +104,9 @@ export default async function PatientsPage() {
                 </span>
               </div>
 
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 space-y-1.5">
                 <p className="font-medium text-[var(--sw-ink)] truncate">{patient.fullName}</p>
-                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span className="flex items-center gap-1 text-xs text-[var(--sw-ink-3)]">
                     <Calendar className="w-3 h-3" />
                     Dernier RDV : {formatDate(patient.lastAppointmentDate)}
@@ -114,6 +115,7 @@ export default async function PatientsPage() {
                     {patient.totalVisits} visite{patient.totalVisits !== 1 ? 's' : ''}
                   </span>
                 </div>
+                <CouvertureBadge patientId={patient.id} />
               </div>
             </div>
           ))}

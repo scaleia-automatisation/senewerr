@@ -171,7 +171,13 @@ function MemberCard({ member: m, showActions }: { member: Member; showActions?: 
         </div>
       </div>
 
-      {showActions && <AdherentActions adherentId={m.id} />}
+      {showActions && (
+        <AdherentActions
+          adherentId={m.id}
+          defaultStartDate={m.start_date}
+          defaultEndDate={m.end_date}
+        />
+      )}
     </div>
   )
 }

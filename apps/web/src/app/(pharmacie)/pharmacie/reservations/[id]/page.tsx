@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Package, MapPin, FileText } from 'lucide-react'
+import { CouvertureBadge } from '@/components/shared/couverture-badge'
 import { ReservationStatusActions } from '@/components/pharmacie/reservation-status-actions'
 import { PreparationConditions } from '@/components/pharmacie/preparation-conditions'
 import type { PrepConditions } from '@/components/pharmacie/preparation-conditions'
@@ -176,7 +177,12 @@ export default async function PharmacieReservationDetailPage({ params }: { param
             </div>
           </div>
         ) : <p className="text-sm text-[var(--sw-ink-3)]">Informations patient non disponibles</p>}
-        {resa.has_coverage && <p className="text-xs text-blue-600 mt-2">Prise en charge (couverture) demandée</p>}
+        {pat?.id && (
+          <div className="mt-2">
+            <CouvertureBadge patientId={pat.id} />
+          </div>
+        )}
+        {resa.has_coverage && <p className="text-xs text-blue-600 mt-1">Prise en charge (couverture) demandée</p>}
         {resa.notes && (
           <div className="mt-2 p-2.5 rounded-xl bg-[var(--sw-surface-2)]">
             <p className="text-xs text-[var(--sw-ink-3)] font-medium mb-0.5">Note du patient</p>
